@@ -9,17 +9,17 @@ import { generateUwiFiscalizado } from "./uwi";
 import type { DashboardFilters, DashboardStats, DashboardSankeyData, DataScope, UploadBatch, ValidationResult, WellMapPoint, WellRecord } from "./types";
 import { initAuthSchema, writeAuditLog } from "./auth-db";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const DB_PATH = path.join(DATA_DIR, "inventario.db");
+import { getDbPath, getDataDir } from "./paths";
+
+const DATA_DIR = getDataDir();
+const DB_PATH = getDbPath();
 
 let db: Database.Database | null = null;
 let uwisRecomputed = false;
 let geographyRenormalized = false;
 
 function ensureDataDir() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+  getDataDir();
 }
 
 function initSchema(database: Database.Database) {

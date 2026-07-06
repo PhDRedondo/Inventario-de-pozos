@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-
-const OUTBOX_DIR = path.join(process.cwd(), "data", "outbox");
+import { getOutboxDir } from "./paths";
 const ANH_CORRESPONDENCE = "correspondenciaanh@anh.gov.co";
 
 export interface SubmissionEmailInput {
@@ -30,10 +29,7 @@ export async function sendSubmissionEmail(input: SubmissionEmailInput): Promise<
     "Este mensaje fue generado automáticamente por el Sistema GOP — Inventario de Pozos.",
   ].join("\n");
 
-  if (!fs.existsSync(OUTBOX_DIR)) {
-    fs.mkdirSync(OUTBOX_DIR, { recursive: true });
-  }
-
+  const OUTBOX_DIR = getOutboxDir();
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const base = path.join(OUTBOX_DIR, `submission-${input.uploadId}-${stamp}`);
   fs.writeFileSync(`${base}.txt`, `To: ${ANH_CORRESPONDENCE}\nSubject: ${subject}\n\n${body}`);
