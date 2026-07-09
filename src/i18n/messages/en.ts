@@ -611,6 +611,7 @@ export const en = {
   },
   landing: {
     backHome: "Back to home",
+    goToPanel: "Go to dashboard",
     signIn: "Sign in",
     heroEyebrow: "National Hydrocarbons Agency · GOP",
     heroTitle: "Well Inventory Validator (VIP) of Colombia",

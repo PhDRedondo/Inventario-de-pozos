@@ -37,7 +37,7 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
       aria-label={t("nav.mainMenu")}
     >
       <div className="flex shrink-0 flex-col items-center border-b border-anh-sidebar-border px-2 py-3 sm:py-4">
-        <Link href="/panel" className="group flex flex-col items-center gap-1.5 sm:gap-2" title={t("shell.appTitle")}>
+        <Link href="/" className="group flex flex-col items-center gap-1.5 sm:gap-2" title={t("landing.backHome")}>
           <Image
             src="/anh-logo.png"
             alt={t("shell.logoAlt")}

@@ -619,6 +619,7 @@ export const es = {
   },
   landing: {
     backHome: "Volver al inicio",
+    goToPanel: "Ir al panel",
     signIn: "Iniciar sesión",
     heroEyebrow: "Agencia Nacional de Hidrocarburos · GOP",
     heroTitle: "Validador del Inventario de Pozos (VIP) de Colombia",

@@ -9,6 +9,7 @@ import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
+import { getNavItemsForRole } from "@/lib/navigation";
 import type { LandingStats } from "@/lib/landing-stats";
 
 const ROLE_IDS = ["operadora", "anh"] as const;
@@ -32,14 +33,9 @@ function RoleIcon({ role }: { role: (typeof ROLE_IDS)[number] }) {
 
 export default function LandingPage() {
   const t = useT();
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const [landingStats, setLandingStats] = useState<LandingStats | null>(null);
-
-  useEffect(() => {
-    if (!loading && user) {
-      window.location.href = "/panel";
-    }
-  }, [user, loading]);
+  const homeHref = user ? (getNavItemsForRole(user.role)[0]?.href ?? "/panel") : "/login";
 
   useEffect(() => {
     fetch("/api/public/landing-stats")
@@ -65,8 +61,8 @@ export default function LandingPage() {
           </Link>
           <div className="flex items-center gap-2">
             <PreferencesBar />
-            <Link href="/login" className="btn-primary text-sm">
-              {t("landing.signIn")}
+            <Link href={homeHref} className="btn-primary text-sm">
+              {user ? t("landing.goToPanel") : t("landing.signIn")}
             </Link>
           </div>
         </div>
