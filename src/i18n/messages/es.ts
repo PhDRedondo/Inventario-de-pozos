@@ -329,6 +329,9 @@ export const es = {
     filterErrors: "Solo errores",
     filterWarnings: "Solo advertencias",
     findingsTitle: "Detalle de hallazgos",
+    noFindingsFiltered: "No hay hallazgos con el filtro seleccionado.",
+    noFindingsTryErrors:
+      "Esta versión tiene {{count}} registro(s) con errores. Use el filtro «Solo errores» o «Todos» para ver el detalle.",
     colAttribute: "Atributo",
     colSeverity: "Severidad",
     colMessage: "Mensaje",

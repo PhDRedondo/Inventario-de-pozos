@@ -90,6 +90,14 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     loadReport(selectedVersion?.id ?? null).catch(console.error);
   }, [selectedVersion?.id, loadReport]);
 
+  useEffect(() => {
+    if ((selectedVersion?.invalid_records ?? 0) > 0) {
+      setFilter("errors");
+    } else {
+      setFilter("all");
+    }
+  }, [selectedVersion?.id, selectedVersion?.invalid_records]);
+
   function pickFile(next: File | null) {
     if (!next) {
       setFile(null);
@@ -180,6 +188,25 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     if (filter === "warnings") return report.filter((r) => r.is_valid && r.warning_count > 0);
     return report;
   }, [report, filter]);
+
+  const findingRows = useMemo(
+    () =>
+      filtered.flatMap((row) =>
+        row.issues.map((issue, idx) => ({
+          key: `${row.well_id}-${idx}`,
+          well: row.nombre_pozo_sgc,
+          field: getAttributeLabel(issue.field),
+          severity: issue.severity,
+          message: issue.message,
+        })),
+      ),
+    [filtered],
+  );
+
+  const showErrorsFilterHint =
+    filter === "warnings" &&
+    findingRows.length === 0 &&
+    (selectedVersion?.invalid_records ?? 0) > 0;
 
   const totals = useMemo(
     () => ({
@@ -429,34 +456,52 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
 
       <div className="card overflow-hidden" data-tour="quality-panel">
         <div className="border-b border-anh-border px-4 py-3 font-bold text-anh-primary">{t("quality.findingsTitle")}</div>
-        <div className="hidden max-h-[36rem] overflow-x-auto md:block">
-          <table className="min-w-full text-sm">
-            <thead className="sticky top-0 bg-anh-bg text-left text-anh-muted">
-              <tr>
-                <th className="px-4 py-3">{t("common.well")}</th>
-                <th className="px-4 py-3">{t("quality.colAttribute")}</th>
-                <th className="px-4 py-3">{t("quality.colSeverity")}</th>
-                <th className="px-4 py-3">{t("quality.colMessage")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.flatMap((row) =>
-                row.issues.map((issue, idx) => (
-                  <tr key={`${row.well_id}-${idx}`} className="border-t border-anh-border align-top">
-                    <td className="px-4 py-3 font-medium">{row.nombre_pozo_sgc}</td>
-                    <td className="px-4 py-3 text-xs">{getAttributeLabel(issue.field)}</td>
-                    <td className="px-4 py-3">
-                      <span className={issue.severity === "error" ? "badge-invalid" : "badge-warning"}>
-                        {issue.severity}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">{issue.message}</td>
+        {findingRows.length === 0 ? (
+          <div className="px-4 py-8 text-center text-sm text-anh-muted">
+            <p>{showErrorsFilterHint ? t("quality.noFindingsTryErrors", { count: selectedVersion?.invalid_records ?? 0 }) : t("quality.noFindingsFiltered")}</p>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-3 p-4 md:hidden">
+              {findingRows.map((row) => (
+                <article key={row.key} className="rounded-xl border border-anh-border bg-anh-bg/70 p-4">
+                  <p className="font-semibold text-anh-primary">{row.well}</p>
+                  <p className="mt-1 text-xs text-anh-muted">{row.field}</p>
+                  <p className="mt-2">
+                    <span className={row.severity === "error" ? "badge-invalid" : "badge-warning"}>{row.severity}</span>
+                  </p>
+                  <p className="mt-2 text-sm text-anh-text">{row.message}</p>
+                </article>
+              ))}
+            </div>
+            <div className="hidden max-h-[36rem] overflow-x-auto md:block">
+              <table className="min-w-full text-sm">
+                <thead className="sticky top-0 bg-anh-bg text-left text-anh-muted">
+                  <tr>
+                    <th className="px-4 py-3">{t("common.well")}</th>
+                    <th className="px-4 py-3">{t("quality.colAttribute")}</th>
+                    <th className="px-4 py-3">{t("quality.colSeverity")}</th>
+                    <th className="px-4 py-3">{t("quality.colMessage")}</th>
                   </tr>
-                )),
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {findingRows.map((row) => (
+                    <tr key={row.key} className="border-t border-anh-border align-top">
+                      <td className="px-4 py-3 font-medium">{row.well}</td>
+                      <td className="px-4 py-3 text-xs">{row.field}</td>
+                      <td className="px-4 py-3">
+                        <span className={row.severity === "error" ? "badge-invalid" : "badge-warning"}>
+                          {row.severity}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{row.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -488,20 +488,16 @@ export function getWell(id: number, scope?: DataScope | null) {
 
 export function getValidationReport(uploadId?: number, scope?: DataScope | null) {
   const database = getDb();
-  const { clause, params: scopeParams } = buildScopeClause(scope);
-  let query = `
+  const { clause, params: scopeParams } = buildValidationReportClause(uploadId, scope);
+  const query = `
     SELECT w.id as well_id, w.operadora, w.nombre_pozo_sgc, w.validation_status, w.uwi_fiscalizado,
            vi.field, vi.severity, vi.message, vi.rule
     FROM wells w
     LEFT JOIN validation_issues vi ON vi.well_id = w.id
     WHERE ${clause}
+    ORDER BY w.id DESC
   `;
-  const params: (number | string)[] = [...scopeParams];
-  if (uploadId) {
-    query += " AND w.upload_id = ?";
-    params.push(uploadId);
-  }
-  query += " ORDER BY w.id DESC";
+  const params = scopeParams;
 
   const rows = database.prepare(query).all(...params) as Array<{
     well_id: number;
@@ -543,6 +539,29 @@ export function getValidationReport(uploadId?: number, scope?: DataScope | null)
   }
 
   return Array.from(grouped.values());
+}
+
+function buildValidationReportClause(
+  uploadId?: number,
+  scope?: DataScope | null,
+): { clause: string; params: (string | number)[] } {
+  if (uploadId != null) {
+    if (!scope || scope.role === "admin") {
+      return { clause: "w.upload_id = ?", params: [uploadId] };
+    }
+    if (scope.role === "operadora" && scope.operadora) {
+      return { clause: "w.upload_id = ? AND operadora = ?", params: [uploadId, scope.operadora] };
+    }
+    if (scope.role === "anh") {
+      return {
+        clause: `w.upload_id = ? AND w.upload_id IN (SELECT id FROM uploads WHERE status IN ('submitted', 'seed', 'processed'))
+          AND validation_status IN ('valid', 'warning')`,
+        params: [uploadId],
+      };
+    }
+    return { clause: "w.upload_id = ?", params: [uploadId] };
+  }
+  return buildScopeClause(scope);
 }
 
 function buildScopeClause(scope?: DataScope | null): { clause: string; params: string[] } {

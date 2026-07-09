@@ -321,6 +321,9 @@ export const en = {
     filterErrors: "Errors only",
     filterWarnings: "Warnings only",
     findingsTitle: "Finding details",
+    noFindingsFiltered: "No findings match the selected filter.",
+    noFindingsTryErrors:
+      "This version has {{count}} record(s) with errors. Use the «Errors only» or «All» filter to see details.",
     colAttribute: "Attribute",
     colSeverity: "Severity",
     colMessage: "Message",
