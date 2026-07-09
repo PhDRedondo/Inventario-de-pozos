@@ -243,3 +243,29 @@ export function summarizeValidation(results: ValidationResult[]) {
     warning_total: results.reduce((sum, r) => sum + r.warning_count, 0),
   };
 }
+
+/** Active checks in validateWell plus UWI instructivo rules (abril 2026). */
+export function getActiveValidationRuleCount(): number {
+  const requiredFields = 8;
+  const selectChecks = 13;
+  const conditionalAvm = 3;
+  const levantamiento = 1;
+  const numericFields = 8;
+  const projectedCoords = 4;
+  const latLong = 2;
+  const uwiGeneration = 1;
+  const uwiConsistency = 1;
+  const uwiInstructivo = 18;
+  return (
+    requiredFields +
+    selectChecks +
+    conditionalAvm +
+    levantamiento +
+    numericFields +
+    projectedCoords +
+    latLong +
+    uwiGeneration +
+    uwiConsistency +
+    uwiInstructivo
+  );
+}

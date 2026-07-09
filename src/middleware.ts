@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "anh_session";
-const PUBLIC_PATHS = ["/", "/login", "/api/auth/login", "/api/catalogs"];
+const PUBLIC_PATHS = ["/", "/login", "/api/auth/login", "/api/catalogs", "/api/public/landing-stats"];
 
 function hasSessionCookie(request: NextRequest): boolean {
   const token = request.cookies.get(SESSION_COOKIE)?.value;

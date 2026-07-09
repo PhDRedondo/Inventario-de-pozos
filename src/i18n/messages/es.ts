@@ -612,11 +612,8 @@ export const es = {
       "Plataforma institucional para recibir, validar y consolidar el inventario reportado por operadoras, con asignación automática de UWI fiscalizado y paneles de calidad de datos.",
     ctaPrimary: "Iniciar sesión",
     ctaSecondary: "Conocer capacidades",
-    statWellsValue: "100+",
-    statWellsLabel: "Pozos en catálogo de demostración",
-    statOperatorsValue: "80",
-    statOperatorsLabel: "Operadoras en catálogo",
-    statValidationValue: "40+",
+    statWellsLabel: "Pozos en inventario nacional",
+    statOperatorsLabel: "Operadoras reportantes",
     statValidationLabel: "Reglas de validación activas",
     featuresTitle: "Capacidades del sistema",
     featuresSubtitle:

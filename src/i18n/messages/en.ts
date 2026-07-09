@@ -604,11 +604,8 @@ export const en = {
       "Institutional platform to receive, validate and consolidate operator-reported inventory, with automatic fiscal UWI assignment and data quality dashboards.",
     ctaPrimary: "Sign in",
     ctaSecondary: "Explore capabilities",
-    statWellsValue: "100+",
-    statWellsLabel: "Wells in demo catalog",
-    statOperatorsValue: "80",
-    statOperatorsLabel: "Operators in catalog",
-    statValidationValue: "40+",
+    statWellsLabel: "Wells in national inventory",
+    statOperatorsLabel: "Reporting operators",
     statValidationLabel: "Active validation rules",
     featuresTitle: "System capabilities",
     featuresSubtitle:

@@ -2,16 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { BarChart3, FileUp, Shield, Users } from "lucide-react";
 import { LandingCapabilities } from "@/components/LandingCapabilities";
 import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
+import type { LandingStats } from "@/lib/landing-stats";
 import type { UserRole } from "@/lib/types";
 
 const ROLE_IDS: UserRole[] = ["operadora", "anh", "admin"];
+
+const LANDING_STATS = [
+  { key: "wells" as const, label: "statWellsLabel" },
+  { key: "operators" as const, label: "statOperatorsLabel" },
+  { key: "validationRules" as const, label: "statValidationLabel" },
+];
 
 function RoleIcon({ role }: { role: UserRole }) {
   if (role === "operadora") return <FileUp className="h-6 w-6 text-anh-secondary" />;
@@ -22,12 +29,22 @@ function RoleIcon({ role }: { role: UserRole }) {
 export default function LandingPage() {
   const t = useT();
   const { user, loading } = useAuth();
+  const [landingStats, setLandingStats] = useState<LandingStats | null>(null);
 
   useEffect(() => {
     if (!loading && user) {
       window.location.href = "/panel";
     }
   }, [user, loading]);
+
+  useEffect(() => {
+    fetch("/api/public/landing-stats")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((data: LandingStats | null) => {
+        if (data) setLandingStats(data);
+      })
+      .catch(() => {});
+  }, []);
 
   const steps = ["step1", "step2", "step3"] as const;
 
@@ -65,27 +82,15 @@ export default function LandingPage() {
                 {t("landing.heroTitle")}
               </h1>
               <p className="mt-5 text-lg leading-relaxed text-anh-muted sm:text-xl">{t("landing.heroSubtitle")}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/login" className="btn-primary px-6 py-3 text-base">
-                  {t("landing.ctaPrimary")}
-                </Link>
-                <a href="#capacidades" className="btn-secondary px-6 py-3 text-base">
-                  {t("landing.ctaSecondary")}
-                </a>
-              </div>
             </div>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
-              {(
-                [
-                  { value: "statWellsValue", label: "statWellsLabel" },
-                  { value: "statOperatorsValue", label: "statOperatorsLabel" },
-                  { value: "statValidationValue", label: "statValidationLabel" },
-                ] as const
-              ).map(({ value, label }) => (
-                <div key={value} className="card border-anh-border/80 p-5">
-                  <p className="text-2xl font-extrabold text-anh-secondary">{t(`landing.${value}`)}</p>
-                  <p className="mt-1 text-sm font-semibold text-anh-primary">{t(`landing.${label}`)}</p>
+              {LANDING_STATS.map(({ key, label }) => (
+                <div key={key} className="landing-stat-card">
+                  <p className="text-2xl font-extrabold text-anh-black">
+                    {landingStats ? landingStats[key].toLocaleString("es-CO") : "—"}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-anh-black/85">{t(`landing.${label}`)}</p>
                 </div>
               ))}
             </div>
