@@ -175,14 +175,14 @@ export default function LandingPage() {
         </section>
 
         {/* CTA */}
-        <section className="border-t border-anh-border bg-anh-primary text-white">
+        <section className="border-t border-anh-border bg-[#1a1a1a] text-white dark:bg-[#050505]">
           <div className="anh-gradient-bar" />
           <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:px-6">
             <h2 className="text-2xl font-extrabold sm:text-3xl">{t("landing.ctaBlockTitle")}</h2>
-            <p className="mx-auto mt-4 max-w-xl text-white/80">{t("landing.ctaBlockText")}</p>
+            <p className="mx-auto mt-4 max-w-xl text-white/85">{t("landing.ctaBlockText")}</p>
             <Link
               href="/login"
-              className="mt-8 inline-flex rounded-lg bg-white px-8 py-3 font-bold text-anh-primary transition hover:bg-anh-accent"
+              className="mt-8 inline-flex rounded-lg bg-anh-accent px-8 py-3 font-bold text-[#1a1a1a] transition hover:bg-anh-yellow"
             >
               {t("landing.ctaPrimary")}
             </Link>
