@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Facebook, Instagram, Linkedin, Twitter, Youtube } from "lucide-react";
 import { useT } from "@/context/AppPreferences";
 
 const QUICK_LINK_GROUPS = [
@@ -24,12 +23,56 @@ const QUICK_LINK_GROUPS = [
 ] as const;
 
 const SOCIAL_LINKS = [
-  { href: "https://twitter.com/ANHColombia", label: "X (Twitter)", icon: Twitter },
-  { href: "https://www.instagram.com/anhcolombia/", label: "Instagram", icon: Instagram },
-  { href: "https://www.facebook.com/ANHColombia", label: "Facebook", icon: Facebook },
-  { href: "https://www.linkedin.com/company/agencia-nacional-de-hidrocarburos/", label: "LinkedIn", icon: Linkedin },
-  { href: "https://www.youtube.com/user/ANHColombia", label: "YouTube", icon: Youtube },
+  { href: "https://twitter.com/ANHColombia", label: "X (Twitter)", icon: "x" },
+  { href: "https://www.instagram.com/anhcolombia/", label: "Instagram", icon: "instagram" },
+  { href: "https://www.facebook.com/ANHColombia", label: "Facebook", icon: "facebook" },
+  { href: "https://www.linkedin.com/company/agencia-nacional-de-hidrocarburos/", label: "LinkedIn", icon: "linkedin" },
+  { href: "https://www.youtube.com/user/ANHColombia", label: "YouTube", icon: "youtube" },
 ] as const;
+
+function SocialIcon({ name }: { name: (typeof SOCIAL_LINKS)[number]["icon"] }) {
+  const className = "h-4 w-4";
+
+  if (name === "x") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    );
+  }
+
+  if (name === "instagram") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+        <rect x="3" y="3" width="18" height="18" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+      </svg>
+    );
+  }
+
+  if (name === "facebook") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+        <path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.2-1.5 1.5-1.5H17V4.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V11H8v3h2.3v8h3.2z" />
+      </svg>
+    );
+  }
+
+  if (name === "linkedin") {
+    return (
+      <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+        <path d="M6.5 8.5h3v11h-3v-11zM8 4.5a1.75 1.75 0 110 3.5 1.75 1.75 0 010-3.5zM12 8.5h2.9v1.5h.1c.4-.8 1.4-1.6 2.9-1.6 3.1 0 3.7 2 3.7 4.7V19.5h-3v-5.2c0-1.2 0-2.8-1.7-2.8s-2 1.3-2 2.7v5.3H12V8.5z" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+      <path d="M21.6 7.2a2.8 2.8 0 00-2-2 28.5 28.5 0 00-9.6-.5 28.5 28.5 0 00-9.6.5 2.8 2.8 0 00-2 2 29.8 29.8 0 00-.5 5.3 29.8 29.8 0 00.5 5.3 2.8 2.8 0 002 2 28.5 28.5 0 009.6.5 28.5 28.5 0 009.6-.5 2.8 2.8 0 002-2 29.8 29.8 0 00.5-5.3 29.8 29.8 0 00-.5-5.3zM10 15.5V8.5l6.5 3.5L10 15.5z" />
+    </svg>
+  );
+}
 
 const LEGAL_LINKS = [
   { href: "https://www.anh.gov.co/es/politicas", key: "footerPolicies" },
@@ -160,7 +203,7 @@ export function InstitutionalFooter({ withMobileNavPadding = false }: Institutio
                 <div>
                   <p className="mb-3 text-sm font-bold text-anh-primary">{t("shell.footerFollow")}</p>
                   <div className="flex flex-wrap gap-2">
-                    {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
+                    {SOCIAL_LINKS.map(({ href, label, icon }) => (
                       <a
                         key={href}
                         href={href}
@@ -169,7 +212,7 @@ export function InstitutionalFooter({ withMobileNavPadding = false }: Institutio
                         aria-label={label}
                         className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-anh-border bg-anh-bg text-anh-secondary transition hover:border-anh-secondary hover:bg-anh-secondary/10"
                       >
-                        <Icon className="h-4 w-4" aria-hidden />
+                        <SocialIcon name={icon} />
                       </a>
                     ))}
                   </div>
