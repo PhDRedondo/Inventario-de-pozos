@@ -114,6 +114,9 @@ export interface UploadBatch {
   valid_records: number;
   invalid_records: number;
   warning_records: number;
+  error_issues?: number;
+  warning_issues?: number;
+  info_issues?: number;
   status: string;
   notebook_id?: number | null;
   version_number?: number | null;

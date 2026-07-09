@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import seedData from "../../data/seed.json";
 import { dedupeDepartamentoOptions, getCanonicalDepartamentoList, normalizeWellRecordForIngest } from "./etl";
+import { countIssues } from "./validation-findings";
 import { normalizeGeoName } from "./geo";
 import { validateWell } from "./validation";
 import { generateUwiFiscalizado } from "./uwi";
@@ -377,11 +378,22 @@ export function saveUploadBatch(
   });
   tx();
 
+  const issueCounts = countIssues(results);
+
   database
     .prepare(
-      `UPDATE uploads SET valid_records = ?, invalid_records = ?, warning_records = ?, status = ? WHERE id = ?`,
+      `UPDATE uploads SET valid_records = ?, invalid_records = ?, warning_records = ?, error_issues = ?, warning_issues = ?, info_issues = ?, status = ? WHERE id = ?`,
     )
-    .run(valid, invalid, warnings, batchStatus === "processing" ? "processed" : batchStatus, uploadId);
+    .run(
+      valid,
+      invalid,
+      warnings,
+      issueCounts.errors,
+      issueCounts.warnings,
+      issueCounts.info,
+      batchStatus === "processing" ? "processed" : batchStatus,
+      uploadId,
+    );
 
   const upload = database.prepare("SELECT * FROM uploads WHERE id = ?").get(uploadId) as UploadBatch;
   return { upload, results };

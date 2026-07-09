@@ -12,6 +12,7 @@ import type {
   UserRole,
 } from "./types";
 import { saveUploadBatch, getValidationReport, getUpload } from "./db";
+import { countIssues } from "./validation-findings";
 import { DEMO_OPERADORA } from "./demo-auth";
 import seedData from "../../data/seed.json";
 
@@ -57,6 +58,9 @@ export function initNotebookSchema() {
   `);
   ensureColumn("uploads", "notebook_id", "INTEGER");
   ensureColumn("uploads", "version_number", "INTEGER DEFAULT 1");
+  ensureColumn("uploads", "error_issues", "INTEGER DEFAULT 0");
+  ensureColumn("uploads", "warning_issues", "INTEGER DEFAULT 0");
+  ensureColumn("uploads", "info_issues", "INTEGER DEFAULT 0");
   ensureColumn("notebooks", "title", "TEXT NOT NULL DEFAULT ''");
   ensureColumn("notebooks", "created_by", "TEXT");
 }
@@ -78,10 +82,43 @@ function mapNotebook(row: Record<string, unknown>): Notebook {
 }
 
 function mapVersion(row: UploadBatch): NotebookVersion {
+  const extended = row as UploadBatch & {
+    error_issues?: number;
+    warning_issues?: number;
+    info_issues?: number;
+  };
   return {
     ...row,
     notebook_id: (row as UploadBatch & { notebook_id?: number }).notebook_id ?? null,
     version_number: (row as UploadBatch & { version_number?: number }).version_number ?? 1,
+    error_issues: extended.error_issues ?? 0,
+    warning_issues: extended.warning_issues ?? 0,
+    info_issues: extended.info_issues ?? 0,
+  };
+}
+
+function backfillVersionIssueCounts(version: NotebookVersion): NotebookVersion {
+  if ((version.error_issues ?? 0) > 0 || (version.warning_issues ?? 0) > 0 || (version.info_issues ?? 0) > 0) {
+    return version;
+  }
+  if (version.total_records === 0) return version;
+
+  const report = getValidationReport(version.id);
+  const counts = countIssues(report);
+  if (counts.errors === 0 && counts.warnings === 0 && counts.info === 0) return version;
+
+  const database = getDb();
+  database
+    .prepare(
+      `UPDATE uploads SET error_issues = ?, warning_issues = ?, info_issues = ? WHERE id = ?`,
+    )
+    .run(counts.errors, counts.warnings, counts.info, version.id);
+
+  return {
+    ...version,
+    error_issues: counts.errors,
+    warning_issues: counts.warnings,
+    info_issues: counts.info,
   };
 }
 
@@ -146,7 +183,7 @@ export function listNotebookVersions(notebookId: number): NotebookVersion[] {
   const rows = database
     .prepare(`SELECT * FROM uploads WHERE notebook_id = ? ORDER BY version_number DESC, id DESC`)
     .all(notebookId) as UploadBatch[];
-  return rows.map(mapVersion);
+  return rows.map((row) => backfillVersionIssueCounts(mapVersion(row)));
 }
 
 export function getNotebook(id: number): Notebook | null {
@@ -288,6 +325,9 @@ function backfillNotebookEvents(notebook: Notebook) {
         total_records: version.total_records,
         valid_records: version.valid_records,
         invalid_records: version.invalid_records,
+        error_issues: version.error_issues ?? 0,
+        warning_issues: version.warning_issues ?? 0,
+        info_issues: version.info_issues ?? 0,
       },
     });
   }
@@ -365,6 +405,7 @@ export function addNotebookVersion(
 
   const invalid = results.filter((r) => !r.is_valid).length;
   const warnings = results.reduce((s, r) => s + r.warning_count, 0);
+  const issueCounts = countIssues(results);
 
   logNotebookEvent({
     notebookId,
@@ -380,6 +421,9 @@ export function addNotebookVersion(
       invalid_records: upload.invalid_records,
       wells_with_errors: invalid,
       warning_count: warnings,
+      error_issues: issueCounts.errors,
+      warning_issues: issueCounts.warnings,
+      info_issues: issueCounts.info,
     },
   });
 
@@ -562,6 +606,7 @@ export function ensureDemoNotebook(operadora: string): void {
 
   const invalid = results.filter((r) => !r.is_valid).length;
   const warnings = results.reduce((s, r) => s + r.warning_count, 0);
+  const issueCounts = countIssues(results);
 
   logNotebookEvent({
     notebookId,
@@ -577,6 +622,9 @@ export function ensureDemoNotebook(operadora: string): void {
       invalid_records: upload.invalid_records,
       wells_with_errors: invalid,
       warning_count: warnings,
+      error_issues: issueCounts.errors,
+      warning_issues: issueCounts.warnings,
+      info_issues: issueCounts.info,
     },
   });
 }

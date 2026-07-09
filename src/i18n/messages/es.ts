@@ -390,6 +390,7 @@ export const es = {
     statusSubmitted: "Aplicado el {{date}} — visible en el panel principal.",
     version: "Versión {{n}}",
     lastUploadBadge: "Última carga",
+    versionIssueStats: "{{errors}} errores · {{warnings}} advertencias",
     versionLabel: "Versión seleccionada",
     versionCreated: "Versión {{version}} registrada y validada.",
     validateVersion: "Validar y crear versión",

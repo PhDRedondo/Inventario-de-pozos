@@ -41,6 +41,25 @@ function severityLabel(t: ReturnType<typeof useT>, severity: ValidationIssue["se
   return t("quality.severityInfo");
 }
 
+function uploadIssueCounts(
+  metadata: Record<string, unknown> | null | undefined,
+  version: NotebookVersion | null | undefined,
+) {
+  const errors =
+    (typeof metadata?.error_issues === "number" ? metadata.error_issues : undefined) ??
+    version?.error_issues ??
+    0;
+  const warnings =
+    (typeof metadata?.warning_issues === "number" ? metadata.warning_issues : undefined) ??
+    version?.warning_issues ??
+    0;
+  const info =
+    (typeof metadata?.info_issues === "number" ? metadata.info_issues : undefined) ??
+    version?.info_issues ??
+    0;
+  return { errors, warnings: warnings + info };
+}
+
 export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: NotebookWorkspaceProps) {
   const t = useT();
   const operatorBrand = useOperatorBrand();
@@ -140,12 +159,8 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
   }, [selectedVersionId]);
 
   useEffect(() => {
-    if ((selectedVersion?.invalid_records ?? 0) > 0) {
-      setFilter("errors");
-    } else {
-      setFilter("all");
-    }
-  }, [selectedVersionId, selectedVersion?.invalid_records]);
+    setFilter("all");
+  }, [selectedVersionId]);
 
   function pickFile(next: File | null) {
     if (!next) {
@@ -364,8 +379,11 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
                   )}
                 </span>
                 <span className="mt-0.5 block">
-                  {version.valid_records} {t("status.validPlural").toLowerCase()} · {version.invalid_records}{" "}
-                  {t("status.errors").toLowerCase()}
+                  {version.valid_records} {t("status.validPlural").toLowerCase()} ·{" "}
+                  {t("notebook.versionIssueStats", {
+                    errors: String(version.error_issues ?? 0),
+                    warnings: String((version.warning_issues ?? 0) + (version.info_issues ?? 0)),
+                  })}
                 </span>
               </button>
             ))}
@@ -515,8 +533,8 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
                         {t("notebook.eventUploadMeta", {
                           total: String(event.metadata.total_records ?? "—"),
                           valid: String(event.metadata.valid_records ?? "—"),
-                          errors: String(event.metadata.invalid_records ?? "—"),
-                          warnings: String(event.metadata.warning_count ?? 0),
+                          errors: String(uploadIssueCounts(event.metadata, versionMeta).errors),
+                          warnings: String(uploadIssueCounts(event.metadata, versionMeta).warnings),
                         })}
                       </p>
                     )}

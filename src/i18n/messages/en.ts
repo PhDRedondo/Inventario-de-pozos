@@ -382,6 +382,7 @@ export const en = {
     statusSubmitted: "Applied on {{date}} — visible on the main dashboard.",
     version: "Version {{n}}",
     lastUploadBadge: "Latest upload",
+    versionIssueStats: "{{errors}} errors · {{warnings}} warnings",
     versionLabel: "Selected version",
     versionCreated: "Version {{version}} recorded and validated.",
     validateVersion: "Validate and create version",
