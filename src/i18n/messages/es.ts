@@ -725,7 +725,7 @@ export const es = {
     compareWith: "Comparar con",
     entityType: "Tipo de entidad",
     entitySearch: "Buscar entidad",
-    entityPlaceholder: "Escriba para filtrar…",
+    entityPlaceholder: "Escriba para buscar…",
     selectEntity: "Seleccione una entidad para comparar",
     clearSelection: "Ver solo promedio nacional",
     sampleSize: "{{count}} pozos en la muestra",

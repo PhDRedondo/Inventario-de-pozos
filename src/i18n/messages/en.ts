@@ -708,7 +708,7 @@ export const en = {
     compareWith: "Compare with",
     entityType: "Entity type",
     entitySearch: "Search entity",
-    entityPlaceholder: "Type to filter…",
+    entityPlaceholder: "Type to search…",
     selectEntity: "Select an entity to compare",
     clearSelection: "View national average only",
     sampleSize: "{{count}} wells in sample",

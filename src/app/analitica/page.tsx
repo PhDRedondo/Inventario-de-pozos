@@ -93,10 +93,14 @@ export default function AnaliticaPage() {
   const [entityQuery, setEntityQuery] = useState("");
   const [entities, setEntities] = useState<AnalyticsEntity[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<AnalyticsEntity | null>(null);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [payload, setPayload] = useState<AnalyticsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const entityDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const entityComboboxRef = useRef<HTMLDivElement>(null);
+  const entityListId = "analytics-entity-suggestions";
 
   useEffect(() => {
     if (!user) return;
@@ -117,14 +121,77 @@ export default function AnaliticaPage() {
 
   useEffect(() => {
     if (!user || user.role === "operadora") return;
+    const trimmed = entityQuery.trim();
+    if (!trimmed) {
+      setEntities([]);
+      return;
+    }
     if (entityDebounce.current) clearTimeout(entityDebounce.current);
     entityDebounce.current = setTimeout(() => {
-      void fetchEntities(entityType, entityQuery);
-    }, 280);
+      void fetchEntities(entityType, trimmed);
+    }, 220);
     return () => {
       if (entityDebounce.current) clearTimeout(entityDebounce.current);
     };
   }, [entityType, entityQuery, fetchEntities, user]);
+
+  useEffect(() => {
+    setActiveSuggestion(0);
+  }, [entities, entityQuery]);
+
+  const selectEntity = useCallback((entity: AnalyticsEntity) => {
+    setSelectedEntity(entity);
+    setEntityQuery(fixEncoding(entity.label));
+    setSuggestionsOpen(false);
+  }, []);
+
+  const handleEntityQueryChange = (value: string) => {
+    setEntityQuery(value);
+    setSuggestionsOpen(true);
+    if (selectedEntity && value.trim() !== fixEncoding(selectedEntity.label)) {
+      setSelectedEntity(null);
+    }
+  };
+
+  const handleEntityKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestionsOpen || entities.length === 0) {
+      if (event.key === "Escape") setSuggestionsOpen(false);
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveSuggestion((index) => (index + 1) % entities.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveSuggestion((index) => (index - 1 + entities.length) % entities.length);
+      return;
+    }
+
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const entity = entities[activeSuggestion];
+      if (entity) selectEntity(entity);
+      return;
+    }
+
+    if (event.key === "Escape") {
+      setSuggestionsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (!entityComboboxRef.current?.contains(event.target as Node)) {
+        setSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
 
   useEffect(() => {
     if (!user || user.role === "operadora") return;
@@ -232,6 +299,8 @@ export default function AnaliticaPage() {
               setEntityType(e.target.value as CompareEntityType);
               setSelectedEntity(null);
               setEntityQuery("");
+              setEntities([]);
+              setSuggestionsOpen(false);
             }}
           >
             {(Object.keys(ENTITY_TYPE_KEYS) as CompareEntityType[]).map((type) => (
@@ -241,33 +310,62 @@ export default function AnaliticaPage() {
             ))}
           </select>
         </div>
-        <div className="sm:col-span-2">
-          <label className="mb-1 block text-xs font-semibold text-anh-muted">{t("analytics.entitySearch")}</label>
+        <div className="relative sm:col-span-2" ref={entityComboboxRef}>
+          <label className="mb-1 block text-xs font-semibold text-anh-muted" htmlFor="analytics-entity-search">
+            {t("analytics.entitySearch")}
+          </label>
           <input
+            id="analytics-entity-search"
             className="input-field"
+            role="combobox"
+            aria-expanded={suggestionsOpen && entityQuery.trim().length > 0}
+            aria-controls={entityListId}
+            aria-autocomplete="list"
+            aria-activedescendant={
+              suggestionsOpen && entities[activeSuggestion]
+                ? `${entityListId}-option-${activeSuggestion}`
+                : undefined
+            }
             placeholder={t("analytics.entityPlaceholder")}
             value={entityQuery}
-            onChange={(e) => setEntityQuery(e.target.value)}
+            autoComplete="off"
+            onChange={(e) => handleEntityQueryChange(e.target.value)}
+            onFocus={() => {
+              if (entityQuery.trim()) setSuggestionsOpen(true);
+            }}
+            onKeyDown={handleEntityKeyDown}
           />
-          <div className="mt-2 max-h-40 overflow-y-auto rounded-lg border border-anh-border bg-anh-bg">
-            {entities.length === 0 ? (
-              <p className="p-3 text-xs text-anh-muted">{t("analytics.noEntityResults")}</p>
-            ) : (
-              entities.map((entity) => (
-                <button
-                  key={`${entityType}-${entity.id}`}
-                  type="button"
-                  onClick={() => setSelectedEntity(entity)}
-                  className={`flex w-full flex-col items-start border-b border-anh-border/60 px-3 py-2 text-left text-xs transition last:border-0 hover:bg-anh-secondary/10 ${
-                    selectedEntity?.id === entity.id ? "bg-anh-secondary/20 font-semibold" : ""
-                  }`}
-                >
-                  <span className="text-anh-primary">{fixEncoding(entity.label)}</span>
-                  {entity.meta && <span className="text-anh-muted">{entity.meta}</span>}
-                </button>
-              ))
-            )}
-          </div>
+          {suggestionsOpen && entityQuery.trim().length > 0 ? (
+            <ul
+              id={entityListId}
+              role="listbox"
+              className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-lg border border-anh-border bg-anh-surface shadow-lg"
+            >
+              {entities.length === 0 ? (
+                <li className="px-3 py-2 text-xs text-anh-muted">{t("analytics.noEntityResults")}</li>
+              ) : (
+                entities.map((entity, index) => (
+                  <li key={`${entityType}-${entity.id}`} role="presentation">
+                    <button
+                      id={`${entityListId}-option-${index}`}
+                      type="button"
+                      role="option"
+                      aria-selected={selectedEntity?.id === entity.id || index === activeSuggestion}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => selectEntity(entity)}
+                      className={`block w-full px-3 py-2 text-left text-xs transition hover:bg-anh-secondary/10 ${
+                        index === activeSuggestion || selectedEntity?.id === entity.id
+                          ? "bg-anh-secondary/15 font-semibold text-anh-primary"
+                          : "text-anh-primary"
+                      }`}
+                    >
+                      {fixEncoding(entity.label)}
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          ) : null}
         </div>
         <div className="flex flex-col justify-end gap-2">
           {selectedEntity ? (
@@ -276,7 +374,16 @@ export default function AnaliticaPage() {
                 {t("analytics.compareWith")}:{" "}
                 <strong className="text-anh-primary">{fixEncoding(selectedEntity.label)}</strong>
               </p>
-              <button type="button" className="btn-secondary text-xs" onClick={() => setSelectedEntity(null)}>
+              <button
+                type="button"
+                className="btn-secondary text-xs"
+                onClick={() => {
+                  setSelectedEntity(null);
+                  setEntityQuery("");
+                  setEntities([]);
+                  setSuggestionsOpen(false);
+                }}
+              >
                 {t("analytics.clearSelection")}
               </button>
             </>
