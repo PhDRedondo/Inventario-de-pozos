@@ -27,6 +27,7 @@ Sistema web de la **Agencia Nacional de Hidrocarburos (ANH)** para la recepción
 - [Validación y UWI fiscalizado](#validación-y-uwi-fiscalizado)
 - [Conteos: pozos vs hallazgos](#conteos-pozos-vs-hallazgos)
 - [Panel y analítica](#panel-y-analítica)
+- [Landing pública](#landing-pública)
 - [Inicio rápido](#inicio-rápido)
 - [Variables de entorno](#variables-de-entorno)
 - [Despliegue en Vercel](#despliegue-en-vercel)
@@ -35,6 +36,7 @@ Sistema web de la **Agencia Nacional de Hidrocarburos (ANH)** para la recepción
 - [Desarrollo y convenciones](#desarrollo-y-convenciones)
 - [Acceso demo](#acceso-demo)
 - [Scripts útiles](#scripts-útiles)
+- [Guía de puesta en producción ANH](#guía-de-puesta-en-producción-anh)
 - [Limitaciones y próximos pasos](#limitaciones-y-próximos-pasos)
 - [Licencia y uso](#licencia-y-uso)
 
@@ -282,7 +284,7 @@ Implementado en `buildScopeClause()` (`db.ts`):
 
 | Ruta | Descripción |
 |------|-------------|
-| `/` | Landing institucional con estadísticas reales |
+| `/` | Landing institucional: hero con estadísticas reales, capacidades interactivas, flujo GOP y portales por rol. **Sesión activa:** no redirige a `/panel`; el logo del sidebar vuelve aquí sin cerrar sesión |
 | `/login` | Inicio de sesión |
 | `/panel` | Dashboard principal (mapa, KPIs, Sankey, tabla) |
 | `/calidad` | Inventario de cuadernos |
@@ -456,9 +458,9 @@ Es importante distinguir dos niveles de conteo:
 | Métrica | Nivel | Campo / función | Uso |
 |---------|-------|-----------------|-----|
 | Pozos totales | Pozo | `total_records` | Resumen de versión |
-| Pozos válidos | Pozo | `valid_records` | Chips de versión, timeline |
+| Pozos válidos | Pozo | `valid_records` | Timeline (totales), resumen de versión |
 | Pozos inválidos | Pozo | `invalid_records` | Bloqueo de «Aplicar envío» |
-| Hallazgos error | Issue | `error_issues` / `countIssues()` | Timeline, detalle de hallazgos |
+| Hallazgos error | Issue | `error_issues` / `countIssues()` | Timeline, chips de versión, detalle de hallazgos |
 | Hallazgos advertencia | Issue | `warning_issues` + `info_issues` | Timeline, filtros warning |
 
 Un pozo inválido puede tener **varios** hallazgos `error`. La trazabilidad y el panel de hallazgos muestran conteos de **hallazgos**; el requisito para aplicar sigue siendo **cero pozos inválidos**.
@@ -484,6 +486,21 @@ Un pozo inválido puede tener **varios** hallazgos `error`. La trazabilidad y el
 | **Portafolio** | Pozos por operadora, cobertura territorial, contratos |
 
 Visualizaciones: radar comparativo (base = 100 nacional), barras de delta, nube de producción, mapas térmicos.
+
+---
+
+## Landing pública
+
+La ruta `/` es pública (`middleware.ts`) y funciona como vitrina institucional del VIP. Componentes principales:
+
+| Componente | Archivo | Comportamiento |
+|------------|---------|----------------|
+| **Hero + estadísticas** | `src/app/page.tsx` | KPIs desde `GET /api/public/landing-stats` (pozos, operadoras, reglas). Usuario autenticado ve «Ir al panel» en lugar de «Iniciar sesión» |
+| **Capacidades** | `LandingCapabilities.tsx` | Pestañas laterales con panel detallado; **rotación automática cada 3 s** con barra de progreso; se detiene si el usuario hace clic en una pestaña |
+| **Flujo GOP** | `page.tsx` | Tres pasos del ciclo institucional (carga → validación → envío) |
+| **Portales por rol** | `LandingRoles.tsx` | Banda oscura con dos paneles interactivos (Operadora / Funcionario ANH), puente animado operadora→ANH, chips de capacidades y CTA a `/login?role=` o al panel si hay sesión |
+
+Navegación con sesión activa: el logo ANH en `AppSidebar` y el header móvil (`AppShell`) enlazan a `/` **sin cerrar sesión** (antes redirigía siempre a `/panel`).
 
 ---
 
@@ -586,6 +603,8 @@ flowchart LR
 
 ```
 inventario-pozos-anh/
+├── docs/
+│   └── guia-produccion-anh.html   # Plan detallado puesta en producción institucional
 ├── data/
 │   ├── seed.json              # ~70 pozos + catálogos oficiales
 │   ├── inventario.db          # Generada localmente (gitignored)
@@ -611,6 +630,8 @@ inventario-pozos-anh/
 │   ├── components/
 │   │   ├── NotebookWorkspace.tsx   # Cuaderno: versiones, timeline, hallazgos
 │   │   ├── NotebookInventory.tsx
+│   │   ├── LandingCapabilities.tsx # Landing: pestañas de capacidades (auto 3 s)
+│   │   ├── LandingRoles.tsx        # Landing: portales operadora / ANH
 │   │   ├── WellsMap.tsx · WellsSankeyChart.tsx
 │   │   └── AppShell.tsx · AppSidebar.tsx
 │   ├── context/
@@ -763,6 +784,23 @@ npm run test:uwi     # Pruebas generación UWI
 
 ---
 
+## Guía de puesta en producción ANH
+
+Documento HTML autocontenido para equipos de TI, GOP y seguridad de la ANH:
+
+**[`docs/guia-produccion-anh.html`](docs/guia-produccion-anh.html)** — abrir en el navegador.
+
+Incluye:
+
+- Bloqueadores actuales del modo demo (SQLite efímero en Vercel, auth local, correo simulado, repositorio personal)
+- Arquitectura objetivo (BD persistente, SSO, SMTP, GitHub ANH, dominio `*.anh.gov.co`)
+- Roadmap por fases: gobernanza → migración repo → PostgreSQL → staging → SSO → correo → go-live
+- Checklist maestro, riesgos, variables de entorno y estimación de esfuerzo
+
+> Complementa la sección [Despliegue en Vercel](#despliegue-en-vercel) y [Limitaciones](#limitaciones-y-próximos-pasos) con el plan institucional completo.
+
+---
+
 ## Limitaciones y próximos pasos
 
 | Área | Estado actual | Recomendación |
@@ -772,6 +810,7 @@ npm run test:uwi     # Pruebas generación UWI
 | **Autenticación** | Usuarios locales (demo) | SSO / LDAP ANH |
 | **ControlDoc** | Export Excel manual | Automatizar si la ANH lo requiere |
 | **Migraciones DB** | `ensureColumn` ad hoc | Herramienta de migraciones versionadas |
+| **Producción institucional** | Demo en Vercel + repo personal | Ver [`docs/guia-produccion-anh.html`](docs/guia-produccion-anh.html) |
 
 ---
 

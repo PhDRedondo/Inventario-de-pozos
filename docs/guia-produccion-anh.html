@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guía de puesta en producción — VIP Inventario de Pozos ANH</title>
+  <style>
+    :root {
+      --anh-yellow: #ffc107;
+      --anh-orange: #ff8c00;
+      --anh-red: #e53935;
+      --anh-black: #1a1a1a;
+      --anh-primary: #1e3a4a;
+      --anh-sidebar: #1a2428;
+      --anh-bg: #f3f6f8;
+      --anh-surface: #ffffff;
+      --anh-border: #d8e0e6;
+      --anh-muted: #5c6f7a;
+      --anh-success: #2e7d32;
+      --anh-warning: #ed6c02;
+      --anh-danger: #c62828;
+      --gradient: linear-gradient(90deg, var(--anh-yellow) 0%, var(--anh-orange) 70%, var(--anh-red) 100%);
+      --font: "Segoe UI", "Nunito Sans", system-ui, sans-serif;
+      --max: 920px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--anh-black);
+      background: var(--anh-bg);
+    }
+
+    .gradient-bar { height: 5px; background: var(--gradient); }
+
+    header.doc-header {
+      background: var(--anh-sidebar);
+      color: #f3f6f8;
+      padding: 2.5rem 1.5rem 2rem;
+    }
+    header.doc-header .inner { max-width: var(--max); margin: 0 auto; }
+    header.doc-header .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--anh-orange);
+      margin: 0 0 0.75rem;
+    }
+    header.doc-header h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 4vw, 2.35rem);
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    header.doc-header .subtitle {
+      margin: 1rem 0 0;
+      max-width: 42rem;
+      color: #9fb0b8;
+      font-size: 1.05rem;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    .meta-chip {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+    }
+
+    nav.toc {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--anh-surface);
+      border-bottom: 1px solid var(--anh-border);
+      padding: 0.75rem 1.5rem;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    nav.toc a {
+      display: inline-block;
+      margin-right: 1rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--anh-primary);
+      text-decoration: none;
+    }
+    nav.toc a:hover { color: var(--anh-orange); }
+
+    main { max-width: var(--max); margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    h2 {
+      margin: 2.5rem 0 1rem;
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--anh-primary);
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--anh-orange);
+    }
+    h3 {
+      margin: 1.75rem 0 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--anh-primary);
+    }
+    h4 {
+      margin: 1.25rem 0 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--anh-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    p { margin: 0.75rem 0; }
+    ul, ol { margin: 0.75rem 0; padding-left: 1.35rem; }
+    li { margin: 0.35rem 0; }
+    a { color: #c45a00; }
+    code, pre {
+      font-family: ui-monospace, "Cascadia Code", monospace;
+      font-size: 0.88em;
+    }
+    code {
+      background: #eef2f5;
+      padding: 0.12rem 0.4rem;
+      border-radius: 4px;
+    }
+    pre {
+      background: var(--anh-sidebar);
+      color: #e8eef2;
+      padding: 1rem 1.15rem;
+      border-radius: 10px;
+      overflow-x: auto;
+      line-height: 1.5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.92rem;
+      background: var(--anh-surface);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    th, td {
+      border: 1px solid var(--anh-border);
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--anh-primary);
+      color: white;
+      font-weight: 700;
+    }
+    tr:nth-child(even) td { background: #f8fafb; }
+
+    .card {
+      background: var(--anh-surface);
+      border: 1px solid var(--anh-border);
+      border-radius: 14px;
+      padding: 1.25rem 1.35rem;
+      margin: 1.25rem 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .card--dark {
+      background: var(--anh-sidebar);
+      border-color: #2a363c;
+      color: #e8eef2;
+    }
+    .card--dark h3, .card--dark h4 { color: #fff; }
+    .card--dark p, .card--dark li { color: #b8c5cc; }
+
+    .alert {
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      margin: 1.25rem 0;
+      border-left: 4px solid;
+    }
+    .alert--danger {
+      background: #ffebee;
+      border-color: var(--anh-danger);
+      color: #5d1a1a;
+    }
+    .alert--warning {
+      background: #fff8e1;
+      border-color: var(--anh-warning);
+      color: #5d4200;
+    }
+    .alert--info {
+      background: #e3f2fd;
+      border-color: #1565c0;
+      color: #0d3c61;
+    }
+    .alert--success {
+      background: #e8f5e9;
+      border-color: var(--anh-success);
+      color: #1b5e20;
+    }
+    .alert strong { display: block; margin-bottom: 0.35rem; }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 3.5rem 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+      align-items: start;
+    }
+    .phase-num {
+      width: 3.5rem;
+      height: 3.5rem;
+      border-radius: 12px;
+      background: var(--gradient);
+      color: var(--anh-black);
+      font-weight: 900;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .phase-body {
+      background: var(--anh-surface);
+      border: 1px solid var(--anh-border);
+      border-radius: 14px;
+      padding: 1.15rem 1.35rem;
+    }
+    .phase-body h3 { margin-top: 0; }
+
+    .checklist { list-style: none; padding: 0; }
+    .checklist li {
+      padding: 0.45rem 0 0.45rem 1.75rem;
+      position: relative;
+      border-bottom: 1px dashed var(--anh-border);
+    }
+    .checklist li:last-child { border-bottom: none; }
+    .checklist li::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: var(--anh-orange);
+      font-weight: 900;
+    }
+
+    .diagram {
+      background: #0f171b;
+      color: #c5d2da;
+      border-radius: 12px;
+      padding: 1.25rem;
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+      overflow-x: auto;
+      white-space: pre;
+      margin: 1rem 0;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      vertical-align: middle;
+    }
+    .badge--critical { background: #ffcdd2; color: #b71c1c; }
+    .badge--high { background: #ffe0b2; color: #e65100; }
+    .badge--medium { background: #fff9c4; color: #f57f17; }
+    .badge--done { background: #c8e6c9; color: #1b5e20; }
+
+    footer.doc-footer {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 2rem 1.5rem 3rem;
+      border-top: 1px solid var(--anh-border);
+      color: var(--anh-muted);
+      font-size: 0.88rem;
+    }
+
+    @media print {
+      nav.toc { display: none; }
+      .phase { break-inside: avoid; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="gradient-bar"></div>
+
+  <header class="doc-header">
+    <div class="inner">
+      <p class="eyebrow">Agencia Nacional de Hidrocarburos · Sistema GOP</p>
+      <h1>Guía de puesta en producción</h1>
+      <p class="subtitle">
+        Validador del Inventario de Pozos (VIP) — Plan detallado para llevar la aplicación web
+        del entorno de demostración actual a un despliegue institucional en la ANH, usando
+        infraestructura, repositorio, base de datos y hosting de la entidad.
+      </p>
+      <div class="meta-row">
+        <span class="meta-chip">Versión app: Next.js 16 · React 19</span>
+        <span class="meta-chip">BD actual: SQLite (better-sqlite3)</span>
+        <span class="meta-chip">Demo: Vercel + GitHub personal</span>
+        <span class="meta-chip">Documento: julio 2026</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Tabla de contenidos">
+    <a href="#resumen">Resumen</a>
+    <a href="#estado">Estado actual</a>
+    <a href="#arquitectura">Arquitectura objetivo</a>
+    <a href="#fases">Fases</a>
+    <a href="#github">GitHub ANH</a>
+    <a href="#base-datos">Base de datos</a>
+    <a href="#hosting">Hosting / Vercel</a>
+    <a href="#auth">Autenticación</a>
+    <a href="#correo">Correo</a>
+    <a href="#seguridad">Seguridad</a>
+    <a href="#cicd">CI/CD</a>
+    <a href="#pruebas">Pruebas</a>
+    <a href="#golive">Go-live</a>
+    <a href="#operacion">Operación</a>
+    <a href="#checklist">Checklist</a>
+    <a href="#riesgos">Riesgos</a>
+    <a href="#anexos">Anexos</a>
+  </nav>
+
+  <main>
+    <section id="resumen">
+      <h2>1. Resumen ejecutivo</h2>
+      <p>
+        El <strong>VIP (Validador del Inventario de Pozos)</strong> es una aplicación web full-stack
+        en un solo repositorio Next.js. Hoy funciona como <strong>demostración funcional</strong>:
+        valida Excel oficial, gestiona cuadernos por operadora, consolida inventario en panel ANH
+        y genera UWI fiscalizado. Sin embargo, varios componentes están en modo <em>simulación</em>
+        o <em>no persistentes</em>, inadecuados para producción institucional sin trabajo adicional.
+      </p>
+
+      <div class="alert alert--danger">
+        <strong>Bloqueadores actuales para producción real</strong>
+        <ul>
+          <li><strong>SQLite en Vercel</strong> se guarda en <code>/tmp</code> y se pierde al reiniciar la función serverless.</li>
+          <li><strong>Autenticación local</strong> con usuarios y contraseñas en BD; no hay SSO/LDAP institucional.</li>
+          <li><strong>Correo simulado</strong>: los envíos se escriben en <code>data/outbox/</code>, no salen por SMTP ANH.</li>
+          <li><strong>Repositorio personal</strong> (<code>PhDRedondo/Inventario-de-pozos</code>), no bajo gobernanza TI ANH.</li>
+          <li><strong>Credenciales demo</strong> (<code>Anh2026!</code>) deben eliminarse o rotarse en producción.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Objetivo de producción</h3>
+        <p>Un despliegue donde:</p>
+        <ol>
+          <li>Los datos de pozos, cuadernos, usuarios y auditoría <strong>persisten</strong> en base gestionada ANH.</li>
+          <li>Operadoras y funcionarios ANH acceden con <strong>identidad institucional</strong>.</li>
+          <li>Al aplicar un envío, se notifica por <strong>correo real</strong> a <code>correspondenciaanh@anh.gov.co</code>.</li>
+          <li>El código vive en <strong>GitHub de la ANH</strong> con CI/CD, revisiones y secretos controlados.</li>
+          <li>La app corre en <strong>hosting aprobado</strong> (Vercel institucional u otra plataforma ANH) con dominio <code>*.anh.gov.co</code>.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="estado">
+      <h2>2. Estado actual del proyecto</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th>Hoy (demo)</th>
+            <th>Producción ANH</th>
+            <th>Prioridad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Repositorio</td>
+            <td>GitHub personal PhDRedondo</td>
+            <td>Organización GitHub ANH (o GitLab interno)</td>
+            <td><span class="badge badge--high">Alta</span></td>
+          </tr>
+          <tr>
+            <td>Hosting</td>
+            <td>Vercel (cuenta personal), región <code>iad1</code></td>
+            <td>Proyecto Vercel ANH o VM/K8s on-prem</td>
+            <td><span class="badge badge--high">Alta</span></td>
+          </tr>
+          <tr>
+            <td>Base de datos</td>
+            <td>SQLite local / <code>/tmp</code> en Vercel</td>
+            <td>PostgreSQL, SQL Server u Oracle gestionado ANH</td>
+            <td><span class="badge badge--critical">Crítica</span></td>
+          </tr>
+          <tr>
+            <td>Autenticación</td>
+            <td>Cookie HMAC + usuarios en tabla <code>users</code></td>
+            <td>SSO (Azure AD / LDAP / Keycloak institucional)</td>
+            <td><span class="badge badge--critical">Crítica</span></td>
+          </tr>
+          <tr>
+            <td>Correo</td>
+            <td>Archivos en <code>outbox/</code></td>
+            <td>SMTP / Exchange / API correo ANH</td>
+            <td><span class="badge badge--high">Alta</span></td>
+          </tr>
+          <tr>
+            <td>Secretos</td>
+            <td><code>SESSION_SECRET</code> en Vercel</td>
+            <td>Gestor de secretos ANH (Vault, Azure Key Vault, etc.)</td>
+            <td><span class="badge badge--high">Alta</span></td>
+          </tr>
+          <tr>
+            <td>Dominio / TLS</td>
+            <td><code>*.vercel.app</code></td>
+            <td><code>vip.anh.gov.co</code> o subdominio aprobado + certificado</td>
+            <td><span class="badge badge--high">Alta</span></td>
+          </tr>
+          <tr>
+            <td>Backups</td>
+            <td>No definidos</td>
+            <td>Política RPO/RTO institucional</td>
+            <td><span class="badge badge--critical">Crítica</span></td>
+          </tr>
+          <tr>
+            <td>Monitoreo</td>
+            <td>No implementado</td>
+            <td>Logs centralizados, alertas, uptime</td>
+            <td><span class="badge badge--medium">Media</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Stack técnico verificado en código</h3>
+      <ul>
+        <li><strong>Frontend / Backend:</strong> Next.js 16 App Router, API Routes en <code>src/app/api/</code></li>
+        <li><strong>BD:</strong> <code>better-sqlite3</code> — requiere adaptación para PostgreSQL en producción</li>
+        <li><strong>Sesión:</strong> cookie <code>anh_session</code>, firmada con <code>SESSION_SECRET</code> (<code>src/lib/auth-crypto.ts</code>)</li>
+        <li><strong>Rutas públicas:</strong> <code>/</code>, <code>/login</code>, <code>/api/auth/login</code>, catálogos y stats landing (<code>middleware.ts</code>)</li>
+        <li><strong>Datos semilla:</strong> <code>data/seed.json</code> (~70 pozos demo + catálogos)</li>
+        <li><strong>Archivos geo:</strong> <code>public/geo/</code> (GeoJSON Colombia, estático)</li>
+      </ul>
+    </section>
+
+    <section id="arquitectura">
+      <h2>3. Arquitectura objetivo en la ANH</h2>
+
+      <div class="diagram">┌─────────────────────────────────────────────────────────────────────────┐
+│                         USUARIOS INSTITUCIONALES                         │
+│   Operadoras (extranet/VPN)  ·  Funcionarios ANH  ·  Administradores TI   │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    │ HTTPS (vip.anh.gov.co)
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  CDN / WAF / Balanceador (según estándar ANH)                            │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│  HOSTING APROBADO                                                        │
+│  Opción A: Vercel (equipo ANH) + funciones serverless Next.js          │
+│  Opción B: Contenedor Node.js en OpenShift/VM ANH (persistencia local)   │
+│  Opción C: Azure App Service / AWS (si política ANH lo permite)          │
+└───────┬─────────────────────────────┬───────────────────────────────────┘
+        │                             │
+        ▼                             ▼
+┌───────────────────┐       ┌────────────────────────────┐
+│  PostgreSQL ANH   │       │  SMTP / Exchange ANH         │
+│  (persistente)    │       │  correspondenciaanh@...      │
+│  backups diarios  │       └────────────────────────────┘
+└───────────────────┘
+        │
+        ▼
+┌───────────────────┐       ┌────────────────────────────┐
+│  SSO / IdP ANH    │       │  GitHub ANH + CI/CD          │
+│  Azure AD / LDAP  │       │  main → staging → production │
+└───────────────────┘       └────────────────────────────┘</div>
+
+      <div class="alert alert--info">
+        <strong>Recomendación técnica</strong>
+        Si la ANH mantiene Vercel, <strong>no usar SQLite en serverless</strong>. Migrar a
+        <strong>PostgreSQL gestionado</strong> (Neon, Supabase, RDS, o servidor PostgreSQL on-prem ANH)
+        y reemplazar <code>better-sqlite3</code> por un cliente compatible con entorno serverless
+        (<code>pg</code>, <code>@vercel/postgres</code>, Prisma, Drizzle, etc.).
+      </div>
+    </section>
+
+    <section id="fases">
+      <h2>4. Plan por fases (roadmap)</h2>
+      <p>Secuencia sugerida. Las fases 0–3 son prerequisito; 4–7 pueden paralelizarse parcialmente.</p>
+
+      <div class="phase">
+        <div class="phase-num">0</div>
+        <div class="phase-body">
+          <h3>Gobernanza y aprobaciones <span class="badge badge--critical">Crítica</span></h3>
+          <ul>
+            <li>Acta de arquitectura / concepto de operación aprobado por TI ANH y área GOP.</li>
+            <li>Clasificación de información (¿datos públicos, reservados, personales?).</li>
+            <li>Definir responsable funcional (GOP) y responsable técnico (TI).</li>
+            <li>Aprobar dominio, hosting y proveedor de BD.</li>
+            <li>Matriz RACI: desarrollo, infraestructura, seguridad, operaciones.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div class="phase-body">
+          <h3>Repositorio bajo control ANH</h3>
+          <p>Ver sección <a href="#github">GitHub ANH</a>.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div class="phase-body">
+          <h3>Base de datos persistente</h3>
+          <p>Ver sección <a href="#base-datos">Base de datos</a>. Es el cambio de código más importante.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div class="phase-body">
+          <h3>Entorno de staging</h3>
+          <ul>
+            <li>Deploy automático desde rama <code>staging</code> con BD de prueba.</li>
+            <li>Datos anonimizados o subset de operadoras piloto.</li>
+            <li>URL interna: p. ej. <code>vip-staging.anh.gov.co</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">4</div>
+        <div class="phase-body">
+          <h3>Autenticación institucional</h3>
+          <p>Ver sección <a href="#auth">Autenticación</a>.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">5</div>
+        <div class="phase-body">
+          <h3>Integración de correo</h3>
+          <p>Ver sección <a href="#correo">Correo</a>.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">6</div>
+        <div class="phase-body">
+          <h3>Seguridad, dominio y cumplimiento</h3>
+          <p>Ver secciones <a href="#hosting">Hosting</a> y <a href="#seguridad">Seguridad</a>.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">7</div>
+        <div class="phase-body">
+          <h3>Pruebas UAT y piloto con operadoras</h3>
+          <p>Ver sección <a href="#pruebas">Pruebas</a>.</p>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-num">8</div>
+        <div class="phase-body">
+          <h3>Go-live producción</h3>
+          <p>Ver sección <a href="#golive">Puesta en producción</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="github">
+      <h2>5. Repositorio GitHub — migración a la ANH</h2>
+
+      <h3>Situación actual</h3>
+      <ul>
+        <li>Repositorio: <a href="https://github.com/PhDRedondo/Inventario-de-pozos">github.com/PhDRedondo/Inventario-de-pozos</a></li>
+        <li>Rama principal: <code>main</code></li>
+        <li>Sin pipelines CI formales en el repo (deploy manual o script <code>scripts/vercel-deploy.sh</code>)</li>
+      </ul>
+
+      <h3>Pasos para transferir a GitHub ANH</h3>
+      <ol>
+        <li><strong>Crear organización o usar la existente</strong> (p. ej. <code>github.com/anh-colombia</code> o equivalente interno).</li>
+        <li><strong>Crear repositorio</strong> <code>inventario-pozos-vip</code> (privado).</li>
+        <li><strong>Transferir o mirror:</strong>
+          <pre>git clone --mirror https://github.com/PhDRedondo/Inventario-de-pozos.git
+cd Inventario-de-pozos.git
+git remote set-url origin https://github.com/ANH-ORG/inventario-pozos-vip.git
+git push --mirror</pre>
+        </li>
+        <li>Configurar <strong>branch protection</strong> en <code>main</code>: PR obligatorio, 1–2 revisores, sin push directo.</li>
+        <li>Definir ramas: <code>main</code> (prod), <code>staging</code>, <code>develop</code> (opcional).</li>
+        <li>Agregar <strong>CODEOWNERS</strong> para <code>src/lib/auth*</code>, <code>middleware.ts</code>, <code>src/app/api/</code>.</li>
+        <li>Activar <strong>Dependabot</strong> o escaneo de vulnerabilidades (GitHub Advanced Security si está disponible).</li>
+        <li>Documentar en README interno: contactos, runbooks, enlaces a Vercel/BD.</li>
+        <li><strong>Revocar acceso</strong> del repositorio personal una vez validada la migración.</li>
+      </ol>
+
+      <div class="alert alert--warning">
+        <strong>Licencia y propiedad intelectual</strong>
+        Formalizar que el código desarrollado para la ANH es propiedad de la entidad y que
+        colaboradores externos pierden acceso de escritura tras la entrega.
+      </div>
+    </section>
+
+    <section id="base-datos">
+      <h2>6. Base de datos — de SQLite a gestionada ANH</h2>
+
+      <div class="alert alert--danger">
+        <strong>No desplegar producción con SQLite en Vercel.</strong>
+        El archivo <code>inventario.db</code> vive en <code>/tmp/inventario-pozos-anh-data/</code>
+        (<code>src/lib/paths.ts</code>). Cada cold start o redeploy puede borrar datos.
+      </div>
+
+      <h3>Tablas principales a migrar</h3>
+      <table>
+        <thead>
+          <tr><th>Tabla</th><th>Contenido</th><th>Criticidad</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>wells</code></td><td>Inventario de pozos (40 atributos + UWI)</td><td>Crítica</td></tr>
+          <tr><td><code>uploads</code></td><td>Lotes / versiones de cargue</td><td>Crítica</td></tr>
+          <tr><td><code>validation_issues</code></td><td>Hallazgos por pozo</td><td>Alta</td></tr>
+          <tr><td><code>notebooks</code></td><td>Cuadernos de inventario por operadora</td><td>Crítica</td></tr>
+          <tr><td><code>notebook_events</code></td><td>Trazabilidad (timeline)</td><td>Alta</td></tr>
+          <tr><td><code>users</code></td><td>Usuarios y roles</td><td>Crítica</td></tr>
+          <tr><td><code>audit_log</code></td><td>Auditoría admin</td><td>Alta</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Trabajo de desarrollo requerido</h3>
+      <ol>
+        <li><strong>Elegir motor</strong> con TI ANH (PostgreSQL recomendado por compatibilidad y costo).</li>
+        <li><strong>Provisionar instancia</strong> en red accesible desde el hosting (VPC, firewall, IP allowlist).</li>
+        <li><strong>Introducir capa de acceso</strong> (Prisma/Drizzle/Knex) o adaptar SQL manual:
+          <ul>
+            <li>Reemplazar <code>better-sqlite3</code> — no funciona en Vercel serverless sin filesystem persistente.</li>
+            <li>Convertir <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> → <code>SERIAL</code> / <code>IDENTITY</code>.</li>
+            <li>Reemplazar <code>ensureColumn</code> ad hoc por <strong>migraciones versionadas</strong> (Flyway, Liquibase, Prisma Migrate).</li>
+            <li>Revisar tipos <code>TEXT</code> para fechas → <code>TIMESTAMPTZ</code> si aplica.</li>
+          </ul>
+        </li>
+        <li><strong>Variables de entorno</strong> (ejemplo PostgreSQL):
+          <pre>DATABASE_URL=postgresql://vip_app:***@db-interna.anh.gov.co:5432/inventario_pozos?sslmode=require</pre>
+        </li>
+        <li><strong>Seed controlado:</strong> en producción, cargar catálogos oficiales desde BD o API, no solo <code>seed.json</code> estático.</li>
+        <li><strong>Backups:</strong> snapshots diarios, retención 30–90 días, prueba de restauración trimestral.</li>
+        <li><strong>Conexiones serverless:</strong> usar pooler (PgBouncer, Neon pooler) para evitar agotar conexiones en Vercel.</li>
+      </ol>
+
+      <h3>Si la ANH prefiere SQL Server u Oracle</h3>
+      <p>El esfuerzo es mayor: revisar todos los queries en <code>src/lib/db.ts</code>, <code>notebook-db.ts</code>, <code>auth-db.ts</code>, <code>analytics-db.ts</code>. Presupuestar 2–4 semanas adicionales de adaptación y pruebas.</p>
+    </section>
+
+    <section id="hosting">
+      <h2>7. Hosting — Vercel y alternativas ANH</h2>
+
+      <h3>Opción A: Vercel con cuenta / equipo ANH (continuidad del demo)</h3>
+      <table>
+        <thead>
+          <tr><th>Paso</th><th>Acción</th><th>Responsable</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Crear <strong>Team Vercel</strong> institucional (facturación ANH, no personal).</td>
+            <td>TI + Compras</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Importar proyecto desde GitHub ANH; framework Next.js (ya configurado en <code>vercel.json</code>).</td>
+            <td>TI</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Configurar entornos: <strong>Production</strong>, <strong>Preview</strong> (PRs), <strong>Staging</strong> (rama fija).</td>
+            <td>TI</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Variables en Vercel (Production): <code>SESSION_SECRET</code>, <code>DATABASE_URL</code>, SMTP, SSO.</td>
+            <td>TI / Seguridad</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Dominio personalizado: <code>vip.anh.gov.co</code> → CNAME según Vercel; certificado TLS automático.</td>
+            <td>TI Redes / DNS</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Región: evaluar latencia Colombia (<code>iad1</code> US-East hoy; considerar <code>gru1</code> São Paulo si disponible).</td>
+            <td>TI</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Conectar BD externa persistente (obligatorio).</td>
+            <td>TI + Desarrollo</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Script actual de referencia: <code>scripts/vercel-deploy.sh</code> (genera <code>SESSION_SECRET</code> con OpenSSL).</p>
+
+      <h3>Opción B: Infraestructura on-prem / nube soberana ANH</h3>
+      <ul>
+        <li>Contenedor Docker Node.js 20 LTS ejecutando <code>npm run build && npm start</code> (puerto 3000).</li>
+        <li>Reverse proxy Nginx/IIS con TLS terminado en el balanceador institucional.</li>
+        <li>Permite mantener SQLite solo si hay volumen persistente — <strong>no recomendado</strong>; preferir PostgreSQL igualmente.</li>
+        <li>Mayor control para auditorías MinTIC; mayor carga operativa (parches, escalado, HA).</li>
+      </ul>
+
+      <h3>Requisitos mínimos de runtime</h3>
+      <ul>
+        <li>Node.js ≥ 20</li>
+        <li>Memoria: ≥ 512 MB por instancia (recomendado 1 GB para cargas Excel grandes)</li>
+        <li>Timeout de funciones: aumentar en Vercel si cargas &gt; 8 MB (config <code>maxDuration</code> en route handlers)</li>
+        <li>Almacenamiento temporal para parsing Excel durante la request</li>
+      </ul>
+    </section>
+
+    <section id="auth">
+      <h2>8. Autenticación institucional</h2>
+
+      <h3>Implementación actual</h3>
+      <ul>
+        <li>Login en <code>/api/auth/login</code> valida usuario/contraseña contra tabla <code>users</code>.</li>
+        <li>Cookie <code>anh_session</code> firmada con HMAC-SHA256 (<code>SESSION_SECRET</code>).</li>
+        <li>Roles: <code>operadora</code>, <code>anh</code>, <code>admin</code> — alcance en <code>auth-scope.ts</code>.</li>
+        <li>Usuario admin semilla: <code>johan.redondo@anh.gov.co</code> (contraseña <code>ANH_ADMIN_PASSWORD</code> o default demo).</li>
+      </ul>
+
+      <h3>Objetivo producción</h3>
+      <ol>
+        <li>Integrar <strong>IdP institucional</strong> (Azure AD, Keycloak, LDAP) vía OIDC/SAML.</li>
+        <li>Flujo recomendado: Next.js Auth.js (Auth.js v5) o middleware OIDC → sesión propia o JWT de corta vida.</li>
+        <li><strong>Mapeo de grupos AD → roles VIP:</strong>
+          <ul>
+            <li><code>GOP-Operadoras</code> → rol <code>operadora</code> + atributo <code>operadora</code></li>
+            <li><code>GOP-ANH-Consulta</code> → rol <code>anh</code></li>
+            <li><code>GOP-Admin</code> → rol <code>admin</code></li>
+          </ul>
+        </li>
+        <li>Mantener tabla <code>users</code> como <strong>espejo</strong> de identidades o eliminar contraseñas locales.</li>
+        <li><strong>Desactivar</strong> usuarios demo (<code>demo</code>, <code>funcionario</code>) y rotar <code>ANH_ADMIN_PASSWORD</code>.</li>
+        <li>Habilitar <strong>MFA</strong> en el IdP para admin y funcionarios ANH.</li>
+        <li>Política de sesión: expiración 8 h inactividad; cookie <code>Secure</code>, <code>HttpOnly</code>, <code>SameSite=Lax</code> (ya parcialmente aplicado).</li>
+      </ol>
+
+      <div class="alert alert--warning">
+        <strong>Operadoras externas</strong>
+        Si las operadoras no están en el AD ANH, definir: (a) B2B federado, (b) cuentas locales con MFA + invitación,
+        o (c) portal extranet existente de la ANH como punto de entrada único.
+      </div>
+    </section>
+
+    <section id="correo">
+      <h2>9. Correo electrónico — de simulación a SMTP ANH</h2>
+
+      <h3>Comportamiento actual</h3>
+      <p>
+        Al aplicar envío (<code>POST /api/notebooks/[id]/submit</code>), <code>sendSubmissionEmail()</code>
+        en <code>src/lib/mail.ts</code> escribe archivos <code>.txt</code> y <code>.xlsx</code> en
+        <code>outbox/</code>. Destino simulado: <code>correspondenciaanh@anh.gov.co</code>.
+      </p>
+
+      <h3>Integración requerida</h3>
+      <ol>
+        <li>Solicitar a TI ANH: servidor SMTP relay interno, credenciales de servicio, puerto, TLS.</li>
+        <li>Variables de entorno sugeridas:
+          <pre>SMTP_HOST=smtp.anh.gov.co
+SMTP_PORT=587
+SMTP_USER=vip-notificaciones@anh.gov.co
+SMTP_PASS=***
+SMTP_FROM=vip-notificaciones@anh.gov.co
+ANH_CORRESPONDENCE=correspondenciaanh@anh.gov.co</pre>
+        </li>
+        <li>Implementar envío real con <code>nodemailer</code> o API Graph (Microsoft 365).</li>
+        <li>Adjuntar Excel generado para ControlDoc (ya se produce el buffer en el flujo de submit).</li>
+        <li>Registrar en <code>audit_log</code> cada notificación enviada (message-id, timestamp).</li>
+        <li>Cola de reintentos si SMTP falla (tabla <code>email_queue</code> o servicio de mensajería ANH).</li>
+      </ol>
+    </section>
+
+    <section id="seguridad">
+      <h2>10. Seguridad, red y cumplimiento</h2>
+
+      <h3>Checklist de seguridad</h3>
+      <ul class="checklist">
+        <li><code>SESSION_SECRET</code> ≥ 32 bytes aleatorios; rotación anual documentada.</li>
+        <li>Eliminar contraseñas por defecto y usuarios demo en producción.</li>
+        <li>HTTPS obligatorio; HSTS en dominio <code>*.anh.gov.co</code>.</li>
+        <li>WAF / protección DDoS según estándar ANH.</li>
+        <li>Rate limiting en <code>/api/auth/login</code> y cargas de archivo.</li>
+        <li>Límite de tamaño de upload Excel (p. ej. 15 MB) — validar en API route.</li>
+        <li>Escaneo de dependencias (<code>npm audit</code>, Snyk, Dependabot).</li>
+        <li>Logs sin datos personales sensibles; retención según política ANH.</li>
+        <li>Prueba de penetración antes de go-live (mínimo aplicación web OWASP Top 10).</li>
+        <li>Plan de respuesta a incidentes y contacto CSIRT ANH.</li>
+        <li>Cumplimiento Ley 1581 (datos personales en <code>actor_email</code>, nombres operadores).</li>
+      </ul>
+
+      <h3>Acceso de red</h3>
+      <ul>
+        <li>BD: solo desde subnets del hosting VIP (no exposición pública sin VPN).</li>
+        <li>Panel admin <code>/admin/usuarios</code>: restringir por IP institucional si es posible.</li>
+        <li>Operadoras: acceso vía internet con autenticación fuerte o VPN extranet ANH.</li>
+      </ul>
+    </section>
+
+    <section id="cicd">
+      <h2>11. CI/CD — pipeline recomendado</h2>
+
+      <div class="diagram">Push/PR → GitHub ANH
+    │
+    ├─ Job: lint + typecheck + build (npm run lint && npm run build)
+    ├─ Job: test UWI (npm run test:uwi) — opcional en PR
+    ├─ Job: escaneo seguridad dependencias
+    │
+    ├─ PR merge a staging → Deploy automático Vercel Staging + smoke tests
+    │
+    └─ Tag v* o merge a main (aprobación manual) → Deploy Production Vercel</div>
+
+      <h3>GitHub Actions (plantilla conceptual)</h3>
+      <pre>name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          SESSION_SECRET: ci-dummy-secret-for-build-only</pre>
+
+      <p>Secretos de producción <strong>nunca</strong> en el repositorio; usar GitHub Environments + Vercel integración.</p>
+    </section>
+
+    <section id="pruebas">
+      <h2>12. Pruebas y validación (UAT)</h2>
+
+      <h3>Pruebas técnicas</h3>
+      <table>
+        <thead>
+          <tr><th>Área</th><th>Caso</th><th>Criterio de aceptación</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cargue Excel</td>
+            <td>Archivo oficial 8+ pozos con errores</td>
+            <td>Hallazgos deterministas; conteos trazabilidad = detalle</td>
+          </tr>
+          <tr>
+            <td>Cuaderno</td>
+            <td>Versiones 1 y 2, aplicar sin errores</td>
+            <td>Panel ANH muestra pozos <code>submitted</code></td>
+          </tr>
+          <tr>
+            <td>Roles</td>
+            <td>Operadora A no ve datos de operadora B</td>
+            <td><code>buildScopeClause</code> efectivo</td>
+          </tr>
+          <tr>
+            <td>UWI</td>
+            <td>Generación según instructivo abril 2026</td>
+            <td><code>npm run test:uwi</code> pasa</td>
+          </tr>
+          <tr>
+            <td>Correo</td>
+            <td>Submit exitoso</td>
+            <td>Correo llega a bandeja ANH con adjunto Excel</td>
+          </tr>
+          <tr>
+            <td>BD</td>
+            <td>Redeploy / reinicio</td>
+            <td>Datos persisten (no pérdida)</td>
+          </tr>
+          <tr>
+            <td>Carga</td>
+            <td>10 usuarios concurrentes cargando Excel</td>
+            <td>Timeouts &lt; 60 s, sin corrupción BD</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Piloto funcional</h3>
+      <ol>
+        <li>Seleccionar 2–3 operadoras voluntarias.</li>
+        <li>Ventana de prueba 2–4 semanas en staging.</li>
+        <li>Capacitación con tour guiado (<code>driver.js</code>) y documentación in-app.</li>
+        <li>Acta de aceptación firmada por GOP y operadoras piloto.</li>
+      </ol>
+    </section>
+
+    <section id="golive">
+      <h2>13. Puesta en producción (go-live)</h2>
+
+      <h3>Pre-go-live (T-7 días)</h3>
+      <ul class="checklist">
+        <li>BD producción provisionada y migraciones aplicadas.</li>
+        <li>Variables de entorno producción verificadas (checklist anexo).</li>
+        <li>SSO probado con usuarios reales de cada rol.</li>
+        <li>DNS <code>vip.anh.gov.co</code> apuntando al hosting.</li>
+        <li>Backup inicial y procedimiento de rollback documentado.</li>
+        <li>Usuarios demo deshabilitados.</li>
+        <li>Comunicado a operadoras (fecha, URL, soporte).</li>
+      </ul>
+
+      <h3>Día D</h3>
+      <ol>
+        <li>Ventana de mantenimiento comunicada (si aplica).</li>
+        <li>Deploy tag <code>v1.0.0</code> a producción.</li>
+        <li>Smoke test: login SSO, listar panel, cargar cuaderno prueba, exportar informe.</li>
+        <li>Monitoreo activo primeras 48 h.</li>
+        <li>Mesa de ayuda GOP + TI con canal único (correo / Teams).</li>
+      </ol>
+
+      <h3>Rollback</h3>
+      <ul>
+        <li>Vercel: promover deployment anterior estable desde dashboard.</li>
+        <li>BD: restaurar snapshot pre-deploy si migración falló.</li>
+        <li>Comunicar degradación a operadoras si se revierte funcionalidad.</li>
+      </ul>
+    </section>
+
+    <section id="operacion">
+      <h2>14. Operación continua</h2>
+
+      <table>
+        <thead>
+          <tr><th>Actividad</th><th>Frecuencia</th><th>Responsable</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Backup BD y prueba restauración</td><td>Diario / trimestral</td><td>TI DBA</td></tr>
+          <tr><td>Revisión logs de error (Vercel / APM)</td><td>Diario</td><td>TI</td></tr>
+          <tr><td>Actualización dependencias npm</td><td>Mensual</td><td>Desarrollo</td></tr>
+          <tr><td>Rotación <code>SESSION_SECRET</code></td><td>Anual</td><td>Seguridad + TI</td></tr>
+          <tr><td>Revisión usuarios y roles</td><td>Trimestral</td><td>GOP + Admin</td></tr>
+          <tr><td>Actualización catálogos ANH (contratos, campos)</td><td>Según GOP</td><td>Funcional + Dev</td></tr>
+          <tr><td>Informe de disponibilidad</td><td>Mensual</td><td>TI</td></tr>
+        </tbody>
+      </table>
+
+      <h3>SLA sugerido (a acordar con ANH)</h3>
+      <ul>
+        <li>Disponibilidad horario laboral: 99.5%</li>
+        <li>Tiempo de respuesta incidente crítico: 4 h</li>
+        <li>RPO backups: 24 h · RTO: 4 h</li>
+      </ul>
+    </section>
+
+    <section id="checklist">
+      <h2>15. Checklist maestro de producción</h2>
+
+      <div class="card card--dark">
+        <h3>Infraestructura y código</h3>
+        <ul class="checklist">
+          <li>Repositorio migrado a GitHub ANH con branch protection</li>
+          <li>PostgreSQL (u otra BD ANH) en producción y staging</li>
+          <li>Código adaptado: sin dependencia de SQLite en serverless</li>
+          <li>Migraciones de esquema versionadas</li>
+          <li>Proyecto Vercel (o hosting) bajo cuenta institucional</li>
+          <li>Dominio <code>vip.anh.gov.co</code> con TLS</li>
+          <li><code>SESSION_SECRET</code> y <code>DATABASE_URL</code> en gestor de secretos</li>
+          <li>CI/CD: build obligatorio en cada PR</li>
+        </ul>
+
+        <h3>Funcionalidad institucional</h3>
+        <ul class="checklist">
+          <li>SSO / identidad corporativa integrada</li>
+          <li>SMTP real para envíos a correspondencia ANH</li>
+          <li>Usuarios demo eliminados o desactivados</li>
+          <li>Catálogos oficiales actualizados</li>
+          <li>UAT firmado por GOP</li>
+        </ul>
+
+        <h3>Seguridad y gobierno</h3>
+        <ul class="checklist">
+          <li>Prueba de penetración completada</li>
+          <li>Política de backups y DR probada</li>
+          <li>Matriz de roles y permisos documentada</li>
+          <li>Plan de soporte y escalamiento</li>
+          <li>Acta de puesta en producción</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="riesgos">
+      <h2>16. Riesgos y mitigaciones</h2>
+
+      <table>
+        <thead>
+          <tr><th>Riesgo</th><th>Impacto</th><th>Mitigación</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Desplegar sin cambiar SQLite</td>
+            <td>Pérdida total de inventario</td>
+            <td>Bloquear go-live hasta BD persistente + prueba de redeploy</td>
+          </tr>
+          <tr>
+            <td>Retraso en SSO</td>
+            <td>Contraseñas locales inseguras</td>
+            <td>Fase intermedia: contraseñas fuertes + MFA + rotación 90 días</td>
+          </tr>
+          <tr>
+            <td>Excel muy grande</td>
+            <td>Timeout serverless</td>
+            <td>Límite tamaño, procesamiento async con cola (fase 2)</td>
+          </tr>
+          <tr>
+            <td>Operadoras sin AD ANH</td>
+            <td>No pueden usar SSO</td>
+            <td>Cuentas invitación con verificación correo corporativo operadora</td>
+          </tr>
+          <tr>
+            <td>Dependencia repo personal</td>
+            <td>Sin control institucional</td>
+            <td>Migración GitHub ANH antes de datos reales</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="anexos">
+      <h2>17. Anexos</h2>
+
+      <h3>A. Variables de entorno — producción</h3>
+      <table>
+        <thead>
+          <tr><th>Variable</th><th>Obligatoria</th><th>Descripción</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>SESSION_SECRET</code></td><td>Sí</td><td>Firma cookie sesión (32+ bytes hex)</td></tr>
+          <tr><td><code>DATABASE_URL</code></td><td>Sí (prod)</td><td>Conexión BD persistente</td></tr>
+          <tr><td><code>ANH_ADMIN_PASSWORD</code></td><td>No</td><td>Solo bootstrap; desactivar tras SSO</td></tr>
+          <tr><td><code>SMTP_HOST</code></td><td>Sí (prod)</td><td>Servidor correo ANH</td></tr>
+          <tr><td><code>SMTP_PORT</code></td><td>Sí</td><td>Puerto TLS (587/465)</td></tr>
+          <tr><td><code>SMTP_USER</code> / <code>SMTP_PASS</code></td><td>Sí</td><td>Cuenta de servicio</td></tr>
+          <tr><td><code>SMTP_FROM</code></td><td>Sí</td><td>Remitente notificaciones VIP</td></tr>
+          <tr><td><code>OIDC_ISSUER</code></td><td>Sí (con SSO)</td><td>URL proveedor identidad</td></tr>
+          <tr><td><code>OIDC_CLIENT_ID</code> / <code>SECRET</code></td><td>Sí</td><td>App registrada en IdP</td></tr>
+          <tr><td><code>NODE_ENV</code></td><td>Auto</td><td><code>production</code></td></tr>
+          <tr><td><code>VERCEL</code></td><td>Auto</td><td>Detectada en Vercel; hoy activa rutas <code>/tmp</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>B. Endpoints críticos</h3>
+      <table>
+        <thead>
+          <tr><th>Ruta</th><th>Uso en producción</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>POST /api/notebooks/[id]/upload</code></td><td>Cargue Excel operadora</td></tr>
+          <tr><td><code>POST /api/notebooks/[id]/submit</code></td><td>Aplicar inventario + correo</td></tr>
+          <tr><td><code>GET /api/validations?uploadId=</code></td><td>Hallazgos por versión</td></tr>
+          <tr><td><code>GET /api/stats</code></td><td>Panel principal</td></tr>
+          <tr><td><code>POST /api/auth/login</code></td><td>Reemplazar por SSO en prod</td></tr>
+          <tr><td><code>GET /api/admin/users</code></td><td>Gestión usuarios (solo admin)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>C. Contactos (completar por ANH)</h3>
+      <table>
+        <thead>
+          <tr><th>Rol</th><th>Nombre</th><th>Correo</th><th>Teléfono</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Patrocinador GOP</td><td>_____________</td><td>_____________</td><td>_____________</td></tr>
+          <tr><td>Líder TI</td><td>_____________</td><td>_____________</td><td>_____________</td></tr>
+          <tr><td>DBA</td><td>_____________</td><td>_____________</td><td>_____________</td></tr>
+          <tr><td>Seguridad información</td><td>_____________</td><td>_____________</td><td>_____________</td></tr>
+          <tr><td>Desarrollo / mantenimiento</td><td>_____________</td><td>_____________</td><td>_____________</td></tr>
+        </tbody>
+      </table>
+
+      <h3>D. Estimación de esfuerzo (orientativa)</h3>
+      <table>
+        <thead>
+          <tr><th>Entregable</th><th>Esfuerzo dev</th><th>Dependencia ANH</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Migración PostgreSQL + ORM</td><td>3–5 semanas</td><td>Instancia BD, red, credenciales</td></tr>
+          <tr><td>SSO OIDC</td><td>2–3 semanas</td><td>App registrada en IdP, grupos AD</td></tr>
+          <tr><td>SMTP real</td><td>3–5 días</td><td>Relay correo, cuenta servicio</td></tr>
+          <tr><td>CI/CD + GitHub ANH</td><td>1 semana</td><td>Org GitHub, permisos</td></tr>
+          <tr><td>Vercel producción + dominio</td><td>2–3 días</td><td>DNS, Team Vercel, compras</td></tr>
+          <tr><td>UAT y piloto</td><td>2–4 semanas</td><td>Operadoras piloto, GOP</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="alert alert--success">
+      <strong>Conclusión</strong>
+      La aplicación está <strong>lista como demostración funcional</strong> del flujo GOP completo.
+      Para producción institucional en la ANH, el camino crítico es:
+      <strong>(1) base de datos persistente</strong>,
+      <strong>(2) repositorio y hosting bajo control ANH</strong>,
+      <strong>(3) autenticación y correo institucionales</strong>.
+      Vercel puede mantenerse como capa de ejecución siempre que la persistencia
+      y la identidad dejen de depender del modo demo actual.
+    </div>
+  </main>
+
+  <div class="gradient-bar"></div>
+  <footer class="doc-footer">
+    <p>
+      <strong>VIP — Inventario de Pozos ANH</strong> · Documento de referencia para planeación de producción.
+      Generado a partir del estado del repositorio <code>Inventario-de-pozos</code> (julio 2026).
+      Complementa el <code>README.md</code> técnico del proyecto.
+    </p>
+    <p>Para abrir: guardar este archivo y abrirlo en cualquier navegador, o servir desde <code>docs/guia-produccion-anh.html</code>.</p>
+  </footer>
+</body>
+</html>
