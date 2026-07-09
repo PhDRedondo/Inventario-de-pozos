@@ -21,7 +21,7 @@ import {
   YAxis,
   ZAxis,
 } from "recharts";
-import { RoleWorkflowSteps, roleWorkflowIntro } from "@/components/RoleWorkflowSteps";
+import { roleWorkflowIntro } from "@/components/RoleWorkflowSteps";
 import { PageHeader, StatCard } from "@/components/ui";
 import { useAppPreferences } from "@/context/AppPreferences";
 import { useAuth } from "@/context/AuthContext";
@@ -201,8 +201,6 @@ export default function AnaliticaPage() {
         title={t("analytics.title")}
         description={user ? t(roleWorkflowIntro(user.role, "quality")) : t("analytics.description")}
       />
-
-      <RoleWorkflowSteps role={user?.role ?? "anh"} variant="compact" />
 
       <div className="card mb-4 p-3 sm:p-4">
         <div className="mb-3 flex flex-wrap gap-2">
