@@ -12,6 +12,8 @@ import type {
   UserRole,
 } from "./types";
 import { saveUploadBatch, getValidationReport, getUpload } from "./db";
+import { DEMO_OPERADORA } from "./demo-auth";
+import seedData from "../../data/seed.json";
 
 function ensureColumn(table: string, column: string, definition: string) {
   const database = getDb();
@@ -170,6 +172,7 @@ function defaultNotebookTitle(operadora: string): string {
 }
 
 export function listNotebooks(operadora: string): NotebookSummary[] {
+  ensureDemoNotebook(operadora);
   const database = getDb();
   const rows = database
     .prepare(
@@ -490,4 +493,90 @@ export function assertNotebookAccess(
     return { ok: false, error: "Cuaderno no pertenece a la operadora seleccionada", status: 400 };
   }
   return { ok: true, notebook };
+}
+
+const DEMO_NOTEBOOK_TITLE = "Cuaderno demo — inventario de prueba";
+
+function buildDemoNotebookRecords(): WellRecord[] {
+  const template = seedData.records[0] as WellRecord;
+  return [
+    {
+      ...template,
+      operadora: DEMO_OPERADORA,
+      nombre_pozo_sgc: "RUBIALES - 3002H",
+      pozo_existente_avm: "SE MANTIENE",
+      municipio: "Municipio inventado demo",
+      yacimiento_ruty: "Yacimiento no catalogado",
+      tipo_objetivo: "X (inválido)",
+      estado_pozo: "Estado inválido",
+      uwi_sgc: "CO_RUB_3002H",
+    },
+    {
+      ...template,
+      operadora: "",
+      nombre_pozo_sgc: "POZO SIN OPERADORA",
+      pozo_existente_avm: "SE MANTIENE",
+    },
+  ];
+}
+
+/** Garantiza un cuaderno de demostración para la operadora demo en cada instancia nueva. */
+export function ensureDemoNotebook(operadora: string): void {
+  if (operadora !== DEMO_OPERADORA) return;
+
+  const database = getDb();
+  const existing = database
+    .prepare("SELECT id FROM notebooks WHERE operadora = ? AND title = ?")
+    .get(operadora, DEMO_NOTEBOOK_TITLE) as { id: number } | undefined;
+  if (existing) return;
+
+  const active = getActiveNotebook(operadora);
+  const status = active ? "archived" : "active";
+  const result = database
+    .prepare(`INSERT INTO notebooks (operadora, status, title, created_by) VALUES (?, ?, ?, ?)`)
+    .run(operadora, status, DEMO_NOTEBOOK_TITLE, "system@demo");
+  const notebookId = Number(result.lastInsertRowid);
+
+  logNotebookEvent({
+    notebookId,
+    eventType: "created",
+    actorEmail: "system@demo",
+    message: DEMO_NOTEBOOK_TITLE,
+  });
+
+  const { upload, results } = saveUploadBatch(
+    "demo-inventario-prueba.xlsx",
+    operadora,
+    buildDemoNotebookRecords(),
+    {
+      status: "draft",
+      forceOperadora: operadora,
+      notebookId,
+      versionNumber: 1,
+    },
+  );
+
+  database
+    .prepare(`UPDATE notebooks SET active_version_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`)
+    .run(upload.id, notebookId);
+
+  const invalid = results.filter((r) => !r.is_valid).length;
+  const warnings = results.reduce((s, r) => s + r.warning_count, 0);
+
+  logNotebookEvent({
+    notebookId,
+    eventType: "upload",
+    uploadId: upload.id,
+    actorEmail: "system@demo",
+    message: `Versión 1: demo-inventario-prueba.xlsx`,
+    metadata: {
+      version_number: 1,
+      filename: upload.filename,
+      total_records: upload.total_records,
+      valid_records: upload.valid_records,
+      invalid_records: upload.invalid_records,
+      wells_with_errors: invalid,
+      warning_count: warnings,
+    },
+  });
 }

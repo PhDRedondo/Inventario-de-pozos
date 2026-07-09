@@ -7,9 +7,13 @@ import { getAttributeLabel } from "@/lib/attributes";
 import { PageHeader } from "@/components/ui";
 import { useT } from "@/context/AppPreferences";
 import { useOperatorBrand } from "@/hooks/useOperatorBrand";
-import type { Notebook, NotebookEvent, NotebookVersion, ValidationResult } from "@/lib/types";
-
-type FindingFilter = "all" | "errors" | "warnings";
+import {
+  countIssues,
+  flattenFindings,
+  severityBadgeClass,
+  type FindingFilter,
+} from "@/lib/validation-findings";
+import type { Notebook, NotebookEvent, NotebookVersion, ValidationIssue, ValidationResult } from "@/lib/types";
 
 interface NotebookDetail {
   notebook: Notebook;
@@ -29,6 +33,12 @@ function eventLabel(t: ReturnType<typeof useT>, event: NotebookEvent) {
   if (event.event_type === "upload") return t("notebook.eventUpload");
   if (event.event_type === "submit") return t("notebook.eventSubmit");
   return t("notebook.eventArchived");
+}
+
+function severityLabel(t: ReturnType<typeof useT>, severity: ValidationIssue["severity"]) {
+  if (severity === "error") return t("quality.severityError");
+  if (severity === "warning") return t("quality.severityWarning");
+  return t("quality.severityInfo");
 }
 
 export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: NotebookWorkspaceProps) {
@@ -183,39 +193,40 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     }
   }
 
-  const filtered = useMemo(() => {
-    if (filter === "errors") return report.filter((r) => !r.is_valid);
-    if (filter === "warnings") return report.filter((r) => r.is_valid && r.warning_count > 0);
-    return report;
-  }, [report, filter]);
+  const issueCounts = useMemo(() => countIssues(report), [report]);
 
   const findingRows = useMemo(
     () =>
-      filtered.flatMap((row) =>
-        row.issues.map((issue, idx) => ({
-          key: `${row.well_id}-${idx}`,
-          well: row.nombre_pozo_sgc,
-          field: getAttributeLabel(issue.field),
-          severity: issue.severity,
-          message: issue.message,
-        })),
-      ),
-    [filtered],
+      flattenFindings(report, filter).map((row) => ({
+        key: row.key,
+        well: row.well,
+        fieldLabel: getAttributeLabel(row.field),
+        severity: row.severity,
+        severityLabel: severityLabel(t, row.severity),
+        message: row.message,
+      })),
+    [report, filter, t],
   );
 
-  const showErrorsFilterHint =
-    filter === "warnings" &&
-    findingRows.length === 0 &&
-    (selectedVersion?.invalid_records ?? 0) > 0;
+  const emptyFilterHint = useMemo(() => {
+    if (findingRows.length > 0) return null;
+    if (filter === "warnings" && issueCounts.errors > 0 && issueCounts.warnings + issueCounts.info === 0) {
+      return t("quality.noFindingsTryErrors", { count: issueCounts.errors });
+    }
+    if (filter === "errors" && issueCounts.errors === 0 && issueCounts.warnings + issueCounts.info > 0) {
+      return t("quality.noFindingsTryWarnings", { count: issueCounts.warnings + issueCounts.info });
+    }
+    return t("quality.noFindingsFiltered");
+  }, [findingRows.length, filter, issueCounts, t]);
 
   const totals = useMemo(
     () => ({
       total: selectedVersion?.total_records ?? 0,
       valid: selectedVersion?.valid_records ?? 0,
-      errores: report.reduce((s, r) => s + r.error_count, 0),
-      advertencias: report.reduce((s, r) => s + r.warning_count, 0),
+      errores: issueCounts.errors,
+      advertencias: issueCounts.warnings + issueCounts.info,
     }),
-    [report, selectedVersion],
+    [issueCounts, selectedVersion],
   );
 
   const filterButtons = [
@@ -458,7 +469,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
         <div className="border-b border-anh-border px-4 py-3 font-bold text-anh-primary">{t("quality.findingsTitle")}</div>
         {findingRows.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-anh-muted">
-            <p>{showErrorsFilterHint ? t("quality.noFindingsTryErrors", { count: selectedVersion?.invalid_records ?? 0 }) : t("quality.noFindingsFiltered")}</p>
+            <p>{emptyFilterHint}</p>
           </div>
         ) : (
           <>
@@ -466,9 +477,9 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
               {findingRows.map((row) => (
                 <article key={row.key} className="rounded-xl border border-anh-border bg-anh-bg/70 p-4">
                   <p className="font-semibold text-anh-primary">{row.well}</p>
-                  <p className="mt-1 text-xs text-anh-muted">{row.field}</p>
+                  <p className="mt-1 text-xs text-anh-muted">{row.fieldLabel}</p>
                   <p className="mt-2">
-                    <span className={row.severity === "error" ? "badge-invalid" : "badge-warning"}>{row.severity}</span>
+                    <span className={severityBadgeClass(row.severity)}>{row.severityLabel}</span>
                   </p>
                   <p className="mt-2 text-sm text-anh-text">{row.message}</p>
                 </article>
@@ -488,11 +499,9 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
                   {findingRows.map((row) => (
                     <tr key={row.key} className="border-t border-anh-border align-top">
                       <td className="px-4 py-3 font-medium">{row.well}</td>
-                      <td className="px-4 py-3 text-xs">{row.field}</td>
+                      <td className="px-4 py-3 text-xs">{row.fieldLabel}</td>
                       <td className="px-4 py-3">
-                        <span className={row.severity === "error" ? "badge-invalid" : "badge-warning"}>
-                          {row.severity}
-                        </span>
+                        <span className={severityBadgeClass(row.severity)}>{row.severityLabel}</span>
                       </td>
                       <td className="px-4 py-3">{row.message}</td>
                     </tr>

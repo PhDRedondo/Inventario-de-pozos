@@ -3,6 +3,7 @@ import path from "path";
 import ExcelJS from "exceljs";
 import { sanitizeSpanishText } from "@/lib/geo";
 import { getAttributeLabel } from "@/lib/attributes";
+import { issueMatchesFilter } from "@/lib/validation-findings";
 import type { ValidationResult } from "@/lib/types";
 
 export type CalidadExportFilter = "all" | "errors" | "warnings";
@@ -21,15 +22,11 @@ const THIN_BORDER: Partial<ExcelJS.Borders> = {
 };
 
 function filterReport(report: ValidationResult[], filter: CalidadExportFilter): ValidationResult[] {
-  if (filter === "errors") return report.filter((row) => !row.is_valid);
-  if (filter === "warnings") return report.filter((row) => row.is_valid && row.warning_count > 0);
   return report;
 }
 
 function shouldIncludeIssue(issueSeverity: string, filter: CalidadExportFilter): boolean {
-  if (filter === "errors") return issueSeverity === "error";
-  if (filter === "warnings") return issueSeverity === "warning";
-  return true;
+  return issueMatchesFilter(issueSeverity as "error" | "warning" | "info", filter);
 }
 
 function filterLabel(filter: CalidadExportFilter): string {

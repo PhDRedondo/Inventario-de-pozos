@@ -324,6 +324,11 @@ export const en = {
     noFindingsFiltered: "No findings match the selected filter.",
     noFindingsTryErrors:
       "This version has {{count}} record(s) with errors. Use the «Errors only» or «All» filter to see details.",
+    noFindingsTryWarnings:
+      "This version has {{count}} warning(s) or informational note(s). Use the «Warnings only» or «All» filter.",
+    severityError: "Error",
+    severityWarning: "Warning",
+    severityInfo: "Information",
     colAttribute: "Attribute",
     colSeverity: "Severity",
     colMessage: "Message",

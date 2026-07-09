@@ -332,6 +332,11 @@ export const es = {
     noFindingsFiltered: "No hay hallazgos con el filtro seleccionado.",
     noFindingsTryErrors:
       "Esta versión tiene {{count}} registro(s) con errores. Use el filtro «Solo errores» o «Todos» para ver el detalle.",
+    noFindingsTryWarnings:
+      "Esta versión tiene {{count}} advertencia(s) o nota(s) informativa(s). Use el filtro «Solo advertencias» o «Todos».",
+    severityError: "Error",
+    severityWarning: "Advertencia",
+    severityInfo: "Información",
     colAttribute: "Atributo",
     colSeverity: "Severidad",
     colMessage: "Mensaje",

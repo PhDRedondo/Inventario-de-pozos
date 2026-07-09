@@ -8,13 +8,25 @@ import { RoleWorkflowSteps, roleWorkflowIntro } from "@/components/RoleWorkflowS
 import { PageHeader } from "@/components/ui";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
-import type { ValidationResult } from "@/lib/types";
+import type { ValidationIssue, ValidationResult } from "@/lib/types";
+import {
+  countIssues,
+  flattenFindings,
+  severityBadgeClass,
+  type FindingFilter,
+} from "@/lib/validation-findings";
+
+function severityLabel(t: ReturnType<typeof useT>, severity: ValidationIssue["severity"]) {
+  if (severity === "error") return t("quality.severityError");
+  if (severity === "warning") return t("quality.severityWarning");
+  return t("quality.severityInfo");
+}
 
 function AnhQualityView() {
   const t = useT();
   const { user } = useAuth();
   const [report, setReport] = useState<ValidationResult[]>([]);
-  const [filter, setFilter] = useState<"all" | "errors" | "warnings">("all");
+  const [filter, setFilter] = useState<FindingFilter>("all");
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -24,19 +36,31 @@ function AnhQualityView() {
       .catch(console.error);
   }, []);
 
-  const filtered = useMemo(() => {
-    if (filter === "errors") return report.filter((r) => !r.is_valid);
-    if (filter === "warnings") return report.filter((r) => r.is_valid && r.warning_count > 0);
-    return report;
-  }, [report, filter]);
+  const issueCounts = useMemo(() => countIssues(report), [report]);
+
+  const findingRows = useMemo(
+    () =>
+      flattenFindings(report, filter, { includeOperator: true }).map((row) => ({
+        key: row.key,
+        operadora: row.operadora,
+        well: row.well,
+        fieldLabel: getAttributeLabel(row.field),
+        severityLabel: severityLabel(t, row.severity),
+        severity: row.severity,
+        message: row.message,
+      })),
+    [report, filter, t],
+  );
 
   const byOperadora = useMemo(() => {
     const map = new Map<string, { errores: number; advertencias: number }>();
     for (const row of report) {
       const key = row.operadora ?? t("common.noOperator");
       const current = map.get(key) ?? { errores: 0, advertencias: 0 };
-      current.errores += row.error_count;
-      current.advertencias += row.warning_count;
+      for (const issue of row.issues) {
+        if (issue.severity === "error") current.errores += 1;
+        else if (issue.severity === "warning" || issue.severity === "info") current.advertencias += 1;
+      }
       map.set(key, current);
     }
     return Array.from(map.entries())
@@ -47,12 +71,12 @@ function AnhQualityView() {
 
   const totals = useMemo(
     () => ({
-      errores: report.reduce((s, r) => s + r.error_count, 0),
-      advertencias: report.reduce((s, r) => s + r.warning_count, 0),
+      errores: issueCounts.errors,
+      advertencias: issueCounts.warnings + issueCounts.info,
       pozosConErrores: report.filter((r) => !r.is_valid).length,
       pozosConAdvertencias: report.filter((r) => r.is_valid && r.warning_count > 0).length,
     }),
-    [report],
+    [report, issueCounts],
   );
 
   async function exportReport() {
@@ -121,21 +145,17 @@ function AnhQualityView() {
                 </tr>
               </thead>
               <tbody>
-                {filtered.flatMap((row) =>
-                  row.issues.map((issue, idx) => (
-                    <tr key={`${row.well_id}-${idx}`} className="border-t border-anh-border align-top">
-                      <td className="px-4 py-3">{row.operadora}</td>
-                      <td className="px-4 py-3">{row.nombre_pozo_sgc}</td>
-                      <td className="px-4 py-3 text-xs">{getAttributeLabel(issue.field)}</td>
-                      <td className="px-4 py-3">
-                        <span className={issue.severity === "error" ? "badge-invalid" : "badge-warning"}>
-                          {issue.severity}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">{issue.message}</td>
-                    </tr>
-                  )),
-                )}
+                {findingRows.map((row) => (
+                  <tr key={row.key} className="border-t border-anh-border align-top">
+                    <td className="px-4 py-3">{row.operadora}</td>
+                    <td className="px-4 py-3">{row.well}</td>
+                    <td className="px-4 py-3 text-xs">{row.fieldLabel}</td>
+                    <td className="px-4 py-3">
+                      <span className={severityBadgeClass(row.severity)}>{row.severityLabel}</span>
+                    </td>
+                    <td className="px-4 py-3">{row.message}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
