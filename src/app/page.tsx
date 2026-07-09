@@ -3,16 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BarChart3, FileUp, Shield, Users } from "lucide-react";
+import { BarChart3, FileUp, Users } from "lucide-react";
 import { LandingCapabilities } from "@/components/LandingCapabilities";
 import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
 import type { LandingStats } from "@/lib/landing-stats";
-import type { UserRole } from "@/lib/types";
 
-const ROLE_IDS: UserRole[] = ["operadora", "anh", "admin"];
+const ROLE_IDS = ["operadora", "anh"] as const;
 
 const LANDING_STATS = [
   { key: "wells" as const, label: "statWellsLabel" },
@@ -20,10 +19,9 @@ const LANDING_STATS = [
   { key: "validationRules" as const, label: "statValidationLabel" },
 ];
 
-function RoleIcon({ role }: { role: UserRole }) {
+function RoleIcon({ role }: { role: (typeof ROLE_IDS)[number] }) {
   if (role === "operadora") return <FileUp className="h-6 w-6 text-anh-secondary" />;
-  if (role === "anh") return <BarChart3 className="h-6 w-6 text-anh-secondary" />;
-  return <Shield className="h-6 w-6 text-anh-secondary" />;
+  return <BarChart3 className="h-6 w-6 text-anh-secondary" />;
 }
 
 export default function LandingPage() {
@@ -127,7 +125,7 @@ export default function LandingPage() {
             </div>
             <Users className="hidden h-10 w-10 text-anh-secondary/60 sm:block" />
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2">
             {ROLE_IDS.map((role) => (
               <article key={role} className="card flex flex-col p-6">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-anh-bg">

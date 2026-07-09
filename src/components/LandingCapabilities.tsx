@@ -227,7 +227,7 @@ export function LandingCapabilities() {
           </div>
 
           <div className="border-t border-anh-border px-6 py-6 sm:px-8 sm:py-7">
-            <p className="text-base leading-relaxed text-anh-muted sm:text-lg">
+            <p className="text-sm leading-relaxed text-anh-muted">
               {t(`landing.feature.${active}.detail`)}
             </p>
 
