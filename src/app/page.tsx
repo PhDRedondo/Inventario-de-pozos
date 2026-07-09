@@ -3,16 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BarChart3, FileUp, Users } from "lucide-react";
 import { LandingCapabilities } from "@/components/LandingCapabilities";
+import { LandingRoles } from "@/components/LandingRoles";
 import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
 import { getNavItemsForRole } from "@/lib/navigation";
 import type { LandingStats } from "@/lib/landing-stats";
-
-const ROLE_IDS = ["operadora", "anh"] as const;
 
 const LANDING_STATS = [
   { key: "wells" as const, label: "statWellsLabel" },
@@ -24,11 +22,6 @@ const NEUTRAL_STAT_KEYS = new Set<(typeof LANDING_STATS)[number]["key"]>(["opera
 
 function isNeutralStatCard(key: (typeof LANDING_STATS)[number]["key"]) {
   return NEUTRAL_STAT_KEYS.has(key);
-}
-
-function RoleIcon({ role }: { role: (typeof ROLE_IDS)[number] }) {
-  if (role === "operadora") return <FileUp className="h-6 w-6 text-anh-secondary" />;
-  return <BarChart3 className="h-6 w-6 text-anh-secondary" />;
 }
 
 export default function LandingPage() {
@@ -126,33 +119,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Roles */}
-        <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="mb-10 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-anh-primary sm:text-3xl">{t("landing.rolesTitle")}</h2>
-              <p className="mt-3 max-w-2xl text-anh-muted">{t("landing.rolesSubtitle")}</p>
-            </div>
-            <Users className="hidden h-10 w-10 text-anh-secondary/60 sm:block" />
-          </div>
-          <div className="grid gap-5 md:grid-cols-2">
-            {ROLE_IDS.map((role) => (
-              <article key={role} className="card flex flex-col p-6">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-anh-bg">
-                  <RoleIcon role={role} />
-                </div>
-                <h3 className="text-lg font-bold text-anh-primary">{t(`landing.role.${role}.title`)}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-anh-muted">{t(`landing.role.${role}.text`)}</p>
-                <Link
-                  href={`/login?role=${role}`}
-                  className="mt-5 inline-flex text-sm font-semibold text-anh-secondary hover:underline"
-                >
-                  {t("landing.roleSignIn")} →
-                </Link>
-              </article>
-            ))}
-          </div>
-        </section>
+        <LandingRoles />
       </main>
 
       <InstitutionalFooter />

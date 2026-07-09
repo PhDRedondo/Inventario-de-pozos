@@ -737,6 +737,112 @@ html[data-operator-brand] .anh-sidebar-link--active svg {
   @apply h-6 w-6 text-[11px];
 }
 
+.landing-roles-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 20%, transparent 100%);
+}
+
+.landing-roles-glow {
+  animation: landing-roles-glow 8s ease-in-out infinite alternate;
+}
+
+@keyframes landing-roles-glow {
+  from {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+.landing-roles-bridge {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  width: 3.5rem;
+  height: 3.5rem;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--anh-sidebar-bg) 88%, white 12%);
+  box-shadow: 0 0 0 6px rgba(255, 140, 0, 0.08);
+}
+
+.landing-roles-bridge::before,
+.landing-roles-bridge::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  width: 4.5rem;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, rgba(255, 140, 0, 0.55), rgba(34, 211, 238, 0.55), transparent);
+}
+
+.landing-roles-bridge::before {
+  right: 100%;
+}
+
+.landing-roles-bridge::after {
+  left: 100%;
+}
+
+.landing-roles-bridge-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: var(--anh-orange);
+  transform: translate(-50%, -50%);
+  animation: landing-roles-bridge-travel 2.8s ease-in-out infinite;
+}
+
+.landing-roles-bridge-dot--b {
+  animation-delay: 0.9s;
+  background: #fbbf24;
+}
+
+.landing-roles-bridge-dot--c {
+  animation-delay: 1.8s;
+  background: #22d3ee;
+}
+
+@keyframes landing-roles-bridge-travel {
+  0% {
+    opacity: 0;
+    transform: translate(calc(-50% - 5.5rem), -50%) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + 5.5rem), -50%) scale(1);
+  }
+}
+
+.landing-roles-panel {
+  isolation: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-roles-glow,
+  .landing-roles-bridge-dot {
+    animation: none;
+  }
+}
+
 .anh-guided-tour {
   --driver-popover-color: var(--anh-black);
   --driver-popover-bg: #ffffff;

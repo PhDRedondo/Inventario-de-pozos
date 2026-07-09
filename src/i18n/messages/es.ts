@@ -710,16 +710,25 @@ export const es = {
     step3Title: "Envío a la ANH",
     step3Text: "Sin errores, aplica el envío: los datos se publican en el panel ANH y se genera el Excel para ControlDoc.",
     rolesTitle: "¿Quién usa la plataforma?",
+    rolesEyebrow: "Dos puertas, un inventario",
     rolesSubtitle: "Cada perfil accede con sus credenciales a la zona que le corresponde.",
+    rolesBadgeSource: "Origen",
+    rolesBadgeViewer: "Consolidación",
     roleSignIn: "Acceder como",
     role: {
       operadora: {
         title: "Operadora",
         text: "Carga su inventario, revisa calidad de datos y envía el lote validado a la ANH. Solo ve la información de su operadora.",
+        highlight1: "Cuaderno versionado",
+        highlight2: "Validación previa",
+        highlight3: "Datos propios",
       },
       anh: {
         title: "Funcionario ANH",
         text: "Consulta el inventario consolidado recibido de operadoras: mapa, estadísticas, calidad y reportes nacionales.",
+        highlight1: "Vista nacional",
+        highlight2: "Mapa y analítica",
+        highlight3: "Calidad consolidada",
       },
       admin: {
         title: "Administrador",
