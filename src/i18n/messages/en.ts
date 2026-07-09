@@ -540,12 +540,42 @@ export const en = {
     featuresSubtitle:
       "Tools designed for institutional intake of the ANH template, role-based traceability and national inventory visualization.",
     feature: {
-      upload: { title: "Upload & validation", text: "Receive the official Excel, validate format and content, and generate per-record observations before ANH submission." },
-      validation: { title: "Data quality", text: "Exportable error and warning reports to feed back operators with per-well traceability." },
-      map: { title: "Territorial map", text: "View geographic well distribution in Colombia with cross-filters by department, state and operator." },
-      uwi: { title: "Fiscal UWI", text: "Automatic assignment per ANH April 2026 instructive and PPDM methodology." },
-      reports: { title: "Dashboards & reports", text: "Statistics, Sankey diagrams, filterable tables and institutional PDF reports." },
-      roles: { title: "Role-based access", text: "Operator, ANH officer and administrator access differentiated zones with controlled data scope." },
+      upload: {
+        title: "Upload & validation",
+        text: "Receive the official Excel, validate format and content, and generate per-record observations before ANH submission.",
+        detail:
+          "VIP receives the Excel file in the official ANH format (FORMATO INVENTARIO POZOS sheet), checks structure, data types and business rules before publishing results. Each record gets clear observations so the operator can fix and resubmit without losing institutional traceability.",
+      },
+      validation: {
+        title: "Data quality",
+        text: "Exportable error and warning reports to feed back operators with per-well traceability.",
+        detail:
+          "Generate quality reports by operator and by well, with findings classified by severity. Export to Excel with institutional header to feed back operators and track progress until all errors are resolved.",
+      },
+      map: {
+        title: "Territorial map",
+        text: "View geographic well distribution in Colombia with cross-filters by department, state and operator.",
+        detail:
+          "Explore territorial inventory distribution on an interactive map of Colombia. Filter by department, municipality, well status and operator; selections sync with linked tables and charts for cross-analysis.",
+      },
+      uwi: {
+        title: "Fiscal UWI",
+        text: "Automatic assignment per ANH April 2026 instructive and PPDM methodology.",
+        detail:
+          "Automatically assign the fiscal Unique Well Identifier (UWI) per the ANH April 2026 instructive and PPDM methodology, ensuring national consistency and traceability across reports from different operators.",
+      },
+      reports: {
+        title: "Dashboards & reports",
+        text: "Statistics, Sankey diagrams, filterable tables and institutional PDF reports.",
+        detail:
+          "Review statistical dashboards, Sankey flow diagrams, filterable tables and well sheets exportable as PDF with ANH institutional branding, supporting decision-making and national inventory oversight.",
+      },
+      roles: {
+        title: "Role-based access",
+        text: "Operator, ANH officer and administrator access differentiated zones with controlled data scope.",
+        detail:
+          "Operator, ANH officer and administrator sign in with differentiated credentials. Each role accesses only the functions and data that apply to them, with traceability for sensitive actions and controlled inventory scope.",
+      },
     },
     workflowTitle: "Institutional workflow",
     workflowSubtitle: "From operator upload to consolidation on the ANH dashboard.",
@@ -563,8 +593,6 @@ export const en = {
       anh: { title: "ANH officer", text: "Views consolidated inventory from operators: map, statistics, quality and national reports." },
       admin: { title: "Administrator", text: "Manages users, edits or deletes records with full audit trail. Institutional authorized access." },
     },
-    ctaBlockTitle: "Access the GOP system",
-    ctaBlockText: "Sign in with your profile to enter the ANH well inventory dashboard.",
   },
   analytics: {
     title: "Global inventory analytics",

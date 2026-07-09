@@ -550,26 +550,38 @@ export const es = {
       upload: {
         title: "Carga y validación",
         text: "Reciba el Excel oficial, valide formato y contenido, y genere observaciones por registro antes del envío a la ANH.",
+        detail:
+          "El VIP recibe el archivo Excel en el formato oficial ANH (hoja FORMATO INVENTARIO POZOS), verifica estructura, tipos de datos y reglas de negocio antes de publicar resultados. Cada registro recibe observaciones claras para que la operadora corrija y reenvíe sin perder trazabilidad del proceso institucional.",
       },
       validation: {
         title: "Calidad de datos",
         text: "Informes exportables de errores y advertencias para retroalimentar a operadoras con trazabilidad por pozo.",
+        detail:
+          "Genere informes de calidad por operadora y por pozo, con clasificación de hallazgos por severidad. Exporte a Excel con encabezado institucional para retroalimentar a las operadoras y dar seguimiento hasta la corrección total de errores.",
       },
       map: {
         title: "Mapa territorial",
         text: "Visualice la distribución geográfica de pozos en Colombia con filtros cruzados por departamento, estado y operadora.",
+        detail:
+          "Explore la distribución territorial del inventario en un mapa interactivo de Colombia. Filtre por departamento, municipio, estado del pozo y operadora; la selección se refleja en tablas y gráficos vinculados para análisis cruzado.",
       },
       uwi: {
         title: "UWI fiscalizado",
         text: "Asignación automática según el instructivo ANH de abril de 2026 y metodología PPDM.",
+        detail:
+          "Asigne automáticamente el Identificador Único de Pozo (UWI) fiscalizado conforme al instructivo ANH de abril de 2026 y la metodología PPDM, garantizando consistencia nacional y trazabilidad entre reportes de distintas operadoras.",
       },
       reports: {
         title: "Paneles y reportes",
         text: "Estadísticas, diagramas Sankey, tablas filtrables e informes PDF institucionales para la toma de decisiones.",
+        detail:
+          "Consulte paneles estadísticos, diagramas Sankey del flujo de datos, tablas filtrables y fichas de pozo exportables en PDF con identidad institucional ANH, orientados a la toma de decisiones y al control del inventario nacional.",
       },
       roles: {
         title: "Acceso por rol",
         text: "Operadora, funcionario ANH y administrador acceden a zonas diferenciadas con alcance de datos controlado.",
+        detail:
+          "Operadora, funcionario ANH y administrador ingresan con credenciales diferenciadas. Cada rol accede solo a las funciones y datos que le corresponden, con trazabilidad de acciones sensibles y alcance controlado del inventario.",
       },
     },
     workflowTitle: "Flujo institucional",
@@ -597,8 +609,6 @@ export const es = {
         text: "Gestiona usuarios, edita o elimina registros con trazabilidad completa. Acceso autorizado institucional.",
       },
     },
-    ctaBlockTitle: "Acceda al sistema GOP",
-    ctaBlockText: "Inicie sesión con su perfil para ingresar al panel de inventario de pozos de la ANH.",
   },
   analytics: {
     title: "Analítica global del inventario",

@@ -3,16 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
-import {
-  BarChart3,
-  ClipboardCheck,
-  FileUp,
-  Globe2,
-  Lock,
-  Map,
-  Shield,
-  Users,
-} from "lucide-react";
+import { BarChart3, FileUp, Shield, Users } from "lucide-react";
+import { LandingCapabilities } from "@/components/LandingCapabilities";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
@@ -35,15 +27,6 @@ export default function LandingPage() {
       window.location.href = "/panel";
     }
   }, [user, loading]);
-
-  const features = [
-    { icon: FileUp, key: "upload" },
-    { icon: ClipboardCheck, key: "validation" },
-    { icon: Map, key: "map" },
-    { icon: Globe2, key: "uwi" },
-    { icon: BarChart3, key: "reports" },
-    { icon: Lock, key: "roles" },
-  ] as const;
 
   const steps = ["step1", "step2", "step3"] as const;
 
@@ -108,24 +91,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Capabilities */}
-        <section id="capacidades" className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="mb-10 max-w-2xl">
-            <h2 className="text-2xl font-extrabold text-anh-primary sm:text-3xl">{t("landing.featuresTitle")}</h2>
-            <p className="mt-3 text-anh-muted">{t("landing.featuresSubtitle")}</p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, key }) => (
-              <article key={key} className="card group p-6 transition hover:border-anh-secondary/40 hover:shadow-md">
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-anh-secondary/10">
-                  <Icon className="h-5 w-5 text-anh-secondary" />
-                </div>
-                <h3 className="font-bold text-anh-primary">{t(`landing.feature.${key}.title`)}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-anh-muted">{t(`landing.feature.${key}.text`)}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        <LandingCapabilities />
 
         {/* Workflow */}
         <section className="border-y border-anh-border bg-anh-surface">
@@ -171,21 +137,6 @@ export default function LandingPage() {
                 </Link>
               </article>
             ))}
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="border-t border-anh-border bg-[#1a1a1a] text-white dark:bg-[#050505]">
-          <div className="anh-gradient-bar" />
-          <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:px-6">
-            <h2 className="text-2xl font-extrabold sm:text-3xl">{t("landing.ctaBlockTitle")}</h2>
-            <p className="mx-auto mt-4 max-w-xl text-white/85">{t("landing.ctaBlockText")}</p>
-            <Link
-              href="/login"
-              className="mt-8 inline-flex rounded-lg bg-anh-accent px-8 py-3 font-bold text-[#1a1a1a] transition hover:bg-anh-yellow"
-            >
-              {t("landing.ctaPrimary")}
-            </Link>
           </div>
         </section>
       </main>
