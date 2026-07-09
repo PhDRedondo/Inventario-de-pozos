@@ -23,6 +23,8 @@ export const es = {
     workflow3: "3. El sistema valida, asigna UWI y consolida el inventario.",
     guidedTour: "Iniciar visita guiada",
     systemDocs: "Acerca del sistema",
+    systemDocsOperadora: "Acerca de VIP",
+    systemDocsAnh: "Acerca de VIP",
     footerAgency: "Agencia Nacional de Hidrocarburos",
     footerGop: "Sistema de Gestión de Operaciones y Producción (GOP)",
     footerModule: "Módulo: Inventario de Pozos de Colombia",
@@ -478,6 +480,61 @@ export const es = {
       "Indicadores (KPI): total de pozos (subconjunto filtrado frente al catálogo completo), cargas procesadas y conteos por validación. Clic en una tarjeta aplica el filtro correspondiente.|Anillos de validación y estado: gráficos tipo dona con total central; cada segmento es clicable para filtrar por calidad de datos o estado del pozo.|Barras horizontales: ranking de las principales operadoras y de los departamentos con mayor concentración de pozos en el subconjunto actual.|Diagrama Sankey: flujo Departamento → Estado → Operadora; el grosor de cada enlace representa el número de pozos; clic en un nodo aplica filtro cruzado.|Mapa territorial: capa de pozos y polígonos departamentales; los pozos excluidos por el filtro se atenúan; clic en departamento, pozo o leyenda actualiza el resto del panel.|Tabla paginada: vista resumida (10/25/50 registros) o consulta completa; filas y columnas interactivas para filtrar; clic en un pozo abre su informe emergente.|Agregaciones en tiempo real: los datos provienen de /api/stats y se recalculan al cambiar cualquier filtro; las opciones de los selectores también se ajustan en cascada al subconjunto visible.",
     footerNote:
       "Versión de demostración con datos de ejemplo. En producción, la base SQLite puede sustituirse por un motor corporativo y la API integrarse con autenticación institucional y flujos de correo automatizados.",
+    operadora: {
+      title: "Acerca de VIP",
+      subtitle: "Guía para cargar, validar y enviar el inventario de pozos de su operadora.",
+      purposeTitle: "¿Qué es VIP para su operadora?",
+      purposeBody:
+        "VIP (Validador del Inventario de Pozos) es la herramienta donde usted carga el formato Excel oficial, revisa observaciones de calidad, corrige el archivo y aplica el envío a la ANH cuando el inventario queda sin errores. Solo ve y gestiona los datos de su operadora.",
+      processTitle: "Su flujo de trabajo",
+      processBody: "El recorrido recomendado dentro de VIP es:",
+      processItems:
+        "Diligencie el Excel oficial (hoja FORMATO INVENTARIO POZOS) con los datos de sus pozos.|Cree un cuaderno de inventario y cargue el archivo; el sistema valida y asigna UWI fiscalizado.|Revise errores y advertencias; ajuste el Excel y cargue una nueva versión hasta obtener cero errores.|Aplique el envío a la ANH; recibirá confirmación y su inventario quedará visible en el panel institucional.",
+      modulesTitle: "Secciones que utiliza",
+      modulesBody: "Como operadora, VIP le ofrece dos áreas principales:",
+      modulesItems:
+        "Panel principal: consulta el inventario ya aplicado de su operadora con mapa, indicadores y tabla de pozos.|Cuaderno de inventario: espacio de trabajo para crear cuadernos, cargar versiones del Excel, validar y aplicar el envío a la ANH.",
+      notebookTitle: "Cuaderno de inventario",
+      notebookBody: "El cuaderno concentra la preparación y el envío de cada ejercicio de reporte:",
+      notebookItems:
+        "Cree un cuaderno con un nombre identificable (por ejemplo, inventario del trimestre).|Cada carga genera una versión numerada con trazabilidad de validación.|Consulte la línea de tiempo del cuaderno: creación, cargues, validaciones y aplicación.|Exporte el informe de calidad de una versión para compartir observaciones con su equipo.|Cuando no haya errores, use «Aplicar envío a ANH» para publicar el inventario.",
+      validationTitle: "Calidad de datos y observaciones",
+      validationBody: "Durante la validación el sistema clasifica hallazgos por severidad:",
+      validationItems:
+        "Errores: deben corregirse en el Excel antes de poder aplicar el envío a la ANH.|Advertencias: recomendaciones o correcciones automáticas que conviene revisar, pero no bloquean el envío si no hay errores.|Exporte el informe en Excel con encabezado institucional para documentar las observaciones de cada versión.",
+      uwiTitle: "UWI fiscalizado",
+      uwiBody:
+        "El Identificador Único de Pozo (UWI) se asigna automáticamente al validar su archivo, conforme al instructivo ANH (abril 2026) y la metodología PPDM. No debe calcularlo manualmente: VIP lo genera a partir de la geografía, la operadora y los atributos del pozo reportados en el formato.",
+      footerNote:
+        "Versión de demostración. En producción, el envío se integrará con los canales institucionales de correspondencia de la ANH.",
+    },
+    anh: {
+      title: "Acerca de VIP",
+      subtitle: "Consulta del inventario nacional validado y analítica comparativa para funcionarios ANH.",
+      purposeTitle: "¿Qué es VIP para la ANH?",
+      purposeBody:
+        "VIP (Validador del Inventario de Pozos) consolida los inventarios que las operadoras validan y aplican desde sus cuadernos. Como funcionario ANH usted consulta ese inventario ya validado a nivel nacional, sin intervenir en cargues ni correcciones de las operadoras.",
+      scopeTitle: "Alcance de su perfil",
+      scopeBody: "Su acceso está orientado a consulta y análisis institucional:",
+      scopeItems:
+        "Consulta el inventario nacional validado (registros válidos y con advertencias).|Explora mapa, indicadores, gráficos y fichas de pozo con filtros cruzados.|Compara operadoras, territorios o pozos en la analítica global.|No carga archivos Excel ni gestiona cuadernos de operadoras; eso corresponde al perfil operadora.",
+      modulesTitle: "Secciones disponibles",
+      modulesBody: "Desde el menú lateral accede a:",
+      modulesItems:
+        "Panel principal: inventario consolidado con mapa territorial, KPIs, gráficos y tabla de pozos.|Analítica global: radar, comparaciones y visualizaciones frente al promedio nacional.",
+      dashboardTitle: "Panel principal",
+      dashboardBody: "Vista del inventario ya validado recibido de operadoras:",
+      dashboardItems:
+        "Solo muestra pozos con validación aceptada (válidos o con advertencias); los errores pendientes no aparecen aquí.|Filtre por operadora, departamento, estado del pozo y otros criterios.|Abra la ficha de un pozo para consultar atributos completos y exportar PDF institucional.",
+      analyticsTitle: "Analítica global",
+      analyticsBody: "Herramienta de comparación del inventario validado a nivel nacional:",
+      analyticsItems:
+        "Radar con línea base 100 (promedio nacional).|Compare operadoras, departamentos, municipios o pozos individuales.|Indicadores de profundidad, estado, validación y distribución territorial.",
+      uwiTitle: "UWI fiscalizado",
+      uwiBody:
+        "Cada pozo incluye el UWI fiscalizado asignado por VIP durante la validación de la operadora, conforme al instructivo ANH (abril 2026) y metodología PPDM. Está disponible en consultas, fichas de pozo e informes exportables.",
+      footerNote: "Versión de demostración con datos de ejemplo para fines institucionales.",
+    },
   },
   tour: {
     next: "Siguiente",

@@ -61,6 +61,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     shortLabel: t(shortKey),
   }));
 
+  const docsLabel =
+    role === "operadora"
+      ? t("shell.systemDocsOperadora")
+      : role === "anh"
+        ? t("shell.systemDocsAnh")
+        : t("nav.docsShort");
+
   const mobileNavItems = navItems.map(({ href, label, shortLabel, icon, tourId }) => ({
     href,
     label,
@@ -188,7 +195,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         onTour={handleStartTour}
         onDocs={() => setDocsOpen(true)}
         tourLabel={t("nav.tourShort")}
-        docsLabel={t("nav.docsShort")}
+        docsLabel={docsLabel}
         ariaLabel={t("nav.mainMenu")}
       />
 

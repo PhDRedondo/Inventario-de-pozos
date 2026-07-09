@@ -25,6 +25,8 @@ export const en = {
     workflow3: "3. The system validates, assigns UWI, and consolidates the inventory.",
     guidedTour: "Start guided tour",
     systemDocs: "About the system",
+    systemDocsOperadora: "About VIP",
+    systemDocsAnh: "About VIP",
     footerAgency: "National Hydrocarbons Agency",
     footerGop: "Operations and Production Management System (GOP)",
     footerModule: "Module: Colombia Well Inventory",
@@ -470,6 +472,61 @@ export const en = {
       "KPI cards: total wells (filtered subset vs full catalog), processed uploads, and validation counts. Click a card to apply the matching filter.|Validation and state donuts: ring charts with a central total; each segment is clickable to filter by data quality or well state.|Horizontal bars: ranking of top operators and departments with the highest well concentration in the current subset.|Sankey diagram: Department → State → Operator flow; link thickness represents well count; click a node to cross-filter.|Territorial map: well layer and departmental polygons; wells excluded by the filter are dimmed; click a department, well, or legend entry to update the rest of the panel.|Paginated table: summary view (10/25/50 rows) or full query; interactive rows and columns for filtering; click a well to open its modal report.|Real-time aggregations: data comes from /api/stats and recalculates when any filter changes; selector options also cascade to the visible subset.",
     footerNote:
       "Demo version with sample data. In production, SQLite can be replaced with a corporate database and the API integrated with institutional authentication and automated email workflows.",
+    operadora: {
+      title: "About VIP",
+      subtitle: "Guide to upload, validate, and submit your operator's well inventory.",
+      purposeTitle: "What is VIP for your operator?",
+      purposeBody:
+        "VIP (Well Inventory Validator) is where you upload the official Excel template, review quality observations, fix the file, and apply submission to ANH when the inventory has zero errors. You only see and manage your operator's data.",
+      processTitle: "Your workflow",
+      processBody: "The recommended path within VIP is:",
+      processItems:
+        "Complete the official Excel (FORMATO INVENTARIO POZOS sheet) with your well data.|Create an inventory notebook and upload the file; the system validates and assigns fiscal UWI.|Review errors and warnings; adjust the Excel and upload a new version until you have zero errors.|Apply submission to ANH; you receive confirmation and your inventory appears on the institutional dashboard.",
+      modulesTitle: "Sections you use",
+      modulesBody: "As an operator, VIP offers two main areas:",
+      modulesItems:
+        "Dashboard: view your operator's applied inventory with map, indicators, and well table.|Inventory notebook: workspace to create notebooks, upload Excel versions, validate, and apply submission to ANH.",
+      notebookTitle: "Inventory notebook",
+      notebookBody: "The notebook focuses preparation and submission for each reporting exercise:",
+      notebookItems:
+        "Create a notebook with a recognizable name (e.g. quarterly inventory).|Each upload generates a numbered version with validation traceability.|Review the notebook timeline: creation, uploads, validations, and application.|Export a version's quality report to share observations with your team.|When there are no errors, use «Apply submission to ANH» to publish the inventory.",
+      validationTitle: "Data quality and observations",
+      validationBody: "During validation the system classifies findings by severity:",
+      validationItems:
+        "Errors: must be fixed in the Excel before you can apply submission to ANH.|Warnings: recommendations or auto-corrections worth reviewing, but they do not block submission if there are no errors.|Export the Excel report with institutional header to document observations for each version.",
+      uwiTitle: "Fiscal UWI",
+      uwiBody:
+        "The Unique Well Identifier (UWI) is assigned automatically when your file is validated, per the ANH guideline (April 2026) and PPDM methodology. You do not calculate it manually: VIP generates it from geography, operator, and well attributes reported in the template.",
+      footerNote:
+        "Demo version. In production, submission will integrate with ANH institutional correspondence channels.",
+    },
+    anh: {
+      title: "About VIP",
+      subtitle: "Validated national inventory consultation and comparative analytics for ANH officers.",
+      purposeTitle: "What is VIP for ANH?",
+      purposeBody:
+        "VIP (Well Inventory Validator) consolidates inventories that operators validate and apply from their notebooks. As an ANH officer you consult that validated inventory nationally, without handling operator uploads or corrections.",
+      scopeTitle: "Your profile scope",
+      scopeBody: "Your access is focused on institutional consultation and analysis:",
+      scopeItems:
+        "Consult validated national inventory (valid records and warnings).|Explore map, indicators, charts, and well sheets with cross-filters.|Compare operators, territories, or wells in global analytics.|You do not upload Excel files or manage operator notebooks; that is the operator profile.",
+      modulesTitle: "Available sections",
+      modulesBody: "From the sidebar menu you access:",
+      modulesItems:
+        "Dashboard: consolidated inventory with territorial map, KPIs, charts, and well table.|Global analytics: radar, comparisons, and views against the national average.",
+      dashboardTitle: "Dashboard",
+      dashboardBody: "View of validated inventory received from operators:",
+      dashboardItems:
+        "Shows only accepted validation (valid or warning records); pending errors do not appear here.|Filter by operator, department, well status, and other criteria.|Open a well sheet for full attributes and institutional PDF export.",
+      analyticsTitle: "Global analytics",
+      analyticsBody: "National validated inventory comparison tool:",
+      analyticsItems:
+        "Radar with baseline 100 (national average).|Compare operators, departments, municipalities, or individual wells.|Indicators for depth, status, validation, and territorial distribution.",
+      uwiTitle: "Fiscal UWI",
+      uwiBody:
+        "Each well includes the fiscal UWI assigned by VIP during operator validation, per the ANH guideline (April 2026) and PPDM methodology. It is available in queries, well sheets, and exportable reports.",
+      footerNote: "Demo version with sample data for institutional purposes.",
+    },
   },
   tour: {
     next: "Next",

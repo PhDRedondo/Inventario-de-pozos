@@ -3,17 +3,21 @@
 import {
   BarChart3,
   BookOpen,
+  ClipboardCheck,
   Database,
   GitBranch,
   Layers,
+  LayoutDashboard,
   Map,
   ShieldCheck,
   Upload,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAppPreferences } from "@/context/AppPreferences";
+import { useAuth } from "@/context/AuthContext";
+import type { UserRole } from "@/lib/types";
 import type { LucideIcon } from "lucide-react";
 
 interface AppDocumentationModalProps {
@@ -28,7 +32,7 @@ interface DocSection {
   itemsKey?: string;
 }
 
-const SECTIONS: DocSection[] = [
+const ADMIN_SECTIONS: DocSection[] = [
   { id: "purpose", icon: BookOpen, titleKey: "appDocs.purposeTitle", bodyKey: "appDocs.purposeBody" },
   { id: "process", icon: GitBranch, titleKey: "appDocs.processTitle", bodyKey: "appDocs.processBody", itemsKey: "appDocs.processItems" },
   { id: "modules", icon: Layers, titleKey: "appDocs.modulesTitle", bodyKey: "appDocs.modulesBody", itemsKey: "appDocs.modulesItems" },
@@ -40,6 +44,52 @@ const SECTIONS: DocSection[] = [
   { id: "analytics", icon: BarChart3, titleKey: "appDocs.analyticsTitle", bodyKey: "appDocs.analyticsBody", itemsKey: "appDocs.analyticsItems" },
 ];
 
+const ANH_SECTIONS: DocSection[] = [
+  { id: "purpose", icon: BookOpen, titleKey: "appDocs.anh.purposeTitle", bodyKey: "appDocs.anh.purposeBody" },
+  { id: "scope", icon: GitBranch, titleKey: "appDocs.anh.scopeTitle", bodyKey: "appDocs.anh.scopeBody", itemsKey: "appDocs.anh.scopeItems" },
+  { id: "modules", icon: Layers, titleKey: "appDocs.anh.modulesTitle", bodyKey: "appDocs.anh.modulesBody", itemsKey: "appDocs.anh.modulesItems" },
+  { id: "dashboard", icon: LayoutDashboard, titleKey: "appDocs.anh.dashboardTitle", bodyKey: "appDocs.anh.dashboardBody", itemsKey: "appDocs.anh.dashboardItems" },
+  { id: "analytics", icon: BarChart3, titleKey: "appDocs.anh.analyticsTitle", bodyKey: "appDocs.anh.analyticsBody", itemsKey: "appDocs.anh.analyticsItems" },
+  { id: "uwi", icon: ShieldCheck, titleKey: "appDocs.anh.uwiTitle", bodyKey: "appDocs.anh.uwiBody" },
+];
+
+const OPERADORA_SECTIONS: DocSection[] = [
+  { id: "purpose", icon: BookOpen, titleKey: "appDocs.operadora.purposeTitle", bodyKey: "appDocs.operadora.purposeBody" },
+  { id: "process", icon: GitBranch, titleKey: "appDocs.operadora.processTitle", bodyKey: "appDocs.operadora.processBody", itemsKey: "appDocs.operadora.processItems" },
+  { id: "modules", icon: Layers, titleKey: "appDocs.operadora.modulesTitle", bodyKey: "appDocs.operadora.modulesBody", itemsKey: "appDocs.operadora.modulesItems" },
+  { id: "notebook", icon: ClipboardCheck, titleKey: "appDocs.operadora.notebookTitle", bodyKey: "appDocs.operadora.notebookBody", itemsKey: "appDocs.operadora.notebookItems" },
+  { id: "validation", icon: ShieldCheck, titleKey: "appDocs.operadora.validationTitle", bodyKey: "appDocs.operadora.validationBody", itemsKey: "appDocs.operadora.validationItems" },
+  { id: "uwi", icon: ShieldCheck, titleKey: "appDocs.operadora.uwiTitle", bodyKey: "appDocs.operadora.uwiBody" },
+];
+
+function getSectionsForRole(role: UserRole): DocSection[] {
+  if (role === "operadora") return OPERADORA_SECTIONS;
+  if (role === "anh") return ANH_SECTIONS;
+  return ADMIN_SECTIONS;
+}
+
+function getHeaderKeys(role: UserRole): { title: string; subtitle: string; footerNote: string } {
+  if (role === "operadora") {
+    return {
+      title: "appDocs.operadora.title",
+      subtitle: "appDocs.operadora.subtitle",
+      footerNote: "appDocs.operadora.footerNote",
+    };
+  }
+  if (role === "anh") {
+    return {
+      title: "appDocs.anh.title",
+      subtitle: "appDocs.anh.subtitle",
+      footerNote: "appDocs.anh.footerNote",
+    };
+  }
+  return {
+    title: "appDocs.title",
+    subtitle: "appDocs.subtitle",
+    footerNote: "appDocs.footerNote",
+  };
+}
+
 function parseListItems(raw: string): string[] {
   return raw
     .split("|")
@@ -49,7 +99,12 @@ function parseListItems(raw: string): string[] {
 
 export function AppDocumentationModal({ onClose }: AppDocumentationModalProps) {
   const { t } = useAppPreferences();
+  const { user } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const role = user?.role ?? "admin";
+
+  const sections = useMemo(() => getSectionsForRole(role), [role]);
+  const headerKeys = useMemo(() => getHeaderKeys(role), [role]);
 
   useEffect(() => {
     setMounted(true);
@@ -88,11 +143,11 @@ export function AppDocumentationModal({ onClose }: AppDocumentationModalProps) {
 
         <div className="flex shrink-0 items-start justify-between gap-3 border-b border-anh-border px-4 py-4 sm:px-6">
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-anh-secondary">{t("shell.gopSystem")}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-anh-secondary">{t("shell.appTitle")}</p>
             <h2 id="app-docs-title" className="mt-1 text-lg font-extrabold text-anh-primary sm:text-xl">
-              {t("appDocs.title")}
+              {t(headerKeys.title)}
             </h2>
-            <p className="mt-1 text-sm text-anh-muted">{t("appDocs.subtitle")}</p>
+            <p className="mt-1 text-sm text-anh-muted">{t(headerKeys.subtitle)}</p>
           </div>
           <button
             type="button"
@@ -105,7 +160,7 @@ export function AppDocumentationModal({ onClose }: AppDocumentationModalProps) {
         </div>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-          {SECTIONS.map(({ id, icon: Icon, titleKey, bodyKey, itemsKey }) => {
+          {sections.map(({ id, icon: Icon, titleKey, bodyKey, itemsKey }) => {
             const items = itemsKey ? parseListItems(t(itemsKey)) : [];
             return (
               <section key={id} className="rounded-xl border border-anh-border bg-anh-bg/40 p-4 sm:p-5">
@@ -131,7 +186,7 @@ export function AppDocumentationModal({ onClose }: AppDocumentationModalProps) {
           })}
 
           <section className="rounded-xl border border-dashed border-anh-border bg-anh-bg/30 p-4 text-xs leading-relaxed text-anh-muted sm:p-5">
-            <p>{t("appDocs.footerNote")}</p>
+            <p>{t(headerKeys.footerNote)}</p>
           </section>
         </div>
       </div>

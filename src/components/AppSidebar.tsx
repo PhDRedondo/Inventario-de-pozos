@@ -6,8 +6,16 @@ import { usePathname } from "next/navigation";
 import { BookOpen, Compass, LogOut } from "lucide-react";
 import { OperatorBadge } from "@/components/OperatorBadge";
 import { useAppPreferences } from "@/context/AppPreferences";
+import { useAuth } from "@/context/AuthContext";
 import type { OperatorBrand } from "@/lib/operator-brand";
 import type { AppNavItem } from "@/lib/navigation";
+import type { UserRole } from "@/lib/types";
+
+function getDocsTitleKey(role: UserRole): string {
+  if (role === "operadora") return "shell.systemDocsOperadora";
+  if (role === "anh") return "shell.systemDocsAnh";
+  return "shell.systemDocs";
+}
 
 interface AppSidebarProps {
   items: Array<AppNavItem & { label: string; shortLabel: string }>;
@@ -20,6 +28,8 @@ interface AppSidebarProps {
 export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSidebarProps) {
   const pathname = usePathname();
   const { t } = useAppPreferences();
+  const { user } = useAuth();
+  const docsTitle = t(getDocsTitleKey(user?.role ?? "admin"));
 
   return (
     <aside
@@ -107,7 +117,7 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
           type="button"
           onClick={onDocs}
           className="anh-sidebar-link group flex w-full flex-col items-center gap-1 rounded-xl px-1 py-2 transition hover:bg-anh-sidebar-hover sm:py-2.5"
-          title={t("shell.systemDocs")}
+          title={docsTitle}
         >
           <BookOpen className="h-[1.15rem] w-[1.15rem] text-anh-sidebar-icon transition group-hover:text-anh-sidebar-accent sm:h-5 sm:w-5" />
           <span className="text-center text-[9px] font-bold leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active sm:text-[10px]">
