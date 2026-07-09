@@ -17,8 +17,8 @@ export const en = {
   shell: {
     logoAlt: "National Hydrocarbons Agency",
     gopSystem: "GOP System",
-    appTitle: "Well Inventory",
-    tagline: "Manual intake of operator submissions · Validation · Fiscal UWI",
+    appTitle: "VIP",
+    tagline: "Well Inventory Validator (VIP) and UWI assignment",
     workflowTitle: "Workflow",
     workflow1: "1. The operator emails the completed Excel template.",
     workflow2: "2. The ANH officer uploads the file manually.",

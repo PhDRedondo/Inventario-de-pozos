@@ -67,6 +67,7 @@
   --driver-popover-title-color: #f5f5f5;
   --driver-popover-description-color: #a3a3a3;
   --driver-popover-border: #262626;
+  --driver-popover-btn-color: #1a1a1a;
 }
 
 .dark .anh-guided-tour .driver-popover-prev-btn {
@@ -430,10 +431,10 @@ html[data-operator-brand] .anh-sidebar-link--active svg {
   --driver-popover-description-color: var(--anh-text-muted);
   --driver-popover-progress-color: var(--anh-orange);
   --driver-popover-btn-bg: linear-gradient(90deg, var(--anh-yellow) 0%, var(--anh-orange) 70%, var(--anh-red) 100%);
-  --driver-popover-btn-color: var(--anh-black);
+  --driver-popover-btn-color: #1a1a1a;
   --driver-popover-btn-border: transparent;
   --driver-popover-close-btn-color: var(--anh-text-muted);
-  --driver-popover-close-btn-hover-color: var(--anh-black);
+  --driver-popover-close-btn-hover-color: #1a1a1a;
   font-family: "Nunito Sans", system-ui, sans-serif;
 }
 
@@ -448,7 +449,15 @@ html[data-operator-brand] .anh-sidebar-link--active svg {
 }
 
 .anh-guided-tour .driver-popover-next-btn {
-  color: var(--anh-black) !important;
+  background: linear-gradient(90deg, var(--anh-yellow) 0%, var(--anh-orange) 70%, var(--anh-red) 100%) !important;
+  color: #1a1a1a !important;
+  border: none !important;
+}
+
+.dark .anh-guided-tour .driver-popover-next-btn {
+  background: linear-gradient(90deg, var(--anh-yellow) 0%, var(--anh-orange) 70%, var(--anh-red) 100%) !important;
+  color: #1a1a1a !important;
+  border: none !important;
 }
 
 .anh-guided-tour .driver-popover-prev-btn {

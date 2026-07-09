@@ -15,8 +15,8 @@ export const es = {
   shell: {
     logoAlt: "Agencia Nacional de Hidrocarburos",
     gopSystem: "Sistema GOP",
-    appTitle: "Inventario de Pozos",
-    tagline: "Recepción manual de formatos enviados por operadoras · Validación · UWI fiscalizado",
+    appTitle: "VIP",
+    tagline: "Validador del Inventario de Pozos (VIP) y asignación de UWI",
     workflowTitle: "Flujo de trabajo",
     workflow1: "1. La operadora envía el formato Excel por correo electrónico.",
     workflow2: "2. El funcionario ANH carga el archivo manualmente.",
