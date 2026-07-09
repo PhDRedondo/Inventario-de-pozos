@@ -686,6 +686,11 @@ html[data-operator-brand] .anh-sidebar-link--active svg {
   background: linear-gradient(90deg, var(--anh-yellow) 0%, var(--anh-orange) 70%, var(--anh-red) 100%);
 }
 
+.landing-stat-card--neutral {
+  @apply border border-anh-border bg-anh-surface shadow-sm;
+  background: var(--anh-surface);
+}
+
 .btn-secondary {
   @apply inline-flex items-center justify-center rounded-lg border border-anh-border bg-anh-surface px-4 py-2 text-sm font-semibold text-anh-primary transition hover:bg-anh-bg;
 }

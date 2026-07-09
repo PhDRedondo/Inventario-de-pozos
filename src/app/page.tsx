@@ -19,6 +19,12 @@ const LANDING_STATS = [
   { key: "validationRules" as const, label: "statValidationLabel" },
 ];
 
+const NEUTRAL_STAT_KEYS = new Set<(typeof LANDING_STATS)[number]["key"]>(["operators", "validationRules"]);
+
+function isNeutralStatCard(key: (typeof LANDING_STATS)[number]["key"]) {
+  return NEUTRAL_STAT_KEYS.has(key);
+}
+
 function RoleIcon({ role }: { role: (typeof ROLE_IDS)[number] }) {
   if (role === "operadora") return <FileUp className="h-6 w-6 text-anh-secondary" />;
   return <BarChart3 className="h-6 w-6 text-anh-secondary" />;
@@ -83,14 +89,22 @@ export default function LandingPage() {
             </div>
 
             <div className="mt-12 grid gap-4 sm:grid-cols-3">
-              {LANDING_STATS.map(({ key, label }) => (
-                <div key={key} className="landing-stat-card">
-                  <p className="text-2xl font-extrabold text-anh-black">
+              {LANDING_STATS.map(({ key, label }) => {
+                const neutral = isNeutralStatCard(key);
+                return (
+                <div
+                  key={key}
+                  className={neutral ? "landing-stat-card landing-stat-card--neutral" : "landing-stat-card"}
+                >
+                  <p className={`text-2xl font-extrabold ${neutral ? "text-anh-secondary" : "text-anh-black"}`}>
                     {landingStats ? landingStats[key].toLocaleString("es-CO") : "—"}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-anh-black/85">{t(`landing.${label}`)}</p>
+                  <p className={`mt-1 text-sm font-semibold ${neutral ? "text-anh-primary" : "text-anh-black/85"}`}>
+                    {t(`landing.${label}`)}
+                  </p>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
