@@ -4,24 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/context/AppPreferences";
 
-const QUICK_LINK_GROUPS = [
-  [
-    { href: "https://www.anh.gov.co/es/anh-para-ninos", key: "footerLinkKids" },
-    { href: "https://www.anh.gov.co/es/visor-ppaa", key: "footerLinkPpaa" },
-    { href: "https://www.anh.gov.co/es/ley-de-transparencia", key: "footerLinkTransparency" },
-  ],
-  [
-    { href: "https://www.anh.gov.co/es/convocatorias", key: "footerLinkTenders" },
-    { href: "https://www.anh.gov.co/es/sigeth", key: "footerLinkSigeth" },
-    { href: "https://www.anh.gov.co/es/mapa-de-tierras", key: "footerLinkLandMap" },
-  ],
-  [
-    { href: "https://www.anh.gov.co/es/estrategia-territorial", key: "footerLinkTerritorial" },
-    { href: "https://www.anh.gov.co/es/calendario-de-eventos", key: "footerLinkEvents" },
-    { href: "https://www.anh.gov.co/es/geovisor-de-tierras", key: "footerLinkGeovisor" },
-  ],
-] as const;
-
 const SOCIAL_LINKS = [
   { href: "https://twitter.com/ANHColombia", label: "X (Twitter)", icon: "x" },
   { href: "https://www.instagram.com/anhcolombia/", label: "Instagram", icon: "instagram" },
@@ -114,25 +96,6 @@ export function InstitutionalFooter({ withMobileNavPadding = false }: Institutio
 
       <div className="anh-footer-body">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
-          <nav aria-label={t("shell.footerQuickLinks")} className="mb-8 grid gap-4 sm:grid-cols-3">
-            {QUICK_LINK_GROUPS.map((group, groupIndex) => (
-              <ul key={groupIndex} className="space-y-2 text-sm">
-                {group.map(({ href, key }) => (
-                  <li key={key}>
-                    <a
-                      href={href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-semibold text-anh-secondary transition hover:underline"
-                    >
-                      {t(`shell.${key}`)}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ))}
-          </nav>
-
           <div className="overflow-hidden rounded-2xl border border-anh-border bg-anh-surface shadow-sm">
             <div className="grid gap-8 p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:p-8">
               <div className="min-w-0 text-sm leading-relaxed text-anh-muted">
