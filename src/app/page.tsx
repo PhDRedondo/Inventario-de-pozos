@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { BarChart3, FileUp, Shield, Users } from "lucide-react";
 import { LandingCapabilities } from "@/components/LandingCapabilities";
+import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { PreferencesBar } from "@/components/PreferencesBar";
 import { useAuth } from "@/context/AuthContext";
 import { useT } from "@/context/AppPreferences";
@@ -141,14 +142,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="border-t border-anh-border bg-anh-surface">
-        <div className="anh-gradient-bar" />
-        <div className="mx-auto max-w-6xl px-4 py-8 text-center text-sm text-anh-muted sm:px-6">
-          <p className="font-semibold text-anh-primary">{t("shell.footerAgency")}</p>
-          <p className="mt-1">{t("shell.footerModule")}</p>
-          <p className="mt-4 text-xs">© {new Date().getFullYear()} {t("shell.footerCopyright")}</p>
-        </div>
-      </footer>
+      <InstitutionalFooter />
     </div>
   );
 }

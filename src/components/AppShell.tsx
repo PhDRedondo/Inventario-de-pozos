@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { AppDocumentationModal } from "@/components/AppDocumentationModal";
 import { AppSidebar } from "@/components/AppSidebar";
+import { InstitutionalFooter } from "@/components/InstitutionalFooter";
 import { MobileNav } from "@/components/MobileNav";
 import { OperatorBrandEffect } from "@/components/OperatorBrandEffect";
 import { OperatorWelcomeStrip } from "@/components/OperatorWelcomeStrip";
@@ -179,50 +180,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
 
-        <footer className="mt-auto border-t border-anh-border bg-anh-surface pb-[calc(var(--anh-mobile-nav-space)+env(safe-area-inset-bottom))] lg:pb-0">
-          <div className="anh-gradient-bar" />
-          <div className="mx-auto max-w-7xl px-3 py-5 sm:px-4 sm:py-6 md:px-6 md:py-8">
-            <div className="flex flex-col gap-5 text-left sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-              <div className="flex min-w-0 items-start gap-3 sm:gap-4">
-                <Image src="/anh-logo.png" alt="ANH" width={120} height={36} className="h-8 w-auto shrink-0 sm:h-9" />
-                <div className="min-w-0 text-sm text-anh-muted">
-                  <p className="font-bold text-anh-primary">{t("shell.footerAgency")}</p>
-                  <p className="mt-1 leading-relaxed">{t("shell.footerGop")}</p>
-                  <p className="mt-1 leading-relaxed">{t("shell.footerModule")}</p>
-                </div>
-              </div>
-              <div className="min-w-0 text-sm text-anh-muted sm:max-w-sm">
-                <p className="font-semibold text-anh-primary">{t("shell.footerContact")}</p>
-                <p className="mt-1 leading-relaxed">Av. Calle 26 #59-65, Piso 2</p>
-                <p className="leading-relaxed">Edificio Cámara Colombiana de la Infraestructura</p>
-                <p className="leading-relaxed">Bogotá D.C., Colombia · C.P. 111321</p>
-                <p className="mt-2 leading-relaxed">
-                  <a href="tel:+576015931717" className="hover:text-anh-secondary">
-                    +57 (601) 593 1717
-                  </a>
-                  <span className="hidden sm:inline"> · </span>
-                  <br className="sm:hidden" />
-                  <a href="tel:018000953000" className="hover:text-anh-secondary">
-                    01 8000 953000
-                  </a>
-                </p>
-                <p className="mt-2">
-                  <a
-                    href="https://www.anh.gov.co/es/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-semibold text-anh-secondary hover:underline"
-                  >
-                    www.anh.gov.co
-                  </a>
-                </p>
-              </div>
-            </div>
-            <p className="mt-5 border-t border-anh-border pb-2 pt-4 text-center text-[11px] leading-relaxed text-anh-muted sm:mt-6 sm:text-xs">
-              © {new Date().getFullYear()} {t("shell.footerCopyright")}
-            </p>
-          </div>
-        </footer>
+        <InstitutionalFooter withMobileNavPadding />
       </div>
 
       <MobileNav
