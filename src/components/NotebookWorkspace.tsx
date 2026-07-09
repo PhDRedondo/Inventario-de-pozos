@@ -59,6 +59,16 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const findingsPanelRef = useRef<HTMLDivElement>(null);
+
+  const selectVersion = useCallback((versionId: number | null, options?: { scrollToFindings?: boolean }) => {
+    setSelectedVersionId(versionId);
+    if (options?.scrollToFindings && versionId != null) {
+      window.requestAnimationFrame(() => {
+        findingsPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
+  }, []);
 
   const selectedVersion = useMemo(() => {
     if (!detail) return null;
@@ -169,7 +179,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
       setFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       await loadNotebook();
-      setSelectedVersionId(data.version?.id ?? null);
+      selectVersion(data.version?.id ?? null);
       setMessage(t("notebook.versionCreated", { version: data.version?.version_number ?? "" }));
     } catch (err) {
       setError(err instanceof Error ? err.message : t("common.unknownError"));
@@ -323,7 +333,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
         }
       />
 
-      <div className="card mb-4 p-4">
+      <div className="card mb-4 p-4" data-tour="upload-form">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-anh-muted">{t("notebook.label")}</p>
@@ -338,7 +348,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
               <button
                 key={version.id}
                 type="button"
-                onClick={() => setSelectedVersionId(version.id)}
+                onClick={() => selectVersion(version.id)}
                 className={`rounded-lg border px-3 py-2 text-left text-xs transition ${
                   selectedVersion?.id === version.id
                     ? "border-anh-secondary bg-anh-secondary/10 font-bold text-anh-primary"
@@ -361,6 +371,77 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
             ))}
           </div>
         </div>
+
+        {isActiveNotebook && (
+          <form
+            onSubmit={handleUpload}
+            className={`mt-4 space-y-3 border-t border-anh-border pt-4 ${operatorBrand ? "operator-upload-card" : ""}`}
+          >
+            <div>
+              <label className="mb-1 block text-sm font-semibold">
+                {operatorBrand
+                  ? t("operatorBrand.uploadHint", { operator: operatorBrand.shortName })
+                  : t("notebook.uploadLabel")}
+              </label>
+              <div
+                role="button"
+                tabIndex={0}
+                className={`file-drop-zone ${dragActive ? "file-drop-zone-active" : ""} ${file ? "file-drop-zone-filled" : ""}`}
+                onClick={() => fileInputRef.current?.click()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    fileInputRef.current?.click();
+                  }
+                }}
+                onDragEnter={(e) => {
+                  e.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragActive(true);
+                }}
+                onDragLeave={(e) => {
+                  e.preventDefault();
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragActive(false);
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragActive(false);
+                  pickFile(e.dataTransfer.files?.[0] ?? null);
+                }}
+              >
+                <Upload
+                  className="h-8 w-8 shrink-0"
+                  style={operatorBrand ? { color: operatorBrand.primary } : undefined}
+                  aria-hidden
+                />
+                <div className="min-w-0 text-center sm:text-left">
+                  <p className="text-sm font-semibold text-anh-primary">
+                    {file ? file.name : t("upload.fileDropLabel")}
+                  </p>
+                  {file && (
+                    <p className="mt-1 text-xs text-anh-muted">
+                      {(file.size / 1024).toFixed(1)} KB · {t("upload.fileReplaceHint")}
+                    </p>
+                  )}
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  className="sr-only"
+                  onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <p className="mt-1 text-xs text-anh-muted">{t("notebook.uploadHint")}</p>
+            </div>
+            <button type="submit" className="btn-primary" disabled={uploading || !file}>
+              {uploading ? t("upload.submitLoading") : t("notebook.validateVersion")}
+            </button>
+          </form>
+        )}
       </div>
 
       {message && (
@@ -384,39 +465,63 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
               <p className="text-sm text-anh-muted">{t("notebook.noEvents")}</p>
             ) : (
               detail.events.map((event) => {
-                const isUploadEvent = event.event_type === "upload" && event.upload_id != null;
-                const isSelectedUpload = isUploadEvent && event.upload_id === selectedVersionId;
+                const versionId = event.upload_id;
+                const isVersionEvent =
+                  versionId != null && (event.event_type === "upload" || event.event_type === "submit");
+                const isSelectedVersion = isVersionEvent && versionId === selectedVersionId;
+                const versionMeta = versionId != null ? detail.versions.find((v) => v.id === versionId) : null;
                 return (
                 <div
                   key={event.id}
-                  className={`flex gap-3 border-l-2 pl-4 ${
-                    isSelectedUpload ? "border-anh-secondary" : "border-anh-secondary/40"
-                  } ${isUploadEvent ? "cursor-pointer rounded-r-lg hover:bg-anh-bg/60" : ""}`}
-                  role={isUploadEvent ? "button" : undefined}
-                  tabIndex={isUploadEvent ? 0 : undefined}
-                  onClick={isUploadEvent ? () => setSelectedVersionId(event.upload_id) : undefined}
+                  className={`flex gap-3 border-l-4 py-1 pl-4 transition ${
+                    isSelectedVersion
+                      ? "border-anh-secondary bg-anh-secondary/10 ring-1 ring-anh-secondary/25"
+                      : "border-anh-secondary/30"
+                  } ${isVersionEvent ? "cursor-pointer rounded-r-xl hover:bg-anh-bg/70" : ""}`}
+                  role={isVersionEvent ? "button" : undefined}
+                  tabIndex={isVersionEvent ? 0 : undefined}
+                  aria-pressed={isVersionEvent ? isSelectedVersion : undefined}
+                  onClick={
+                    isVersionEvent ? () => selectVersion(versionId, { scrollToFindings: true }) : undefined
+                  }
                   onKeyDown={
-                    isUploadEvent
+                    isVersionEvent
                       ? (e) => {
                           if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
-                            setSelectedVersionId(event.upload_id);
+                            selectVersion(versionId, { scrollToFindings: true });
                           }
                         }
                       : undefined
                   }
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-anh-primary">{eventLabel(t, event)}</p>
-                    {event.message && <p className="text-sm text-anh-text">{event.message}</p>}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-anh-primary">{eventLabel(t, event)}</p>
+                      {versionMeta && (
+                        <span className="rounded-full bg-anh-bg px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-anh-muted">
+                          {t("notebook.version", { n: versionMeta.version_number ?? 1 })}
+                        </span>
+                      )}
+                      {isSelectedVersion && (
+                        <span className="rounded-full bg-anh-secondary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-anh-secondary">
+                          {t("notebook.timelineViewingFindings")}
+                        </span>
+                      )}
+                    </div>
+                    {event.message && <p className="mt-1 text-sm text-anh-text">{event.message}</p>}
                     {event.metadata && event.event_type === "upload" && (
                       <p className="mt-1 text-xs text-anh-muted">
                         {t("notebook.eventUploadMeta", {
                           total: String(event.metadata.total_records ?? "—"),
                           valid: String(event.metadata.valid_records ?? "—"),
                           errors: String(event.metadata.invalid_records ?? "—"),
+                          warnings: String(event.metadata.warning_count ?? 0),
                         })}
                       </p>
+                    )}
+                    {isVersionEvent && !isSelectedVersion && (
+                      <p className="mt-1 text-xs font-semibold text-anh-secondary">{t("notebook.timelineSelectUpload")}</p>
                     )}
                     <p className="mt-1 text-xs text-anh-muted">
                       {new Date(event.created_at).toLocaleString()}
@@ -442,78 +547,6 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
         </div>
       </div>
 
-      {isActiveNotebook && (
-        <form
-          onSubmit={handleUpload}
-          className={`card mb-6 space-y-4 p-6 ${operatorBrand ? "operator-upload-card" : ""}`}
-          data-tour="upload-form"
-        >
-          <div>
-            <label className="mb-1 block text-sm font-semibold">
-              {operatorBrand
-                ? t("operatorBrand.uploadHint", { operator: operatorBrand.shortName })
-                : t("notebook.uploadLabel")}
-            </label>
-            <div
-              role="button"
-              tabIndex={0}
-              className={`file-drop-zone ${dragActive ? "file-drop-zone-active" : ""} ${file ? "file-drop-zone-filled" : ""}`}
-              onClick={() => fileInputRef.current?.click()}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  fileInputRef.current?.click();
-                }
-              }}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragActive(false);
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragActive(false);
-                pickFile(e.dataTransfer.files?.[0] ?? null);
-              }}
-            >
-              <Upload
-                className="h-8 w-8 shrink-0"
-                style={operatorBrand ? { color: operatorBrand.primary } : undefined}
-                aria-hidden
-              />
-              <div className="min-w-0 text-center sm:text-left">
-                <p className="text-sm font-semibold text-anh-primary">
-                  {file ? file.name : t("upload.fileDropLabel")}
-                </p>
-                {file && (
-                  <p className="mt-1 text-xs text-anh-muted">
-                    {(file.size / 1024).toFixed(1)} KB · {t("upload.fileReplaceHint")}
-                  </p>
-                )}
-              </div>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                className="sr-only"
-                onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-            <p className="mt-1 text-xs text-anh-muted">{t("notebook.uploadHint")}</p>
-          </div>
-          <button type="submit" className="btn-primary" disabled={uploading || !file}>
-            {uploading ? t("upload.submitLoading") : t("notebook.validateVersion")}
-          </button>
-        </form>
-      )}
-
       {selectedVersion && (selectedVersion.invalid_records ?? 0) > 0 && isActiveNotebook && (
         <div className="card mb-4 border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
           {t("upload.fixErrorsHint")}
@@ -535,7 +568,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
         ))}
       </div>
 
-      <div className="card overflow-hidden" data-tour="quality-panel">
+      <div ref={findingsPanelRef} className="card overflow-hidden" data-tour="quality-panel">
         <div className="border-b border-anh-border px-4 py-3 font-bold text-anh-primary">
           {selectedVersion
             ? t("quality.findingsForVersion", { n: selectedVersion.version_number ?? 1 })
