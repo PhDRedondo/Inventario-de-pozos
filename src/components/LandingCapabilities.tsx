@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
@@ -31,6 +31,8 @@ const CAPABILITIES = [
 type CapabilityKey = (typeof CAPABILITIES)[number]["key"];
 
 const HIGHLIGHT_KEYS = ["highlight1", "highlight2", "highlight3"] as const;
+
+const ROTATE_MS = 3000;
 
 function CapabilityVisual({ type }: { type: CapabilityKey }) {
   if (type === "upload") {
@@ -138,6 +140,26 @@ function CapabilityVisual({ type }: { type: CapabilityKey }) {
 export function LandingCapabilities() {
   const t = useT();
   const [active, setActive] = useState<CapabilityKey>("upload");
+  const [autoRotate, setAutoRotate] = useState(true);
+
+  const selectTab = useCallback((key: CapabilityKey, manual = false) => {
+    if (manual) setAutoRotate(false);
+    setActive(key);
+  }, []);
+
+  useEffect(() => {
+    if (!autoRotate) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const timer = window.setTimeout(() => {
+      setActive((current) => {
+        const index = CAPABILITIES.findIndex((item) => item.key === current);
+        return CAPABILITIES[(index + 1) % CAPABILITIES.length].key;
+      });
+    }, ROTATE_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [active, autoRotate]);
 
   const activeItem = CAPABILITIES.find((item) => item.key === active) ?? CAPABILITIES[0];
   const ActiveIcon = activeItem.icon;
@@ -162,7 +184,7 @@ export function LandingCapabilities() {
                 aria-selected={isActive}
                 aria-controls={`capability-panel-${key}`}
                 id={`capability-tab-${key}`}
-                onClick={() => setActive(key)}
+                onClick={() => selectTab(key, true)}
                 className={[
                   "w-full rounded-2xl border p-4 text-left transition-all duration-200",
                   isActive
@@ -186,7 +208,15 @@ export function LandingCapabilities() {
                     ) : null}
                   </div>
                 </div>
-                {isActive ? <div className="mt-4 h-0.5 w-3/4 rounded-full bg-anh-secondary" aria-hidden /> : null}
+                {isActive ? (
+                  <div className="mt-4 h-0.5 overflow-hidden rounded-full bg-anh-secondary/20" aria-hidden>
+                    <div
+                      key={`${key}-${autoRotate}`}
+                      className={`h-full rounded-full bg-anh-secondary ${autoRotate ? "capability-tab-progress" : "w-full"}`}
+                      style={{ ["--rotate-ms" as string]: `${ROTATE_MS}ms` }}
+                    />
+                  </div>
+                ) : null}
               </button>
             );
           })}

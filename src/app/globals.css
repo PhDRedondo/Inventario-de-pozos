@@ -231,6 +231,27 @@ html {
   background: #050505;
 }
 
+@keyframes capability-tab-progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.capability-tab-progress {
+  width: 0%;
+  animation: capability-tab-progress var(--rotate-ms, 3s) linear forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .capability-tab-progress {
+    animation: none;
+    width: 100%;
+  }
+}
+
 @keyframes capability-panel-in {
   from {
     opacity: 0;
