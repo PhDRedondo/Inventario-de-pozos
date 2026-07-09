@@ -532,7 +532,7 @@ export const es = {
     backHome: "Volver al inicio",
     signIn: "Iniciar sesión",
     heroEyebrow: "Agencia Nacional de Hidrocarburos · GOP",
-    heroTitle: "Inventario nacional de pozos de Colombia",
+    heroTitle: "Validador del Inventario de Pozos (VIP) de Colombia",
     heroSubtitle:
       "Plataforma institucional para recibir, validar y consolidar el inventario reportado por operadoras, con asignación automática de UWI fiscalizado y paneles de calidad de datos.",
     ctaPrimary: "Iniciar sesión",

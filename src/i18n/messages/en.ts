@@ -525,7 +525,7 @@ export const en = {
     backHome: "Back to home",
     signIn: "Sign in",
     heroEyebrow: "National Hydrocarbons Agency · GOP",
-    heroTitle: "National well inventory of Colombia",
+    heroTitle: "Well Inventory Validator (VIP) of Colombia",
     heroSubtitle:
       "Institutional platform to receive, validate and consolidate operator-reported inventory, with automatic fiscal UWI assignment and data quality dashboards.",
     ctaPrimary: "Sign in",
