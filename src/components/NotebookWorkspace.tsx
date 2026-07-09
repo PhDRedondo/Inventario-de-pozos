@@ -49,6 +49,8 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
   const [detail, setDetail] = useState<NotebookDetail | null>(null);
   const [selectedVersionId, setSelectedVersionId] = useState<number | null>(null);
   const [report, setReport] = useState<ValidationResult[]>([]);
+  const [reportVersionId, setReportVersionId] = useState<number | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
   const [filter, setFilter] = useState<FindingFilter>("all");
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
@@ -80,25 +82,52 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     const data = await res.json();
     if (!res.ok) throw new Error(data.error ?? t("notebook.loadError"));
     setDetail(data);
-    setSelectedVersionId(data.activeVersion?.id ?? null);
+    setSelectedVersionId((current) => {
+      if (current != null && data.versions?.some((v: NotebookVersion) => v.id === current)) {
+        return current;
+      }
+      return data.activeVersion?.id ?? null;
+    });
   }, [notebookId, isAdmin, operadora, t]);
-
-  const loadReport = useCallback(async (versionId: number | null) => {
-    if (!versionId) {
-      setReport([]);
-      return;
-    }
-    const res = await fetch(`/api/validations?uploadId=${versionId}`);
-    setReport(await res.json());
-  }, []);
 
   useEffect(() => {
     loadNotebook().catch((err) => setError(err instanceof Error ? err.message : t("common.unknownError")));
   }, [loadNotebook, t]);
 
   useEffect(() => {
-    loadReport(selectedVersion?.id ?? null).catch(console.error);
-  }, [selectedVersion?.id, loadReport]);
+    if (!selectedVersionId) {
+      setReport([]);
+      setReportVersionId(null);
+      setReportLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setReportLoading(true);
+    setReport([]);
+    setReportVersionId(null);
+
+    fetch(`/api/validations?uploadId=${selectedVersionId}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("validation fetch failed"))))
+      .then((data: ValidationResult[]) => {
+        if (cancelled) return;
+        setReport(data);
+        setReportVersionId(selectedVersionId);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setReport([]);
+          setReportVersionId(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setReportLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedVersionId]);
 
   useEffect(() => {
     if ((selectedVersion?.invalid_records ?? 0) > 0) {
@@ -106,7 +135,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     } else {
       setFilter("all");
     }
-  }, [selectedVersion?.id, selectedVersion?.invalid_records]);
+  }, [selectedVersionId, selectedVersion?.invalid_records]);
 
   function pickFile(next: File | null) {
     if (!next) {
@@ -193,11 +222,16 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     }
   }
 
-  const issueCounts = useMemo(() => countIssues(report), [report]);
+  const versionReport = useMemo(
+    () => (reportVersionId === selectedVersionId ? report : []),
+    [report, reportVersionId, selectedVersionId],
+  );
+
+  const issueCounts = useMemo(() => countIssues(versionReport), [versionReport]);
 
   const findingRows = useMemo(
     () =>
-      flattenFindings(report, filter).map((row) => ({
+      flattenFindings(versionReport, filter).map((row) => ({
         key: row.key,
         well: row.well,
         fieldLabel: getAttributeLabel(row.field),
@@ -205,7 +239,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
         severityLabel: severityLabel(t, row.severity),
         message: row.message,
       })),
-    [report, filter, t],
+    [versionReport, filter, t],
   );
 
   const emptyFilterHint = useMemo(() => {
@@ -234,6 +268,13 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     { key: "errors" as const, label: t("quality.filterErrors") },
     { key: "warnings" as const, label: t("quality.filterWarnings") },
   ];
+
+  const orderedVersions = useMemo(
+    () => [...(detail?.versions ?? [])].sort((a, b) => (a.version_number ?? 0) - (b.version_number ?? 0)),
+    [detail?.versions],
+  );
+
+  const latestVersionId = orderedVersions.at(-1)?.id ?? null;
 
   if (!detail) {
     return <div className="card p-8 text-center text-anh-muted">{t("common.loading")}</div>;
@@ -292,8 +333,8 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
               {detail.notebook.created_by ? ` · ${detail.notebook.created_by}` : ""}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {detail.versions.map((version) => (
+          <div className="flex flex-wrap items-end gap-2">
+            {orderedVersions.map((version) => (
               <button
                 key={version.id}
                 type="button"
@@ -304,7 +345,14 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
                     : "border-anh-border bg-anh-surface text-anh-muted hover:border-anh-secondary/50"
                 }`}
               >
-                <span className="block font-semibold">{t("notebook.version", { n: version.version_number ?? 1 })}</span>
+                <span className="flex flex-wrap items-center gap-1.5 font-semibold">
+                  {t("notebook.version", { n: version.version_number ?? 1 })}
+                  {version.id === latestVersionId && (
+                    <span className="rounded-full bg-anh-secondary/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-anh-secondary">
+                      {t("notebook.lastUploadBadge")}
+                    </span>
+                  )}
+                </span>
                 <span className="mt-0.5 block">
                   {version.valid_records} {t("status.validPlural").toLowerCase()} · {version.invalid_records}{" "}
                   {t("status.errors").toLowerCase()}
@@ -335,8 +383,29 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
             {detail.events.length === 0 ? (
               <p className="text-sm text-anh-muted">{t("notebook.noEvents")}</p>
             ) : (
-              detail.events.map((event) => (
-                <div key={event.id} className="flex gap-3 border-l-2 border-anh-secondary/40 pl-4">
+              detail.events.map((event) => {
+                const isUploadEvent = event.event_type === "upload" && event.upload_id != null;
+                const isSelectedUpload = isUploadEvent && event.upload_id === selectedVersionId;
+                return (
+                <div
+                  key={event.id}
+                  className={`flex gap-3 border-l-2 pl-4 ${
+                    isSelectedUpload ? "border-anh-secondary" : "border-anh-secondary/40"
+                  } ${isUploadEvent ? "cursor-pointer rounded-r-lg hover:bg-anh-bg/60" : ""}`}
+                  role={isUploadEvent ? "button" : undefined}
+                  tabIndex={isUploadEvent ? 0 : undefined}
+                  onClick={isUploadEvent ? () => setSelectedVersionId(event.upload_id) : undefined}
+                  onKeyDown={
+                    isUploadEvent
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            setSelectedVersionId(event.upload_id);
+                          }
+                        }
+                      : undefined
+                  }
+                >
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-anh-primary">{eventLabel(t, event)}</p>
                     {event.message && <p className="text-sm text-anh-text">{event.message}</p>}
@@ -355,7 +424,8 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
                     </p>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -466,8 +536,14 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
       </div>
 
       <div className="card overflow-hidden" data-tour="quality-panel">
-        <div className="border-b border-anh-border px-4 py-3 font-bold text-anh-primary">{t("quality.findingsTitle")}</div>
-        {findingRows.length === 0 ? (
+        <div className="border-b border-anh-border px-4 py-3 font-bold text-anh-primary">
+          {selectedVersion
+            ? t("quality.findingsForVersion", { n: selectedVersion.version_number ?? 1 })
+            : t("quality.findingsTitle")}
+        </div>
+        {reportLoading ? (
+          <div className="px-4 py-8 text-center text-sm text-anh-muted">{t("quality.findingsLoading")}</div>
+        ) : findingRows.length === 0 ? (
           <div className="px-4 py-8 text-center text-sm text-anh-muted">
             <p>{emptyFilterHint}</p>
           </div>

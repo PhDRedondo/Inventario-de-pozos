@@ -545,7 +545,7 @@ function buildValidationReportClause(
   uploadId?: number,
   scope?: DataScope | null,
 ): { clause: string; params: (string | number)[] } {
-  if (uploadId != null) {
+  if (uploadId != null && Number.isFinite(uploadId)) {
     if (!scope || scope.role === "admin") {
       return { clause: "w.upload_id = ?", params: [uploadId] };
     }
