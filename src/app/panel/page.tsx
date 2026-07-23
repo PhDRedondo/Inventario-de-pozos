@@ -851,6 +851,7 @@ function DashboardPageContent() {
         )}
 
         {!isAdmin && (
+        <>
         <div className="card p-3 sm:p-4">
           <h3 className="mb-1 font-bold text-anh-primary">{t("dashboard.chartDeptTitle")}</h3>
           <p className="mb-4 text-xs text-anh-muted">{t("dashboard.chartDeptHint")}</p>
@@ -915,6 +916,7 @@ function DashboardPageContent() {
             height={isCompactCharts ? 420 : 380}
           />
         </div>
+        </>
         )}
       </div>
 
