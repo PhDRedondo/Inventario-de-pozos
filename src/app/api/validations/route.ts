@@ -7,9 +7,8 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const uploadId = request.nextUrl.searchParams.get("uploadId");
-  const parsedUploadId = uploadId != null && uploadId !== "" ? Number(uploadId) : undefined;
   const report = getValidationReport(
-    parsedUploadId != null && Number.isFinite(parsedUploadId) ? parsedUploadId : undefined,
+    uploadId ? Number(uploadId) : undefined,
     buildDataScope(user),
   );
   return NextResponse.json(report);

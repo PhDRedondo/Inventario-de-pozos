@@ -49,6 +49,7 @@ function buildQuery(filters: DashboardFilters, tableLimit?: TablePageSize) {
   if (filters.departamentos?.length) params.set("departamento", serializeDepartamentos(filters.departamentos)!);
   if (filters.operadora) params.set("operadora", filters.operadora);
   if (filters.validation_status) params.set("validation_status", filters.validation_status);
+  if (filters.tipo_objetivo) params.set("tipo_objetivo", filters.tipo_objetivo);
   if (tableLimit) params.set("limit", String(tableLimit));
   return params.toString();
 }
@@ -158,12 +159,14 @@ function DashboardPageContent() {
     const estado = searchParams.get("estado");
     const departamento = searchParams.get("departamento");
     const validation_status = searchParams.get("validation_status");
+    const tipo_objetivo = searchParams.get("tipo_objetivo");
     const q = searchParams.get("q");
     if (operadora) fromUrl.operadora = operadora;
     if (estado) fromUrl.estado = estado;
     const departamentos = parseDepartamentosParam(departamento);
     if (departamentos) fromUrl.departamentos = departamentos;
     if (validation_status) fromUrl.validation_status = validation_status;
+    if (tipo_objetivo) fromUrl.tipo_objetivo = tipo_objetivo;
     if (q) {
       fromUrl.q = q;
       setSearchInput(q);
@@ -235,6 +238,14 @@ function DashboardPageContent() {
         label: t("common.state"),
         value: filters.estado,
         onRemove: () => toggleFilter("estado", filters.estado!),
+      });
+    }
+    if (filters.tipo_objetivo) {
+      chips.push({
+        id: "tipo_objetivo",
+        label: t("common.objective"),
+        value: filters.tipo_objetivo,
+        onRemove: () => toggleFilter("tipo_objetivo", filters.tipo_objetivo!),
       });
     }
     for (const departamento of filters.departamentos ?? []) {
@@ -386,6 +397,8 @@ function DashboardPageContent() {
   const validationTotal = validationData.reduce((sum, item) => sum + item.value, 0);
   const estadoData = Object.entries(stats.by_estado).map(([name, value]) => ({ name, value }));
   const estadoTotal = estadoData.reduce((sum, item) => sum + item.value, 0);
+  const objetivoData = Object.entries(stats.by_tipo_objetivo).map(([name, value]) => ({ name, value }));
+  const objetivoTotal = objetivoData.reduce((sum, item) => sum + item.value, 0);
   const deptoData = Object.entries(stats.by_departamento)
     .slice(0, 8)
     .map(([fullName, value]) => {
@@ -673,6 +686,72 @@ function DashboardPageContent() {
                   formatter={(value: string) => (
                     <span
                       className={`cursor-pointer text-xs ${filters.estado === value ? "font-bold text-anh-secondary" : "text-anh-text"}`}
+                    >
+                      {value}
+                    </span>
+                  )}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="card p-3 sm:p-4">
+          <h3 className="mb-1 font-bold text-anh-primary">{t("dashboard.chartObjectiveTitle")}</h3>
+          <p className="mb-4 text-xs text-anh-muted">{t("dashboard.chartObjectiveHint")}</p>
+          <div className={isCompactCharts ? "h-80" : "h-64"}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={objetivoData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx={isCompactCharts ? "50%" : "42%"}
+                  cy={isCompactCharts ? "44%" : "50%"}
+                  innerRadius={isCompactCharts ? 40 : 52}
+                  outerRadius={isCompactCharts ? 68 : 80}
+                  paddingAngle={2}
+                  label={
+                    isCompactCharts
+                      ? false
+                      : { fill: chartTheme.pieLabelFill, fontSize: 11, fontWeight: 600 }
+                  }
+                  style={{ cursor: "pointer" }}
+                  onClick={(entry) => entry?.name && applyCrossFilter("tipo_objetivo", String(entry.name))}
+                >
+                  {objetivoData.map((entry, i) => (
+                    <Cell
+                      key={entry.name}
+                      fill={chartTheme.pieColors[(i + 3) % chartTheme.pieColors.length]}
+                      opacity={filters.tipo_objetivo && filters.tipo_objetivo !== entry.name ? 0.3 : 1}
+                      stroke={filters.tipo_objetivo === entry.name ? chartTheme.pieStroke : "transparent"}
+                      strokeWidth={filters.tipo_objetivo === entry.name ? 2 : 0}
+                    />
+                  ))}
+                  <Label
+                    value={objetivoTotal}
+                    position="center"
+                    fill={chartTheme.pieLabelFill}
+                    fontSize={isCompactCharts ? 18 : 22}
+                    fontWeight={800}
+                  />
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [t("common.wellsCount", { count: Number(value) }), t("common.quantity")]}
+                  contentStyle={chartTheme.tooltipContentStyle}
+                  labelStyle={chartTheme.tooltipLabelStyle}
+                />
+                <Legend
+                  layout={isCompactCharts ? "horizontal" : "vertical"}
+                  align={isCompactCharts ? "center" : "right"}
+                  verticalAlign={isCompactCharts ? "bottom" : "middle"}
+                  iconType="circle"
+                  iconSize={10}
+                  wrapperStyle={isCompactCharts ? { paddingTop: 8 } : undefined}
+                  onClick={(entry) => entry.value && applyCrossFilter("tipo_objetivo", String(entry.value))}
+                  formatter={(value: string) => (
+                    <span
+                      className={`cursor-pointer text-xs ${filters.tipo_objetivo === value ? "font-bold text-anh-secondary" : "text-anh-text"}`}
                     >
                       {value}
                     </span>

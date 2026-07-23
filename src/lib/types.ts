@@ -169,6 +169,7 @@ export interface DashboardFilters {
   departamentos?: string[];
   operadora?: string;
   validation_status?: string;
+  tipo_objetivo?: string;
   q?: string;
 }
 
@@ -179,6 +180,7 @@ export interface WellMapPoint {
   departamento: string | null;
   municipio: string | null;
   estado_pozo: string | null;
+  tipo_objetivo: string | null;
   validation_status: string | null;
   uwi_fiscalizado: string | null;
   lat: number;
@@ -193,6 +195,7 @@ export interface DashboardStats {
   wells_with_errors: number;
   wells_with_warnings: number;
   by_estado: Record<string, number>;
+  by_tipo_objetivo: Record<string, number>;
   by_departamento: Record<string, number>;
   by_operadora: Record<string, number>;
   recent_uploads: UploadBatch[];

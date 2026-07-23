@@ -441,7 +441,7 @@ export function listWellsForMap(filters?: DashboardFilters, scope?: DataScope | 
   const rows = database
     .prepare(
       `SELECT id, nombre_pozo_sgc, operadora, departamento, municipio, estado_pozo,
-              validation_status, uwi_fiscalizado, longitud, latitud
+              tipo_objetivo, validation_status, uwi_fiscalizado, longitud, latitud
        FROM wells
        WHERE ${where}
          AND longitud IS NOT NULL AND latitud IS NOT NULL
@@ -455,6 +455,7 @@ export function listWellsForMap(filters?: DashboardFilters, scope?: DataScope | 
       departamento: string | null;
       municipio: string | null;
       estado_pozo: string | null;
+      tipo_objetivo: string | null;
       validation_status: string | null;
       uwi_fiscalizado: string | null;
       longitud: string;
@@ -476,6 +477,7 @@ export function listWellsForMap(filters?: DashboardFilters, scope?: DataScope | 
         departamento: row.departamento,
         municipio: row.municipio,
         estado_pozo: row.estado_pozo,
+        tipo_objetivo: row.tipo_objetivo,
         validation_status: row.validation_status,
         uwi_fiscalizado: row.uwi_fiscalizado,
         lat,
@@ -626,6 +628,10 @@ function buildFilterClause(
     clauses.push("validation_status = ?");
     params.push(filters.validation_status);
   }
+  if (filters?.tipo_objetivo && excludeFilter !== "tipo_objetivo") {
+    clauses.push("tipo_objetivo = ?");
+    params.push(filters.tipo_objetivo);
+  }
   if (filters?.q && excludeFilter !== "q") {
     clauses.push("(nombre_pozo_sgc LIKE ? OR uwi_fiscalizado LIKE ? OR operadora LIKE ?)");
     const like = `%${filters.q}%`;
@@ -773,6 +779,7 @@ export function getDashboardStats(
     wells_with_errors,
     wells_with_warnings,
     by_estado: countBy("estado_pozo", "estado"),
+    by_tipo_objetivo: countBy("tipo_objetivo", "tipo_objetivo"),
     by_departamento: countBy("departamento", "departamentos"),
     by_operadora: countBy("operadora", "operadora"),
     recent_uploads,

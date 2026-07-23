@@ -40,6 +40,7 @@ export function parseDashboardFiltersFromSearchParams(searchParams: URLSearchPar
   const departamento = searchParams.get("departamento");
   const operadora = searchParams.get("operadora");
   const validation_status = searchParams.get("validation_status");
+  const tipo_objetivo = searchParams.get("tipo_objetivo");
   const q = searchParams.get("q");
 
   if (estado) filters.estado = estado;
@@ -47,6 +48,7 @@ export function parseDashboardFiltersFromSearchParams(searchParams: URLSearchPar
   if (departamentos) filters.departamentos = departamentos;
   if (operadora) filters.operadora = operadora;
   if (validation_status) filters.validation_status = validation_status;
+  if (tipo_objetivo) filters.tipo_objetivo = tipo_objetivo;
   if (q) filters.q = q;
 
   return filters;
@@ -62,7 +64,8 @@ export function hasActiveFilters(filters: DashboardFilters): boolean {
       filters.estado ||
       filters.departamentos?.length ||
       filters.operadora ||
-      filters.validation_status,
+      filters.validation_status ||
+      filters.tipo_objetivo,
   );
 }
 
@@ -78,6 +81,7 @@ export function matchesDashboardFilters<T extends WellMapPoint>(
   }
   if (filters.operadora && point.operadora !== filters.operadora) return false;
   if (filters.validation_status && point.validation_status !== filters.validation_status) return false;
+  if (filters.tipo_objetivo && point.tipo_objetivo !== filters.tipo_objetivo) return false;
   if (filters.q) {
     const q = filters.q.toLowerCase();
     const matches = [point.nombre_pozo_sgc, point.uwi_fiscalizado, point.operadora].some((value) =>
