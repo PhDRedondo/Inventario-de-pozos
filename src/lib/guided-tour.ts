@@ -1,4 +1,5 @@
 import { driver, type DriveStep, type Driver, type Popover } from "driver.js";
+import type { UserRole } from "./types";
 
 export type TranslateFn = (key: string, vars?: Record<string, string | number>) => string;
 export type TourNavigateFn = (path: string) => Promise<void>;
@@ -82,7 +83,9 @@ function buildHighlightHooks() {
   };
 }
 
-function buildGuidedTourSteps(t: TranslateFn, navigate: TourNavigateFn): DriveStep[] {
+function buildGuidedTourSteps(t: TranslateFn, navigate: TourNavigateFn, role: UserRole): DriveStep[] {
+  const rk = (key: string) => `tour.${role}.${key}`;
+
   const pop = (
     titleKey: string,
     descKey: string,
@@ -96,14 +99,30 @@ function buildGuidedTourSteps(t: TranslateFn, navigate: TourNavigateFn): DriveSt
     ...hooks,
   });
 
-  const onDashboard = (): Partial<DriveStep> => ({
+  const onPath = (path: string): Partial<DriveStep> => ({
     onHighlightStarted: async () => {
-      await ensurePath(navigate, "/panel");
+      await ensurePath(navigate, path);
     },
   });
 
-  return [
-    { popover: pop("tour.welcomeTitle", "tour.welcomeDesc", undefined, "center") },
+  const goNext = (path: string, selector: string) => ({
+    onNextClick: (_element: Element | undefined, _step: DriveStep, { driver: tourDriver }: { driver: Driver }) => {
+      void ensurePath(navigate, path)
+        .then(() => waitForElement(selector))
+        .then(() => tourDriver.moveNext());
+    },
+  });
+
+  const goPrev = (path: string, selector: string) => ({
+    onPrevClick: (_element: Element | undefined, _step: DriveStep, { driver: tourDriver }: { driver: Driver }) => {
+      void ensurePath(navigate, path)
+        .then(() => waitForElement(selector))
+        .then(() => tourDriver.movePrevious());
+    },
+  });
+
+  const sharedIntro: DriveStep[] = [
+    { popover: pop(rk("welcomeTitle"), rk("welcomeDesc"), undefined, "center") },
     {
       element: tourElement("[data-tour='app-header']"),
       popover: pop("tour.headerTitle", "tour.headerDesc", "bottom", "start"),
@@ -113,101 +132,126 @@ function buildGuidedTourSteps(t: TranslateFn, navigate: TourNavigateFn): DriveSt
       popover: pop("tour.preferencesTitle", "tour.preferencesDesc", "bottom", "end"),
     },
     {
-      element: tourElement("[data-tour='nav-dashboard']"),
-      popover: pop("tour.navTitle", "tour.navDesc", "right", "start"),
-      ...onDashboard(),
+      element: tourElement("[data-tour='app-nav']"),
+      popover: pop(rk("navTitle"), rk("navDesc"), "right", "start"),
+      ...onPath("/panel"),
     },
+  ];
+
+  const dashboardSteps: DriveStep[] = [
     {
       element: tourElement("[data-tour='dashboard-filters']"),
-      popover: pop("tour.filtersTitle", "tour.filtersDesc", "bottom", "start"),
-      ...onDashboard(),
+      popover: pop(rk("filtersTitle"), rk("filtersDesc"), "bottom", "start"),
+      ...onPath("/panel"),
     },
     {
       element: tourElement("[data-tour='dashboard-map']"),
-      popover: pop("tour.mapTitle", "tour.mapDesc", "top", "center"),
-      ...onDashboard(),
+      popover: pop(rk("mapTitle"), rk("mapDesc"), "top", "center"),
+      ...onPath("/panel"),
     },
     {
       element: tourElement("[data-tour='dashboard-stats']"),
-      popover: pop("tour.statsTitle", "tour.statsDesc", "bottom", "start"),
-      ...onDashboard(),
+      popover: pop(rk("statsTitle"), rk("statsDesc"), "bottom", "start"),
+      ...onPath("/panel"),
     },
     {
       element: tourElement("[data-tour='dashboard-charts']"),
-      popover: pop("tour.chartsTitle", "tour.chartsDesc", "top", "start"),
-      ...onDashboard(),
+      popover: pop(rk("chartsTitle"), rk("chartsDesc"), "top", "start"),
+      ...onPath("/panel"),
     },
     {
       element: tourElement("[data-tour='wells-table']"),
-      popover: pop("tour.wellsTitle", "tour.wellsDesc", "top", "start"),
-      ...onDashboard(),
+      popover: pop(rk("wellsTitle"), rk("wellsDesc"), "top", "start"),
+      ...onPath("/panel"),
     },
-    {
-      element: tourElement("[data-tour='workflow']"),
-      popover: pop("tour.workflowTitle", "tour.workflowDesc", "right", "start"),
-      ...onDashboard(),
-    },
-    {
-      element: tourElement("[data-tour='nav-cargar']"),
-      popover: pop("tour.uploadTitle", "tour.uploadNavDesc", "right", "start", {
-        onNextClick: (_element, _step, { driver: tourDriver }) => {
-          void ensurePath(navigate, "/cargar")
-            .then(() => waitForElement("[data-tour='upload-form']"))
-            .then(() => tourDriver.moveNext());
-        },
-      }),
-    },
-    {
-      element: tourElement("[data-tour='upload-form']"),
-      popover: pop("tour.uploadFormTitle", "tour.uploadFormDesc", "top", "start", {
-        onPrevClick: (_element, _step, { driver: tourDriver }) => {
-          void ensurePath(navigate, "/panel")
-            .then(() => waitForElement("[data-tour='nav-cargar']"))
-            .then(() => tourDriver.movePrevious());
-        },
-      }),
-      onHighlightStarted: async () => {
-        await ensurePath(navigate, "/cargar");
+  ];
+
+  if (role === "operadora") {
+    return [
+      ...sharedIntro,
+      ...dashboardSteps,
+      {
+        element: tourElement("[data-tour='nav-calidad']"),
+        popover: pop(rk("notebookTitle"), rk("notebookNavDesc"), "right", "start", {
+          ...goNext("/calidad", "[data-tour='notebook-inventory']"),
+        }),
       },
-    },
+      {
+        element: tourElement("[data-tour='notebook-inventory']"),
+        popover: pop(rk("notebookInventoryTitle"), rk("notebookInventoryDesc"), "top", "start", {
+          ...goPrev("/panel", "[data-tour='nav-calidad']"),
+        }),
+        ...onPath("/calidad"),
+      },
+      {
+        popover: pop(rk("endTitle"), rk("endDesc"), undefined, "center"),
+        ...onPath("/panel"),
+      },
+    ];
+  }
+
+  if (role === "anh") {
+    return [
+      ...sharedIntro,
+      ...dashboardSteps,
+      {
+        element: tourElement("[data-tour='nav-analitica']"),
+        popover: pop(rk("analyticsTitle"), rk("analyticsNavDesc"), "right", "start", {
+          ...goNext("/analitica", "[data-tour='analytics-page']"),
+        }),
+      },
+      {
+        element: tourElement("[data-tour='analytics-page']"),
+        popover: pop(rk("analyticsPanelTitle"), rk("analyticsPanelDesc"), "top", "start", {
+          ...goPrev("/panel", "[data-tour='nav-analitica']"),
+        }),
+        ...onPath("/analitica"),
+      },
+      {
+        popover: pop(rk("endTitle"), rk("endDesc"), undefined, "center"),
+        ...onPath("/panel"),
+      },
+    ];
+  }
+
+  return [
+    ...sharedIntro,
+    ...dashboardSteps,
     {
-      element: tourElement("[data-tour='nav-calidad']"),
-      popover: pop("tour.qualityTitle", "tour.qualityNavDesc", "right", "start", {
-        onNextClick: (_element, _step, { driver: tourDriver }) => {
-          void ensurePath(navigate, "/calidad")
-            .then(() => waitForElement("[data-tour='quality-panel']"))
-            .then(() => tourDriver.moveNext());
-        },
-        onPrevClick: (_element, _step, { driver: tourDriver }) => {
-          void ensurePath(navigate, "/cargar")
-            .then(() => waitForElement("[data-tour='upload-form']"))
-            .then(() => tourDriver.movePrevious());
-        },
+      element: tourElement("[data-tour='nav-analitica']"),
+      popover: pop(rk("analyticsTitle"), rk("analyticsNavDesc"), "right", "start", {
+        ...goNext("/analitica", "[data-tour='analytics-page']"),
       }),
     },
     {
-      element: tourElement("[data-tour='quality-panel']"),
-      popover: pop("tour.qualityPanelTitle", "tour.qualityPanelDesc", "top", "start", {
-        onPrevClick: (_element, _step, { driver: tourDriver }) => {
-          void ensurePath(navigate, "/cargar")
-            .then(() => waitForElement("[data-tour='nav-calidad']"))
-            .then(() => tourDriver.movePrevious());
-        },
+      element: tourElement("[data-tour='analytics-page']"),
+      popover: pop(rk("analyticsPanelTitle"), rk("analyticsPanelDesc"), "top", "start", {
+        ...goPrev("/panel", "[data-tour='nav-analitica']"),
       }),
-      onHighlightStarted: async () => {
-        await ensurePath(navigate, "/calidad");
-      },
+      ...onPath("/analitica"),
     },
     {
-      popover: pop("tour.endTitle", "tour.endDesc", undefined, "center"),
-      onHighlightStarted: async () => {
-        await ensurePath(navigate, "/panel");
-      },
+      element: tourElement("[data-tour='nav-admin']"),
+      popover: pop(rk("usersTitle"), rk("usersNavDesc"), "right", "start", {
+        ...goNext("/admin/usuarios", "[data-tour='admin-users']"),
+        ...goPrev("/analitica", "[data-tour='analytics-page']"),
+      }),
+    },
+    {
+      element: tourElement("[data-tour='admin-users']"),
+      popover: pop(rk("usersPanelTitle"), rk("usersPanelDesc"), "top", "start", {
+        ...goPrev("/analitica", "[data-tour='nav-admin']"),
+      }),
+      ...onPath("/admin/usuarios"),
+    },
+    {
+      popover: pop(rk("endTitle"), rk("endDesc"), undefined, "center"),
+      ...onPath("/panel"),
     },
   ];
 }
 
-export function startGuidedTour(t: TranslateFn, navigate: TourNavigateFn): Driver {
+export function startGuidedTour(t: TranslateFn, navigate: TourNavigateFn, role: UserRole = "anh"): Driver {
   const hooks = buildHighlightHooks();
 
   const tour = driver({
@@ -227,7 +271,7 @@ export function startGuidedTour(t: TranslateFn, navigate: TourNavigateFn): Drive
     doneBtnText: t("tour.done"),
     progressText: t("tour.progress"),
     popoverClass: "anh-guided-tour",
-    steps: buildGuidedTourSteps(t, navigate),
+    steps: buildGuidedTourSteps(t, navigate, role),
     onHighlightStarted: (element, step, ctx) => {
       hooks.onHighlightStarted(element);
       void step.onHighlightStarted?.(element, step, ctx);

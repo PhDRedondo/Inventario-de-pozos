@@ -118,9 +118,9 @@ export const es = {
     descriptionAnh:
       "Inventario consolidado ya validado por operadoras: mapa territorial, filtros cruzados e indicadores operativos sin revisión de validación.",
     filtersHintAnh:
-      "Filtre por pozo, operadora, departamento o estado. Solo pozos con validación aceptada (válidos o con advertencias).",
+      "Filtre por pozo, operadora, departamento, estado u objetivo. Solo pozos con validación aceptada (válidos o con advertencias).",
     filtersTitle: "Exploración espacial y filtros",
-    filtersHint: "Filtre por pozo, operadora, departamento, estado o validación. Mapa, gráficos y tabla comparten la misma selección.",
+    filtersHint: "Filtre por pozo, operadora, departamento, estado, validación u objetivo. Mapa, gráficos y tabla comparten la misma selección.",
     filteredOfTotal: "{{filtered}} de {{total}} pozos",
     departmentsSelected: "{{count}} departamentos",
     clearDepartments: "Limpiar departamentos",
@@ -443,18 +443,18 @@ export const es = {
     },
     admin: {
       uploadIntro:
-        "Cargue inventarios recibidos por correo en nombre de la operadora remitente, valide el contenido y supervise el envío institucional.",
+        "Supervise el inventario consolidado en el panel principal y gestione el acceso de usuarios al sistema.",
       qualityIntro:
-        "Supervise hallazgos de todas las operadoras. Exporte informes y apoye la retroalimentación antes de la consolidación nacional.",
-      step1Title: "Cargar y validar",
+        "Compare indicadores del inventario nacional en Analítica y administre cuentas de operadora, ANH y administrador.",
+      step1Title: "Consultar inventario",
       step1Text:
-        "Suba el Excel e indique la operadora remitente. El sistema valida atributos, catálogos y asigna UWI fiscalizado.",
-      step2Title: "Supervisar calidad",
+        "En el panel revise mapa, filtros, anillos de estado y objetivo, y fichas de pozo del inventario consolidado.",
+      step2Title: "Analítica comparativa",
       step2Text:
-        "Revise errores y advertencias por lote. Las operadoras corrigen sus archivos; usted puede cargar en su nombre si corresponde.",
-      step3Title: "Administrar el sistema",
+        "En Analítica contraste operadoras, territorios o pozos frente al promedio nacional.",
+      step3Title: "Administrar usuarios",
       step3Text:
-        "Gestione usuarios y, con trazabilidad de auditoría, edite o elimine registros de pozos cuando sea necesario.",
+        "Cree y active cuentas. El cuaderno de inventario y la carga de Excel corresponden exclusivamente al perfil operadora.",
     },
   },
   appDocs: {
@@ -494,7 +494,7 @@ export const es = {
     analyticsBody:
       "El panel principal incorpora un entorno analítico interactivo que resume el inventario según los filtros activos y permite explorar patrones territoriales, operativos y de calidad sin cambiar de vista:",
     analyticsItems:
-      "Indicadores (KPI): total de pozos (subconjunto filtrado frente al catálogo completo), cargas procesadas y conteos por validación. Clic en una tarjeta aplica el filtro correspondiente.|Anillos de validación y estado: gráficos tipo dona con total central; cada segmento es clicable para filtrar por calidad de datos o estado del pozo.|Barras horizontales: ranking de las principales operadoras y de los departamentos con mayor concentración de pozos en el subconjunto actual.|Diagrama Sankey: flujo Departamento → Estado → Operadora; el grosor de cada enlace representa el número de pozos; clic en un nodo aplica filtro cruzado.|Mapa territorial: capa de pozos y polígonos departamentales; los pozos excluidos por el filtro se atenúan; clic en departamento, pozo o leyenda actualiza el resto del panel.|Tabla paginada: vista resumida (10/25/50 registros) o consulta completa; filas y columnas interactivas para filtrar; clic en un pozo abre su informe emergente.|Agregaciones en tiempo real: los datos provienen de /api/stats y se recalculan al cambiar cualquier filtro; las opciones de los selectores también se ajustan en cascada al subconjunto visible.",
+      "Indicadores (KPI): total de pozos (subconjunto filtrado frente al catálogo completo), cargas procesadas y conteos por validación. Clic en una tarjeta aplica el filtro correspondiente.|Anillos de validación, estado y tipo según objetivo (P, I, M, D, EST): gráficos tipo dona con total central; cada segmento es clicable para filtrar.|Barras horizontales: ranking de las principales operadoras y de los departamentos con mayor concentración de pozos en el subconjunto actual.|Diagrama Sankey: flujo Departamento → Estado → Operadora; el grosor de cada enlace representa el número de pozos; clic en un nodo aplica filtro cruzado.|Mapa territorial: capa de pozos y polígonos departamentales; los pozos excluidos por el filtro se atenúan; clic en departamento, pozo o leyenda actualiza el resto del panel.|Tabla paginada: vista resumida (10/25/50 registros) o consulta completa; filas y columnas interactivas para filtrar; clic en un pozo abre su informe emergente.|Agregaciones en tiempo real: los datos provienen de /api/stats y se recalculan al cambiar cualquier filtro; las opciones de los selectores también se ajustan en cascada al subconjunto visible.",
     footerNote:
       "Versión de demostración con datos de ejemplo. En producción, la base SQLite puede sustituirse por un motor corporativo y la API integrarse con autenticación institucional y flujos de correo automatizados.",
     operadora: {
@@ -542,7 +542,7 @@ export const es = {
       dashboardTitle: "Panel principal",
       dashboardBody: "Vista del inventario ya validado recibido de operadoras:",
       dashboardItems:
-        "Solo muestra pozos con validación aceptada (válidos o con advertencias); los errores pendientes no aparecen aquí.|Filtre por operadora, departamento, estado del pozo y otros criterios.|Abra la ficha de un pozo para consultar atributos completos y exportar PDF institucional.",
+        "Solo muestra pozos con validación aceptada (válidos o con advertencias); los errores pendientes no aparecen aquí.|Filtre por operadora, departamento, estado del pozo, tipo según objetivo y otros criterios.|Abra la ficha de un pozo para consultar atributos completos y exportar PDF institucional.",
       analyticsTitle: "Analítica global",
       analyticsBody: "Herramienta de comparación del inventario validado a nivel nacional:",
       analyticsItems:
@@ -558,61 +558,114 @@ export const es = {
     prev: "Anterior",
     done: "Finalizar",
     progress: "{{current}} de {{total}}",
-    welcomeTitle: "Bienvenido al Inventario de Pozos",
-    welcomeDesc:
-      "Esta visita guiada recorre el sistema completo: panel principal, carga de inventario y calidad de datos. El resto de la interfaz se atenuará para resaltar cada sección.",
     headerTitle: "Identidad institucional",
     headerDesc:
       "Encabezado del sistema con el logo de la Agencia Nacional de Hidrocarburos, el nombre del módulo y las preferencias de idioma y tema.",
     preferencesTitle: "Preferencias de visualización",
     preferencesDesc:
       "Cambie entre español e inglés, y entre tema claro u oscuro. La preferencia se guarda en su navegador.",
-    navTitle: "Menú principal",
-    navDesc:
-      "Desde aquí accede al panel principal, a la carga de inventario y al informe de calidad de datos. En móvil, el menú aparece en la parte superior.",
-    filtersTitle: "Filtros cruzados",
-    filtersDesc:
-      "Busque pozos y filtre por operadora, departamento, estado y validación. Todos los gráficos, el mapa y la tabla se actualizan en conjunto.",
-    mapTitle: "Mapa territorial",
-    mapDesc:
-      "Visualice la ubicación de los pozos en Colombia. Puede hacer clic en departamentos, pozos o la leyenda para aplicar filtros cruzados.",
-    statsTitle: "Indicadores clave",
-    statsDesc:
-      "Resumen de totales, cargas procesadas y registros por estado de validación. Haga clic en una tarjeta para filtrar el panel.",
-    chartsTitle: "Gráficos analíticos",
-    chartsDesc:
-      "Distribución por estado, departamento, operadora y flujo Sankey. Cada gráfico permite filtrar cruzado al hacer clic.",
-    dashboardTitle: "Panel principal",
-    dashboardDesc:
-      "Vista consolidada con mapa territorial, filtros cruzados, indicadores, gráficos y tabla de pozos. Haga clic en un pozo para abrir su informe emergente.",
-    uploadTitle: "Cargar inventario",
-    uploadNavDesc:
-      "Acceda a esta sección para registrar el archivo Excel que la operadora envió por correo. Pulse «Siguiente» para ver el formulario de carga.",
-    uploadFormTitle: "Formulario de carga",
-    uploadFormDesc:
-      "Seleccione el archivo Excel (hoja FORMATO INVENTARIO POZOS), indique la operadora y envíe. El sistema valida, normaliza geografía y asigna el UWI fiscalizado.",
-    uploadDesc:
-      "Permite registrar manualmente el archivo Excel que la operadora envió por correo. El sistema valida los datos y asigna el UWI fiscalizado.",
-    wellsTitle: "Ficha del pozo",
-    wellsDesc:
-      "Desde el panel principal, haga clic en un pozo del mapa o de la tabla para consultar su informe completo, mapa de ubicación y descarga en PDF.",
-    operatorsTitle: "Vista por operadora",
-    operatorsDesc:
-      "Resumen del inventario reportado por cada operadora, con conteo de pozos válidos, con advertencias y con errores.",
-    qualityTitle: "Calidad de datos",
-    qualityNavDesc:
-      "Revise errores y advertencias de validación para retroalimentar a las operadoras. Pulse «Siguiente» para ver el panel de hallazgos.",
-    qualityPanelTitle: "Informe de calidad",
-    qualityPanelDesc:
-      "Consulte hallazgos por severidad, operadora y pozo. Exporte el informe en Excel con encabezado institucional para enviar a la operadora.",
-    qualityDesc:
-      "Informe de hallazgos de validación para retroalimentar a las operadoras. Puede exportarse en Excel con logo y encabezado institucional.",
-    workflowTitle: "Flujo de trabajo",
-    workflowDesc:
-      "Resume el proceso institucional: la operadora envía el formato por correo, el funcionario ANH carga el archivo y el sistema valida y consolida el inventario.",
-    endTitle: "Visita finalizada",
-    endDesc:
-      "Ya conoce el recorrido completo del sistema. Puede reiniciar esta guía desde «Iniciar visita guiada» o consultar «Acerca del sistema» para más detalle técnico.",
+    operadora: {
+      welcomeTitle: "Bienvenido, perfil operadora",
+      welcomeDesc:
+        "Esta visita muestra su espacio de trabajo: panel de su inventario aplicado y el cuaderno para cargar, validar y enviar a la ANH.",
+      navTitle: "Menú de operadora",
+      navDesc:
+        "Tiene dos áreas: Panel (consulta de su inventario aplicado) y Cuaderno (carga, validación y envío). El cuaderno es exclusivo del perfil operadora.",
+      filtersTitle: "Filtros de su inventario",
+      filtersDesc:
+        "Busque pozos y filtre por departamento, estado, validación u objetivo. Mapa, indicadores, gráficos y tabla se actualizan juntos.",
+      mapTitle: "Mapa de sus pozos",
+      mapDesc:
+        "Ubicación de los pozos de su operadora. Clic en departamentos, pozos o la leyenda para filtrar el resto del panel.",
+      statsTitle: "Indicadores de calidad",
+      statsDesc:
+        "Totales y conteos por validación (válidos, advertencias y errores). Clic en una tarjeta para filtrar.",
+      chartsTitle: "Anillos y rankings",
+      chartsDesc:
+        "Anillos de validación, estado del pozo y tipo según objetivo (P, I, M, D, EST), más barras por departamento. Cada segmento filtra el panel.",
+      wellsTitle: "Tabla de pozos",
+      wellsDesc:
+        "Listado filtrado de sus pozos. Clic en una fila para abrir la ficha completa y descargar el PDF.",
+      notebookTitle: "Cuaderno de inventario",
+      notebookNavDesc:
+        "Espacio de la operadora para crear cuadernos, cargar versiones del Excel y aplicar el envío a la ANH. Pulse «Siguiente» para abrirlo.",
+      notebookInventoryTitle: "Sus cuadernos",
+      notebookInventoryDesc:
+        "Cree un cuaderno, cargue el formato oficial, corrija hasta cero errores y aplique el envío. No es una herramienta de administrador ni de ANH.",
+      endTitle: "Visita finalizada",
+      endDesc:
+        "Ya conoce su flujo: consultar el panel y gestionar el cuaderno. Reinicie la guía cuando quiera desde «Iniciar visita guiada».",
+    },
+    anh: {
+      welcomeTitle: "Bienvenido, perfil ANH",
+      welcomeDesc:
+        "Esta visita muestra la consulta del inventario nacional ya validado por operadoras: panel territorial y analítica comparativa. No incluye carga ni cuadernos.",
+      navTitle: "Menú ANH",
+      navDesc:
+        "Accede al Panel (inventario consolidado validado) y a Analítica. El cuaderno de inventario pertenece solo a las operadoras.",
+      filtersTitle: "Filtros institucionales",
+      filtersDesc:
+        "Filtre por pozo, operadora, departamento, estado u objetivo. Solo aparecen pozos con validación aceptada (válidos o con advertencias).",
+      mapTitle: "Mapa territorial nacional",
+      mapDesc:
+        "Distribución del inventario consolidado en Colombia. Clic en departamentos, pozos o leyenda para filtros cruzados.",
+      statsTitle: "Indicadores operativos",
+      statsDesc:
+        "Totales del inventario filtrado, cargas recibidas y cobertura por operadoras y departamentos.",
+      chartsTitle: "Estado, objetivo y flujos",
+      chartsDesc:
+        "Anillos de estado del pozo y tipo según objetivo, rankings de operadoras y departamentos, y Sankey. Cada clic filtra el panel.",
+      wellsTitle: "Tabla consolidada",
+      wellsDesc:
+        "Pozos del inventario nacional filtrado. Abra la ficha de un pozo para atributos completos y PDF institucional.",
+      analyticsTitle: "Analítica comparativa",
+      analyticsNavDesc:
+        "Compare el promedio nacional con operadoras, territorios o pozos. Pulse «Siguiente» para abrir la vista.",
+      analyticsPanelTitle: "Comparaciones avanzadas",
+      analyticsPanelDesc:
+        "Radar, mapas térmicos y otras vistas para contrastar entidades frente a la línea base nacional.",
+      endTitle: "Visita finalizada",
+      endDesc:
+        "Ya conoce el recorrido ANH: panel de consulta y analítica. El cuaderno y la carga de Excel corresponden al perfil operadora.",
+    },
+    admin: {
+      welcomeTitle: "Bienvenido, perfil administrador",
+      welcomeDesc:
+        "Esta visita cubre supervisión del inventario, analítica y administración de usuarios. El cuaderno de inventario no forma parte de este perfil.",
+      navTitle: "Menú de administración",
+      navDesc:
+        "Panel, Analítica y Usuarios. La carga y el cuaderno son herramientas exclusivas de la operadora.",
+      filtersTitle: "Filtros del inventario",
+      filtersDesc:
+        "Busque y filtre por operadora, departamento, estado, validación u objetivo. Todas las visualizaciones comparten la selección.",
+      mapTitle: "Mapa territorial",
+      mapDesc:
+        "Vista geográfica del inventario. Use clic en mapa y leyenda para filtros cruzados.",
+      statsTitle: "Indicadores globales",
+      statsDesc:
+        "Totales, validación y cobertura territorial u operativa según el alcance de su consulta.",
+      chartsTitle: "Gráficos del panel",
+      chartsDesc:
+        "Anillos de validación, estado y tipo según objetivo, más barras y Sankey. Cada segmento aplica filtro cruzado.",
+      wellsTitle: "Tabla de pozos",
+      wellsDesc:
+        "Consulta detallada del inventario. Como administrador puede editar o eliminar registros con trazabilidad de auditoría desde la ficha.",
+      analyticsTitle: "Analítica",
+      analyticsNavDesc:
+        "Comparaciones avanzadas del inventario. Pulse «Siguiente» para abrir la vista.",
+      analyticsPanelTitle: "Vista analítica",
+      analyticsPanelDesc:
+        "Contraste entidades frente al promedio nacional con radar, mapas térmicos y otras visualizaciones.",
+      usersTitle: "Administración de usuarios",
+      usersNavDesc:
+        "Cree y active cuentas de operadora, ANH y administrador. Pulse «Siguiente» para ver el panel.",
+      usersPanelTitle: "Gestión de cuentas",
+      usersPanelDesc:
+        "Alta de usuarios por rol, asignación de operadora cuando aplique, y activación o desactivación de accesos.",
+      endTitle: "Visita finalizada",
+      endDesc:
+        "Ya conoce las herramientas de administración. Recuerde: el cuaderno de inventario es de la operadora, no del administrador.",
+    },
   },
   auth: {
     logout: "Cerrar sesión",

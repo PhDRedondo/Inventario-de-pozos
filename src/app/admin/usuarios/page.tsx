@@ -79,7 +79,7 @@ export default function AdminUsuariosPage() {
   if (loading) return <p className="p-6 text-anh-muted">{t("common.loading")}</p>;
 
   return (
-    <div>
+    <div data-tour="admin-users">
       <PageHeader title={t("admin.usersTitle")} description={t("admin.usersDescription")} />
 
       <form onSubmit={handleCreate} className="card mb-8 space-y-4 p-6">

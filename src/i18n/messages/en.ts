@@ -118,9 +118,9 @@ export const en = {
     descriptionAnh:
       "Consolidated inventory already validated by operators: territorial map, cross-filters, and operational indicators without re-reviewing validation.",
     filtersHintAnh:
-      "Filter by well, operator, department, or status. Only wells with accepted validation (valid or with warnings).",
+      "Filter by well, operator, department, status, or objective. Only wells with accepted validation (valid or with warnings).",
     filtersTitle: "Spatial exploration and filters",
-    filtersHint: "Filter by well, operator, department, state, or validation. Map, charts, and table share the same selection.",
+    filtersHint: "Filter by well, operator, department, state, validation, or objective. Map, charts, and table share the same selection.",
     filteredOfTotal: "{{filtered}} of {{total}} wells",
     departmentsSelected: "{{count}} departments",
     clearDepartments: "Clear departments",
@@ -435,18 +435,18 @@ export const en = {
     },
     admin: {
       uploadIntro:
-        "Upload inventories received by email on behalf of the submitting operator, validate content, and supervise institutional submission.",
+        "Supervise the consolidated inventory on the main dashboard and manage system user access.",
       qualityIntro:
-        "Monitor findings across all operators. Export reports and support feedback before national consolidation.",
-      step1Title: "Upload and validate",
+        "Compare national inventory indicators in Analytics and administer operator, ANH, and administrator accounts.",
+      step1Title: "Consult inventory",
       step1Text:
-        "Upload the Excel and identify the submitting operator. The system validates attributes, catalogs, and assigns the fiscal UWI.",
-      step2Title: "Monitor quality",
+        "On the dashboard review map, filters, status and objective rings, and well sheets for the consolidated inventory.",
+      step2Title: "Comparative analytics",
       step2Text:
-        "Review errors and warnings per batch. Operators fix their files; you can upload on their behalf when needed.",
-      step3Title: "Manage the system",
+        "In Analytics, contrast operators, territories, or wells against the national average.",
+      step3Title: "Manage users",
       step3Text:
-        "Manage users and, with full audit trail, edit or delete well records when required.",
+        "Create and activate accounts. The inventory notebook and Excel upload belong exclusively to the operator profile.",
     },
   },
   appDocs: {
@@ -486,7 +486,7 @@ export const en = {
     analyticsBody:
       "The main panel includes an interactive analytics environment that summarizes the inventory under active filters and lets you explore territorial, operational, and quality patterns without leaving the consolidated view:",
     analyticsItems:
-      "KPI cards: total wells (filtered subset vs full catalog), processed uploads, and validation counts. Click a card to apply the matching filter.|Validation and state donuts: ring charts with a central total; each segment is clickable to filter by data quality or well state.|Horizontal bars: ranking of top operators and departments with the highest well concentration in the current subset.|Sankey diagram: Department → State → Operator flow; link thickness represents well count; click a node to cross-filter.|Territorial map: well layer and departmental polygons; wells excluded by the filter are dimmed; click a department, well, or legend entry to update the rest of the panel.|Paginated table: summary view (10/25/50 rows) or full query; interactive rows and columns for filtering; click a well to open its modal report.|Real-time aggregations: data comes from /api/stats and recalculates when any filter changes; selector options also cascade to the visible subset.",
+      "KPI cards: total wells (filtered subset vs full catalog), processed uploads, and validation counts. Click a card to apply the matching filter.|Validation, status, and objective-type donuts (P, I, M, D, EST): ring charts with a central total; each segment is clickable to filter.|Horizontal bars: ranking of top operators and departments with the highest well concentration in the current subset.|Sankey diagram: Department → State → Operator flow; link thickness represents well count; click a node to cross-filter.|Territorial map: well layer and departmental polygons; wells excluded by the filter are dimmed; click a department, well, or legend entry to update the rest of the panel.|Paginated table: summary view (10/25/50 rows) or full query; interactive rows and columns for filtering; click a well to open its modal report.|Real-time aggregations: data comes from /api/stats and recalculates when any filter changes; selector options also cascade to the visible subset.",
     footerNote:
       "Demo version with sample data. In production, SQLite can be replaced with a corporate database and the API integrated with institutional authentication and automated email workflows.",
     operadora: {
@@ -534,7 +534,7 @@ export const en = {
       dashboardTitle: "Dashboard",
       dashboardBody: "View of validated inventory received from operators:",
       dashboardItems:
-        "Shows only accepted validation (valid or warning records); pending errors do not appear here.|Filter by operator, department, well status, and other criteria.|Open a well sheet for full attributes and institutional PDF export.",
+        "Shows only accepted validation (valid or warning records); pending errors do not appear here.|Filter by operator, department, well status, type by objective, and other criteria.|Open a well sheet for full attributes and institutional PDF export.",
       analyticsTitle: "Global analytics",
       analyticsBody: "National validated inventory comparison tool:",
       analyticsItems:
@@ -550,61 +550,114 @@ export const en = {
     prev: "Previous",
     done: "Finish",
     progress: "{{current}} of {{total}}",
-    welcomeTitle: "Welcome to Well Inventory",
-    welcomeDesc:
-      "This guided tour walks through the full system: dashboard, inventory upload, and data quality. The rest of the interface will dim to highlight each section.",
     headerTitle: "Institutional identity",
     headerDesc:
       "System header with the ANH logo, module name, and language/theme preferences.",
     preferencesTitle: "Display preferences",
     preferencesDesc:
       "Switch between Spanish and English, and between light and dark theme. Your choice is saved in the browser.",
-    navTitle: "Main menu",
-    navDesc:
-      "Access the dashboard, inventory upload, and data quality report. On mobile, the menu appears at the top.",
-    filtersTitle: "Cross-filters",
-    filtersDesc:
-      "Search wells and filter by operator, department, state, and validation. Map, charts, and table update together.",
-    mapTitle: "Territorial map",
-    mapDesc:
-      "View well locations across Colombia. Click departments, wells, or the legend to apply cross-filters.",
-    statsTitle: "Key indicators",
-    statsDesc:
-      "Summary of totals, processed uploads, and records by validation status. Click a card to filter the panel.",
-    chartsTitle: "Analytics charts",
-    chartsDesc:
-      "Distribution by state, department, operator, and Sankey flow. Each chart supports cross-filtering on click.",
-    dashboardTitle: "Dashboard",
-    dashboardDesc:
-      "Consolidated view with territorial map, cross-filters, indicators, charts, and well table. Click a well to open its report modal.",
-    uploadTitle: "Upload inventory",
-    uploadNavDesc:
-      "Open this section to register the Excel file emailed by the operator. Click «Next» to see the upload form.",
-    uploadFormTitle: "Upload form",
-    uploadFormDesc:
-      "Select the Excel file (FORMATO INVENTARIO POZOS sheet), specify the operator, and submit. The system validates, normalizes geography, and assigns the fiscal UWI.",
-    uploadDesc:
-      "Manually register the Excel file emailed by the operator. The system validates data and assigns the fiscal UWI.",
-    wellsTitle: "Well detail",
-    wellsDesc:
-      "Extended inventory search by name or UWI, with full technical detail on each well when clicking a record.",
-    operatorsTitle: "Operator view",
-    operatorsDesc:
-      "Summary of inventory reported by each operator, with valid, warning, and error counts.",
-    qualityTitle: "Data quality",
-    qualityNavDesc:
-      "Review validation errors and warnings to feed back to operators. Click «Next» to see the findings panel.",
-    qualityPanelTitle: "Quality report",
-    qualityPanelDesc:
-      "Browse findings by severity, operator, and well. Export the Excel report with institutional header to send to the operator.",
-    qualityDesc:
-      "Validation findings report for operator feedback. Can be exported to Excel with logo and institutional header.",
-    workflowTitle: "Workflow",
-    workflowDesc:
-      "Summarizes the institutional process: operator emails the template, ANH uploads it, and the system validates and consolidates.",
-    endTitle: "Tour complete",
-    endDesc:
-      "You now know the full system tour. Restart anytime from «Start guided tour» or open «About the system» for technical details.",
+    operadora: {
+      welcomeTitle: "Welcome, operator profile",
+      welcomeDesc:
+        "This tour covers your workspace: the dashboard for your applied inventory and the notebook to upload, validate, and submit to ANH.",
+      navTitle: "Operator menu",
+      navDesc:
+        "You have two areas: Dashboard (applied inventory) and Notebook (upload, validation, and submission). The notebook is exclusive to the operator profile.",
+      filtersTitle: "Your inventory filters",
+      filtersDesc:
+        "Search wells and filter by department, status, validation, or objective. Map, KPIs, charts, and table update together.",
+      mapTitle: "Map of your wells",
+      mapDesc:
+        "Locations of your operator’s wells. Click departments, wells, or the legend to filter the rest of the panel.",
+      statsTitle: "Quality indicators",
+      statsDesc:
+        "Totals and counts by validation (valid, warnings, and errors). Click a card to filter.",
+      chartsTitle: "Rings and rankings",
+      chartsDesc:
+        "Rings for validation, well status, and type by objective (P, I, M, D, EST), plus department bars. Each segment filters the panel.",
+      wellsTitle: "Wells table",
+      wellsDesc:
+        "Filtered list of your wells. Click a row to open the full sheet and download the PDF.",
+      notebookTitle: "Inventory notebook",
+      notebookNavDesc:
+        "Operator workspace to create notebooks, upload Excel versions, and apply submission to ANH. Click «Next» to open it.",
+      notebookInventoryTitle: "Your notebooks",
+      notebookInventoryDesc:
+        "Create a notebook, upload the official template, fix until zero errors, and apply submission. This is not an admin or ANH tool.",
+      endTitle: "Tour complete",
+      endDesc:
+        "You now know your flow: consult the dashboard and manage the notebook. Restart anytime from «Start guided tour».",
+    },
+    anh: {
+      welcomeTitle: "Welcome, ANH profile",
+      welcomeDesc:
+        "This tour covers national inventory already validated by operators: territorial dashboard and comparative analytics. It does not include uploads or notebooks.",
+      navTitle: "ANH menu",
+      navDesc:
+        "Access Dashboard (validated consolidated inventory) and Analytics. The inventory notebook belongs only to operators.",
+      filtersTitle: "Institutional filters",
+      filtersDesc:
+        "Filter by well, operator, department, status, or objective. Only wells with accepted validation (valid or warnings) appear.",
+      mapTitle: "National territorial map",
+      mapDesc:
+        "Distribution of the consolidated inventory across Colombia. Click departments, wells, or the legend for cross-filters.",
+      statsTitle: "Operational indicators",
+      statsDesc:
+        "Filtered inventory totals, received submissions, and coverage by operators and departments.",
+      chartsTitle: "Status, objective, and flows",
+      chartsDesc:
+        "Rings for well status and type by objective, operator and department rankings, and Sankey. Each click filters the panel.",
+      wellsTitle: "Consolidated table",
+      wellsDesc:
+        "Wells in the filtered national inventory. Open a well sheet for full attributes and institutional PDF.",
+      analyticsTitle: "Comparative analytics",
+      analyticsNavDesc:
+        "Compare the national average with operators, territories, or wells. Click «Next» to open the view.",
+      analyticsPanelTitle: "Advanced comparisons",
+      analyticsPanelDesc:
+        "Radar, heatmaps, and other views to contrast entities against the national baseline.",
+      endTitle: "Tour complete",
+      endDesc:
+        "You now know the ANH path: consultation dashboard and analytics. Notebook and Excel upload belong to the operator profile.",
+    },
+    admin: {
+      welcomeTitle: "Welcome, administrator profile",
+      welcomeDesc:
+        "This tour covers inventory supervision, analytics, and user administration. The inventory notebook is not part of this profile.",
+      navTitle: "Administration menu",
+      navDesc:
+        "Dashboard, Analytics, and Users. Upload and notebook tools are exclusive to the operator.",
+      filtersTitle: "Inventory filters",
+      filtersDesc:
+        "Search and filter by operator, department, status, validation, or objective. All visualizations share the selection.",
+      mapTitle: "Territorial map",
+      mapDesc:
+        "Geographic view of the inventory. Use map and legend clicks for cross-filters.",
+      statsTitle: "Global indicators",
+      statsDesc:
+        "Totals, validation, and territorial or operational coverage for your query scope.",
+      chartsTitle: "Dashboard charts",
+      chartsDesc:
+        "Rings for validation, status, and type by objective, plus bars and Sankey. Each segment applies a cross-filter.",
+      wellsTitle: "Wells table",
+      wellsDesc:
+        "Detailed inventory lookup. As administrator you can edit or delete records with audit trail from the well sheet.",
+      analyticsTitle: "Analytics",
+      analyticsNavDesc:
+        "Advanced inventory comparisons. Click «Next» to open the view.",
+      analyticsPanelTitle: "Analytics view",
+      analyticsPanelDesc:
+        "Contrast entities against the national average with radar, heatmaps, and other visualizations.",
+      usersTitle: "User administration",
+      usersNavDesc:
+        "Create and activate operator, ANH, and administrator accounts. Click «Next» to open the panel.",
+      usersPanelTitle: "Account management",
+      usersPanelDesc:
+        "Create users by role, assign an operator when needed, and activate or deactivate access.",
+      endTitle: "Tour complete",
+      endDesc:
+        "You now know the administration tools. Remember: the inventory notebook belongs to the operator, not the administrator.",
+    },
   },
   auth: {
     logout: "Sign out",

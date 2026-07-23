@@ -45,6 +45,6 @@ const ADMIN_USERS: AppNavItem = {
 export function getNavItemsForRole(role: UserRole): AppNavItem[] {
   if (role === "anh") return [PANEL, ANALYTICS];
   if (role === "operadora") return [PANEL, NOTEBOOK];
-  if (role === "admin") return [PANEL, NOTEBOOK, ANALYTICS, ADMIN_USERS];
+  if (role === "admin") return [PANEL, ANALYTICS, ADMIN_USERS];
   return [PANEL];
 }

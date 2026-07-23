@@ -183,41 +183,21 @@ export default function CalidadPage() {
   const t = useT();
   const { user } = useAuth();
   const router = useRouter();
-  const [operadoras, setOperadoras] = useState<string[]>([]);
-  const [adminOperadora, setAdminOperadora] = useState("");
 
   useEffect(() => {
     if (user?.role === "anh") {
       router.replace("/analitica");
+    } else if (user?.role === "admin") {
+      router.replace("/panel");
     }
   }, [user, router]);
 
-  useEffect(() => {
-    if (user?.role === "admin") {
-      fetch("/api/catalogs")
-        .then((r) => r.json())
-        .then((c) => setOperadoras(c.operadoras ?? []))
-        .catch(console.error);
-    }
-  }, [user]);
-
-  if (user?.role === "anh") {
+  if (user?.role === "anh" || user?.role === "admin") {
     return <div className="card p-8 text-center text-anh-muted">{t("common.loading")}</div>;
   }
 
   if (user?.role === "operadora" && user.operadora) {
     return <NotebookInventory operadora={user.operadora} />;
-  }
-
-  if (user?.role === "admin") {
-    return (
-      <NotebookInventory
-        operadora={adminOperadora}
-        isAdmin
-        operadoras={operadoras}
-        onOperadoraChange={setAdminOperadora}
-      />
-    );
   }
 
   return <AnhQualityView />;

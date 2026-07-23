@@ -86,8 +86,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const handleStartTour = useCallback(() => {
-    startGuidedTour(t, navigateForTour);
-  }, [navigateForTour, t]);
+    startGuidedTour(t, navigateForTour, role);
+  }, [navigateForTour, role, t]);
 
   if (isPublicShell) {
     return <>{children}</>;
