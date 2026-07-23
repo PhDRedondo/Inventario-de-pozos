@@ -17,7 +17,7 @@ const THEMES = new Set(Object.keys(ANALYTICS_THEMES));
 const ENTITY_TYPES = new Set<CompareEntityType>(["operadora", "departamento", "municipio", "pozo"]);
 
 export async function GET(request: NextRequest) {
-  const user = requireRole(requireSession(request), ["anh", "admin"]);
+  const user = requireRole(requireSession(request), ["anh"]);
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 403 });
 
   const { searchParams } = new URL(request.url);

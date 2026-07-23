@@ -33,8 +33,11 @@ export function LandingRoles() {
 
   function roleHref(role: (typeof ROLES)[number]["id"]) {
     if (user) {
-      if (user.role === role || user.role === "admin") {
-        return getNavItemsForRole(user.role === "admin" ? role : user.role)[0]?.href ?? "/panel";
+      if (user.role === "admin") {
+        return getNavItemsForRole("admin")[0]?.href ?? "/panel";
+      }
+      if (user.role === role) {
+        return getNavItemsForRole(user.role)[0]?.href ?? "/panel";
       }
       return getNavItemsForRole(user.role)[0]?.href ?? "/panel";
     }

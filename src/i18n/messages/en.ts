@@ -54,6 +54,8 @@ export const en = {
     mainMenu: "Main menu",
     dashboard: "Dashboard",
     dashboardShort: "Home",
+    adminPanel: "Administration",
+    adminPanelShort: "Admin",
     upload: "Upload inventory",
     uploadShort: "Upload",
     wells: "Search by well",
@@ -114,11 +116,16 @@ export const en = {
   },
   dashboard: {
     title: "Dashboard",
+    titleAdmin: "Inventory administration",
     description: "Explore the spatial distribution of wells and use cross-filters across map, cards, and charts.",
     descriptionAnh:
       "Consolidated inventory already validated by operators: territorial map, cross-filters, and operational indicators without re-reviewing validation.",
+    descriptionAdmin:
+      "Stewardship of the full inventory: locate records, review data quality, and edit or delete wells with an audit trail. Decision analytics belong to the ANH profile.",
     filtersHintAnh:
       "Filter by well, operator, department, status, or objective. Only wells with accepted validation (valid or with warnings).",
+    filtersHintAdmin:
+      "Filter the full inventory (including errors) by well, operator, department, status, validation, or objective. Open a well to edit or delete.",
     filtersTitle: "Spatial exploration and filters",
     filtersHint: "Filter by well, operator, department, state, validation, or objective. Map, charts, and table share the same selection.",
     filteredOfTotal: "{{filtered}} of {{total}} wells",
@@ -130,6 +137,18 @@ export const en = {
     mapTitle: "Territorial well map",
     mapHint:
       "Cross-filters: map, charts, and table share the same selection. Dimmed wells are outside the filter.",
+    adminBannerTitle: "Administrator profile",
+    adminBannerText:
+      "Manage inventory quality and integrity. Use each well sheet to edit or delete with audit logging; manage accounts from Users.",
+    auditTitle: "Recent audit trail",
+    auditHint: "Latest administrative actions recorded in the system (creates, updates, and deletes).",
+    auditEmpty: "No audit events recorded yet.",
+    auditWhen: "When",
+    auditActor: "Actor",
+    auditAction: "Action",
+    auditEntity: "Entity",
+    tableHintAdmin:
+      "Open a well to review, edit, or delete the record. Sensitive actions are stored in the audit trail.",
     statTotal: "Total wells",
     statUploads: "Processed uploads",
     statOperators: "Operators",
@@ -435,18 +454,18 @@ export const en = {
     },
     admin: {
       uploadIntro:
-        "Supervise the consolidated inventory on the main dashboard and manage system user access.",
+        "Steward the full inventory: locate records, review validation, and edit or delete wells with an audit trail.",
       qualityIntro:
-        "Compare national inventory indicators in Analytics and administer operator, ANH, and administrator accounts.",
-      step1Title: "Consult inventory",
+        "Administer operator, ANH, and administrator accounts. Comparative analytics belong to the ANH profile.",
+      step1Title: "Steward inventory",
       step1Text:
-        "On the dashboard review map, filters, status and objective rings, and well sheets for the consolidated inventory.",
-      step2Title: "Comparative analytics",
+        "In Administration, filter the full inventory, review quality, and open sheets to correct or delete records.",
+      step2Title: "Review audit trail",
       step2Text:
-        "In Analytics, contrast operators, territories, or wells against the national average.",
+        "Check recent audit actions on the panel to verify sensitive changes.",
       step3Title: "Manage users",
       step3Text:
-        "Create and activate accounts. The inventory notebook and Excel upload belong exclusively to the operator profile.",
+        "Create and activate accounts. The notebook and decision analytics are not part of this profile.",
     },
   },
   appDocs: {
@@ -615,7 +634,7 @@ export const en = {
         "Compare the national average with operators, territories, or wells. Click «Next» to open the view.",
       analyticsPanelTitle: "Advanced comparisons",
       analyticsPanelDesc:
-        "Radar, heatmaps, and other views to contrast entities against the national baseline.",
+        "Radar, heatmaps, and other views to contrast entities against the national baseline. Download a PDF report of the active comparison.",
       endTitle: "Tour complete",
       endDesc:
         "You now know the ANH path: consultation dashboard and analytics. Notebook and Excel upload belong to the operator profile.",
@@ -623,31 +642,28 @@ export const en = {
     admin: {
       welcomeTitle: "Welcome, administrator profile",
       welcomeDesc:
-        "This tour covers inventory supervision, analytics, and user administration. The inventory notebook is not part of this profile.",
+        "This tour covers inventory stewardship and user management. It does not include decision analytics or the operator notebook.",
       navTitle: "Administration menu",
       navDesc:
-        "Dashboard, Analytics, and Users. Upload and notebook tools are exclusive to the operator.",
-      filtersTitle: "Inventory filters",
+        "Administration (inventory and audit trail) and Users. National analytics belong to ANH; the notebook belongs to operators.",
+      filtersTitle: "Stewardship filters",
       filtersDesc:
-        "Search and filter by operator, department, status, validation, or objective. All visualizations share the selection.",
-      mapTitle: "Territorial map",
+        "Search and filter the full inventory, including records with errors. All views share the selection.",
+      mapTitle: "Map to locate records",
       mapDesc:
-        "Geographic view of the inventory. Use map and legend clicks for cross-filters.",
-      statsTitle: "Global indicators",
+        "Find wells to open their sheet and apply administrative actions (edit or delete).",
+      statsTitle: "Quality indicators",
       statsDesc:
-        "Totals, validation, and territorial or operational coverage for your query scope.",
-      chartsTitle: "Dashboard charts",
+        "Totals and validation counts to prioritize inventory corrections.",
+      chartsTitle: "Quality and typology",
       chartsDesc:
-        "Rings for validation, status, and type by objective, plus bars and Sankey. Each segment applies a cross-filter.",
-      wellsTitle: "Wells table",
+        "Rings for validation, status, and type by objective for data stewardship. No rankings or decision flows.",
+      wellsTitle: "Stewardship table",
       wellsDesc:
-        "Detailed inventory lookup. As administrator you can edit or delete records with audit trail from the well sheet.",
-      analyticsTitle: "Analytics",
-      analyticsNavDesc:
-        "Advanced inventory comparisons. Click «Next» to open the view.",
-      analyticsPanelTitle: "Analytics view",
-      analyticsPanelDesc:
-        "Contrast entities against the national average with radar, heatmaps, and other visualizations.",
+        "Open a well to edit or delete. Actions are recorded in the audit trail.",
+      auditTitle: "Audit trail",
+      auditDesc:
+        "Review the latest administrative actions in the system (record changes and deletions).",
       usersTitle: "User administration",
       usersNavDesc:
         "Create and activate operator, ANH, and administrator accounts. Click «Next» to open the panel.",
@@ -656,7 +672,7 @@ export const en = {
         "Create users by role, assign an operator when needed, and activate or deactivate access.",
       endTitle: "Tour complete",
       endDesc:
-        "You now know the administration tools. Remember: the inventory notebook belongs to the operator, not the administrator.",
+        "You now know the administration panel and user management. Decision analytics belong to the ANH profile.",
     },
   },
   auth: {
@@ -852,6 +868,26 @@ export const en = {
     entityMunicipio: "Municipality",
     entityPozo: "Well",
     noEntityResults: "No matches in the validated inventory.",
+    downloadPdf: "Download report PDF",
+    generatingPdf: "Generating report...",
+    pdfError: "Could not generate the report. Please try again.",
+    filePrefix: "analytics-report",
+  },
+  analyticsReport: {
+    title: "Global analytics report",
+    subtitle: "Comparison against the national average — validated inventory",
+    footer:
+      "Document generated from the ANH Well Inventory Validator (VIP). Indicators from the validated inventory.",
+    generatedAt: "Generated on {{date}}",
+    scopeTitle: "Analysis scope",
+    themeLabel: "Theme",
+    comparisonTitle: "Comparison",
+    nationalOnly: "No entity selected: the national average is reported.",
+    sampleTitle: "Sample size",
+    metricsTitle: "Indicators vs. national average",
+    colMetric: "Indicator",
+    colIndex: "Index (100 = national)",
+    colDelta: "Variation %",
   },
   admin: {
     usersTitle: "User administration",

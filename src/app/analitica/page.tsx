@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Download } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -32,6 +33,7 @@ import {
   type AnalyticsThemeId,
   type CompareEntityType,
 } from "@/lib/analytics";
+import { downloadAnalyticsReportPdf } from "@/lib/analytics-report-pdf";
 import { getChartTheme } from "@/lib/chart-theme";
 import { fixEncoding } from "@/lib/geo";
 
@@ -83,7 +85,7 @@ function heatColor(ratio: number): string {
 }
 
 export default function AnaliticaPage() {
-  const { t, theme } = useAppPreferences();
+  const { t, theme, locale } = useAppPreferences();
   const { user } = useAuth();
   const router = useRouter();
   const chartTheme = useMemo(() => getChartTheme(theme), [theme]);
@@ -98,13 +100,15 @@ export default function AnaliticaPage() {
   const [payload, setPayload] = useState<AnalyticsPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const entityDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const entityComboboxRef = useRef<HTMLDivElement>(null);
   const entityListId = "analytics-entity-suggestions";
 
   useEffect(() => {
     if (!user) return;
-    if (user.role === "operadora") router.replace("/panel");
+    if (user.role === "operadora" || user.role === "admin") router.replace("/panel");
   }, [user, router]);
 
   const fetchEntities = useCallback(
@@ -120,7 +124,7 @@ export default function AnaliticaPage() {
   );
 
   useEffect(() => {
-    if (!user || user.role === "operadora") return;
+    if (!user || user.role === "operadora" || user.role === "admin") return;
     const trimmed = entityQuery.trim();
     if (!trimmed) {
       setEntities([]);
@@ -194,7 +198,7 @@ export default function AnaliticaPage() {
   }, []);
 
   useEffect(() => {
-    if (!user || user.role === "operadora") return;
+    if (!user || user.role === "operadora" || user.role === "admin") return;
 
     const params = new URLSearchParams({ theme: activeTheme });
     if (selectedEntity) {
@@ -258,7 +262,85 @@ export default function AnaliticaPage() {
   const heatmapDept = buildHeatmapRows(payload?.distribution?.byDepartamento);
   const heatmapOp = buildHeatmapRows(payload?.distribution?.byOperadora);
 
-  if (user?.role === "operadora") {
+  const generatedAt = new Date().toLocaleString(locale === "en" ? "en-US" : "es-CO", {
+    dateStyle: "long",
+    timeStyle: "short",
+  });
+
+  const handleExportPdf = useCallback(async () => {
+    if (!payload) return;
+    setExportingPdf(true);
+    setPdfError(null);
+    try {
+      const dateSlug = new Date().toISOString().slice(0, 10);
+      const filename = `${t("analytics.filePrefix")}-${dateSlug}.pdf`;
+      const translatedRadar = payload.radar.map((point) => ({
+        ...point,
+        metric: t(point.metric),
+      }));
+
+      await downloadAnalyticsReportPdf({
+        themeId: activeTheme,
+        themeTitle: t(ANALYTICS_THEMES[activeTheme].titleKey),
+        themeDescription: t(ANALYTICS_THEMES[activeTheme].descriptionKey),
+        entityType: selectedEntity ? entityType : null,
+        entityTypeLabel: t(ENTITY_TYPE_KEYS[entityType]),
+        compareLabel: selectedEntity?.label ?? null,
+        baselineSampleSize: payload.baseline.sampleSize,
+        comparisonSampleSize: payload.comparison.sampleSize,
+        radar: translatedRadar,
+        heatmapDept,
+        heatmapOp,
+        generatedAt: t("analyticsReport.generatedAt", { date: generatedAt }),
+        filename,
+        labels: {
+          anhTitle: t("wellReport.anhTitle"),
+          gopSystem: t("shell.gopSystem"),
+          title: t("analyticsReport.title"),
+          subtitle: t("analyticsReport.subtitle"),
+          footer: t("analyticsReport.footer"),
+          generatedAt: t("analyticsReport.generatedAt", { date: generatedAt }),
+          scopeTitle: t("analyticsReport.scopeTitle"),
+          themeLabel: t("analyticsReport.themeLabel"),
+          themeDescription: t(ANALYTICS_THEMES[activeTheme].descriptionKey),
+          comparisonTitle: t("analyticsReport.comparisonTitle"),
+          nationalOnly: t("analyticsReport.nationalOnly"),
+          compareWith: t("analytics.compareWith"),
+          entityType: t("analytics.entityType"),
+          sampleTitle: t("analyticsReport.sampleTitle"),
+          nationalBaseline: t("analytics.nationalBaseline"),
+          selection: t("analytics.rawComparison"),
+          metricsTitle: t("analyticsReport.metricsTitle"),
+          colMetric: t("analyticsReport.colMetric"),
+          colNational: t("analytics.rawBaseline"),
+          colSelection: t("analytics.rawComparison"),
+          colIndex: t("analyticsReport.colIndex"),
+          colDelta: t("analyticsReport.colDelta"),
+          heatmapDeptTitle: t("analytics.heatmapByDept"),
+          heatmapOpTitle: t("analytics.heatmapByOp"),
+          sampleSize: t("analytics.sampleSize"),
+          none: t("common.none"),
+          filePrefix: t("analytics.filePrefix"),
+        },
+      });
+    } catch (exportError) {
+      console.error(exportError);
+      setPdfError(t("analytics.pdfError"));
+    } finally {
+      setExportingPdf(false);
+    }
+  }, [
+    activeTheme,
+    entityType,
+    generatedAt,
+    heatmapDept,
+    heatmapOp,
+    payload,
+    selectedEntity,
+    t,
+  ]);
+
+  if (user?.role === "operadora" || user?.role === "admin") {
     return null;
   }
 
@@ -267,6 +349,20 @@ export default function AnaliticaPage() {
       <PageHeader
         title={t("analytics.title")}
         description={user ? t(roleWorkflowIntro(user.role, "quality")) : t("analytics.description")}
+        action={
+          <div className="flex flex-col items-stretch gap-1 sm:items-end">
+            <button
+              type="button"
+              className="btn-primary inline-flex items-center justify-center gap-2 text-xs sm:text-sm"
+              onClick={handleExportPdf}
+              disabled={loading || exportingPdf || !payload}
+            >
+              <Download className="h-4 w-4" />
+              {exportingPdf ? t("analytics.generatingPdf") : t("analytics.downloadPdf")}
+            </button>
+            {pdfError && <p className="text-right text-xs text-red-600 dark:text-red-300">{pdfError}</p>}
+          </div>
+        }
       />
 
       <div className="card mb-4 p-3 sm:p-4">

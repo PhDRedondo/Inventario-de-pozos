@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Download, Shield } from "lucide-react";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -32,7 +33,7 @@ import { getChartTheme } from "@/lib/chart-theme";
 import { downloadDashboardReportPdf } from "@/lib/dashboard-report-pdf";
 import { fixEncoding } from "@/lib/geo";
 import { applyDashboardFilters, hasActiveFilters, isDepartamentoSelected, parseDepartamentosParam, serializeDepartamentos, toggleDepartamento } from "@/lib/filters";
-import type { DashboardFilters, DashboardStats, WellMapPoint, WellRecord } from "@/lib/types";
+import type { AuditLogEntry, DashboardFilters, DashboardStats, WellMapPoint, WellRecord } from "@/lib/types";
 
 const WellsMap = dynamic(() => import("@/components/WellsMap"), {
   ssr: false,
@@ -67,6 +68,7 @@ function DashboardPageContent() {
   const { user } = useAuth();
   const isOperadora = user?.role === "operadora";
   const isAnh = user?.role === "anh";
+  const isAdmin = user?.role === "admin";
   const chartTheme = useMemo(() => getChartTheme(theme), [theme]);
   const isCompactCharts = useMediaQuery("(max-width: 639px)");
   const searchParams = useSearchParams();
@@ -84,6 +86,7 @@ function DashboardPageContent() {
   const [loadingExpanded, setLoadingExpanded] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleDepartamentoFilter = useCallback((departamento: string) => {
@@ -191,6 +194,17 @@ function DashboardPageContent() {
       .catch(console.error)
       .finally(() => setMapLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setAuditLog([]);
+      return;
+    }
+    fetch("/api/admin/audit?limit=20")
+      .then((r) => r.json())
+      .then((rows) => setAuditLog(Array.isArray(rows) ? rows : []))
+      .catch(console.error);
+  }, [isAdmin, selectedWellId]);
 
   useEffect(() => {
     setLoading(true);
@@ -416,8 +430,14 @@ function DashboardPageContent() {
   return (
     <div>
       <PageHeader
-        title={t("dashboard.title")}
-        description={t(isAnh ? "dashboard.descriptionAnh" : "dashboard.description")}
+        title={t(isAdmin ? "dashboard.titleAdmin" : "dashboard.title")}
+        description={t(
+          isAdmin
+            ? "dashboard.descriptionAdmin"
+            : isAnh
+              ? "dashboard.descriptionAnh"
+              : "dashboard.description",
+        )}
         action={
           <div className="flex flex-col items-stretch gap-1 sm:items-end">
             <button
@@ -434,6 +454,19 @@ function DashboardPageContent() {
         }
       />
 
+      {isAdmin && (
+        <div className="card mb-4 flex flex-wrap items-start gap-3 border-anh-secondary/40 p-3 sm:mb-6 sm:items-center sm:p-4">
+          <Shield className="mt-0.5 h-5 w-5 shrink-0 text-anh-secondary" aria-hidden />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-anh-primary">{t("dashboard.adminBannerTitle")}</p>
+            <p className="mt-0.5 text-xs text-anh-muted sm:text-sm">{t("dashboard.adminBannerText")}</p>
+          </div>
+          <Link href="/admin/usuarios" className="btn-secondary text-xs sm:text-sm">
+            {t("nav.adminUsers")}
+          </Link>
+        </div>
+      )}
+
       <DashboardFiltersBar
         filters={{ ...filters, q: searchInput }}
         operadoras={stats.filter_options.operadoras}
@@ -441,7 +474,13 @@ function DashboardPageContent() {
         estados={stats.filter_options.estados}
         validationStatuses={stats.filter_options.validation_statuses}
         hideValidation={isAnh}
-        filtersHint={isAnh ? t("dashboard.filtersHintAnh") : undefined}
+        filtersHint={
+          isAdmin
+            ? t("dashboard.filtersHintAdmin")
+            : isAnh
+              ? t("dashboard.filtersHintAnh")
+              : undefined
+        }
         filteredCount={stats.total_wells}
         catalogCount={stats.catalog_total_wells}
         onFilterChange={(key, value) => {
@@ -762,7 +801,7 @@ function DashboardPageContent() {
           </div>
         </div>
 
-        {!isOperadora && (
+        {!isOperadora && !isAdmin && (
         <div className="card p-3 sm:p-4">
           <h3 className="mb-1 font-bold text-anh-primary">{t("dashboard.chartOpTitle")}</h3>
           <p className="mb-4 text-xs text-anh-muted">{t("dashboard.chartOpHint")}</p>
@@ -811,6 +850,7 @@ function DashboardPageContent() {
         </div>
         )}
 
+        {!isAdmin && (
         <div className="card p-3 sm:p-4">
           <h3 className="mb-1 font-bold text-anh-primary">{t("dashboard.chartDeptTitle")}</h3>
           <p className="mb-4 text-xs text-anh-muted">{t("dashboard.chartDeptHint")}</p>
@@ -875,19 +915,62 @@ function DashboardPageContent() {
             height={isCompactCharts ? 420 : 380}
           />
         </div>
+        )}
       </div>
+
+      {isAdmin && (
+        <div className="card mt-6 overflow-hidden" data-tour="admin-audit">
+          <div className="border-b border-anh-border px-3 py-2.5 sm:px-4 sm:py-3">
+            <h3 className="font-bold text-anh-primary">{t("dashboard.auditTitle")}</h3>
+            <p className="text-xs text-anh-muted">{t("dashboard.auditHint")}</p>
+          </div>
+          <div className="overflow-x-auto">
+            {auditLog.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-anh-muted">{t("dashboard.auditEmpty")}</p>
+            ) : (
+              <table className="min-w-full text-sm">
+                <thead className="bg-anh-bg text-left text-anh-muted">
+                  <tr>
+                    <th className="px-4 py-3">{t("dashboard.auditWhen")}</th>
+                    <th className="px-4 py-3">{t("dashboard.auditActor")}</th>
+                    <th className="px-4 py-3">{t("dashboard.auditAction")}</th>
+                    <th className="px-4 py-3">{t("dashboard.auditEntity")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {auditLog.map((entry) => (
+                    <tr key={entry.id} className="border-t border-anh-border">
+                      <td className="px-4 py-3 text-anh-muted">
+                        {new Date(entry.created_at).toLocaleString(locale === "en" ? "en-US" : "es-CO")}
+                      </td>
+                      <td className="px-4 py-3">{entry.actor_email}</td>
+                      <td className="px-4 py-3 font-medium">{entry.action}</td>
+                      <td className="px-4 py-3">
+                        {entry.entity_type}
+                        {entry.entity_id != null ? ` #${entry.entity_id}` : ""}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="card mt-6 overflow-hidden" data-tour="wells-table">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-anh-border px-3 py-2.5 sm:gap-3 sm:px-4 sm:py-3">
           <div>
             <h3 className="font-bold text-anh-primary">{t("dashboard.tableTitle")}</h3>
             <p className="text-xs text-anh-muted">
-              {showAllWells
-                ? t("dashboard.tableHintFull", { count: tableWells.length })
-                : t("dashboard.tableHint", {
-                    count: stats.filtered_wells.length,
-                    limit: tablePageSize,
-                  })}
+              {isAdmin
+                ? t("dashboard.tableHintAdmin")
+                : showAllWells
+                  ? t("dashboard.tableHintFull", { count: tableWells.length })
+                  : t("dashboard.tableHint", {
+                      count: stats.filtered_wells.length,
+                      limit: tablePageSize,
+                    })}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

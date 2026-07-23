@@ -50,8 +50,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [docsOpen, setDocsOpen] = useState(false);
 
   const isPublicShell = pathname === "/login" || pathname === "/";
-  const role = user?.role ?? "anh";
-  const navItems = getNavItemsForRole(role).map(({ href, key, shortKey, icon, tourId }) => ({
+  const role = user?.role;
+  const navItems = (role ? getNavItemsForRole(role) : []).map(({ href, key, shortKey, icon, tourId }) => ({
     href,
     key,
     shortKey,
@@ -86,6 +86,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   const handleStartTour = useCallback(() => {
+    if (!role) return;
     startGuidedTour(t, navigateForTour, role);
   }, [navigateForTour, role, t]);
 

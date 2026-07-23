@@ -53,6 +53,8 @@ export const es = {
     mainMenu: "Menú principal",
     dashboard: "Panel principal",
     dashboardShort: "Panel",
+    adminPanel: "Administración",
+    adminPanelShort: "Admin",
     upload: "Cargar inventario",
     uploadShort: "Cargar",
     wells: "Consultar por pozo",
@@ -113,12 +115,17 @@ export const es = {
   },
   dashboard: {
     title: "Panel principal",
+    titleAdmin: "Administración del inventario",
     description:
       "Explore la distribución espacial de pozos y use filtros cruzados entre mapa, tarjetas y gráficos.",
     descriptionAnh:
       "Inventario consolidado ya validado por operadoras: mapa territorial, filtros cruzados e indicadores operativos sin revisión de validación.",
+    descriptionAdmin:
+      "Custodia del inventario completo: localice registros, revise calidad de datos y edite o elimine pozos con trazabilidad. La analítica de decisión corresponde al perfil ANH.",
     filtersHintAnh:
       "Filtre por pozo, operadora, departamento, estado u objetivo. Solo pozos con validación aceptada (válidos o con advertencias).",
+    filtersHintAdmin:
+      "Filtre el inventario completo (incluye errores) por pozo, operadora, departamento, estado, validación u objetivo. Abra un pozo para editar o eliminar.",
     filtersTitle: "Exploración espacial y filtros",
     filtersHint: "Filtre por pozo, operadora, departamento, estado, validación u objetivo. Mapa, gráficos y tabla comparten la misma selección.",
     filteredOfTotal: "{{filtered}} de {{total}} pozos",
@@ -130,6 +137,18 @@ export const es = {
     mapTitle: "Mapa territorial de pozos",
     mapHint:
       "Filtros cruzados: el mapa, gráficos y tabla comparten la misma selección. Los pozos atenuados quedan fuera del filtro.",
+    adminBannerTitle: "Perfil administrador",
+    adminBannerText:
+      "Gestione la calidad y la integridad del inventario. Use la ficha de cada pozo para editar o eliminar con auditoría; administre usuarios desde el menú Usuarios.",
+    auditTitle: "Trazabilidad reciente",
+    auditHint: "Últimas acciones administrativas registradas en el sistema (altas, cambios y eliminaciones).",
+    auditEmpty: "Aún no hay eventos de auditoría registrados.",
+    auditWhen: "Fecha",
+    auditActor: "Actor",
+    auditAction: "Acción",
+    auditEntity: "Entidad",
+    tableHintAdmin:
+      "Abra un pozo para consultar, editar o eliminar el registro. Las acciones sensibles quedan en la trazabilidad.",
     statTotal: "Total pozos",
     statUploads: "Cargas procesadas",
     statOperators: "Operadoras",
@@ -443,18 +462,18 @@ export const es = {
     },
     admin: {
       uploadIntro:
-        "Supervise el inventario consolidado en el panel principal y gestione el acceso de usuarios al sistema.",
+        "Custodie el inventario completo: localice registros, revise validación y edite o elimine pozos con auditoría.",
       qualityIntro:
-        "Compare indicadores del inventario nacional en Analítica y administre cuentas de operadora, ANH y administrador.",
-      step1Title: "Consultar inventario",
+        "Administre cuentas de operadora, ANH y administrador. La analítica comparativa pertenece al perfil ANH.",
+      step1Title: "Custodiar inventario",
       step1Text:
-        "En el panel revise mapa, filtros, anillos de estado y objetivo, y fichas de pozo del inventario consolidado.",
-      step2Title: "Analítica comparativa",
+        "En Administración filtre el inventario completo, revise calidad y abra fichas para corregir o eliminar registros.",
+      step2Title: "Revisar trazabilidad",
       step2Text:
-        "En Analítica contraste operadoras, territorios o pozos frente al promedio nacional.",
+        "Consulte las acciones recientes de auditoría en el panel para verificar cambios sensibles.",
       step3Title: "Administrar usuarios",
       step3Text:
-        "Cree y active cuentas. El cuaderno de inventario y la carga de Excel corresponden exclusivamente al perfil operadora.",
+        "Cree y active cuentas. El cuaderno y la analítica de decisión no forman parte de este perfil.",
     },
   },
   appDocs: {
@@ -623,7 +642,7 @@ export const es = {
         "Compare el promedio nacional con operadoras, territorios o pozos. Pulse «Siguiente» para abrir la vista.",
       analyticsPanelTitle: "Comparaciones avanzadas",
       analyticsPanelDesc:
-        "Radar, mapas térmicos y otras vistas para contrastar entidades frente a la línea base nacional.",
+        "Radar, mapas térmicos y otras vistas para contrastar entidades frente a la línea base nacional. Descargue el informe PDF de la comparación activa.",
       endTitle: "Visita finalizada",
       endDesc:
         "Ya conoce el recorrido ANH: panel de consulta y analítica. El cuaderno y la carga de Excel corresponden al perfil operadora.",
@@ -631,31 +650,28 @@ export const es = {
     admin: {
       welcomeTitle: "Bienvenido, perfil administrador",
       welcomeDesc:
-        "Esta visita cubre supervisión del inventario, analítica y administración de usuarios. El cuaderno de inventario no forma parte de este perfil.",
+        "Esta visita cubre la custodia del inventario y la gestión de usuarios. No incluye analítica de decisión ni el cuaderno de operadoras.",
       navTitle: "Menú de administración",
       navDesc:
-        "Panel, Analítica y Usuarios. La carga y el cuaderno son herramientas exclusivas de la operadora.",
-      filtersTitle: "Filtros del inventario",
+        "Administración (inventario y trazabilidad) y Usuarios. La analítica nacional pertenece al perfil ANH; el cuaderno, a la operadora.",
+      filtersTitle: "Filtros de custodia",
       filtersDesc:
-        "Busque y filtre por operadora, departamento, estado, validación u objetivo. Todas las visualizaciones comparten la selección.",
-      mapTitle: "Mapa territorial",
+        "Busque y filtre el inventario completo, incluidos registros con errores. Todas las vistas comparten la selección.",
+      mapTitle: "Mapa para localizar registros",
       mapDesc:
-        "Vista geográfica del inventario. Use clic en mapa y leyenda para filtros cruzados.",
-      statsTitle: "Indicadores globales",
+        "Ubique pozos para abrir su ficha y aplicar acciones administrativas (edición o eliminación).",
+      statsTitle: "Indicadores de calidad",
       statsDesc:
-        "Totales, validación y cobertura territorial u operativa según el alcance de su consulta.",
-      chartsTitle: "Gráficos del panel",
+        "Totales y conteos por validación para priorizar correcciones en el inventario.",
+      chartsTitle: "Calidad y tipología",
       chartsDesc:
-        "Anillos de validación, estado y tipo según objetivo, más barras y Sankey. Cada segmento aplica filtro cruzado.",
-      wellsTitle: "Tabla de pozos",
+        "Anillos de validación, estado y tipo según objetivo para custodiar datos. Sin rankings ni flujos de decisión.",
+      wellsTitle: "Tabla de custodia",
       wellsDesc:
-        "Consulta detallada del inventario. Como administrador puede editar o eliminar registros con trazabilidad de auditoría desde la ficha.",
-      analyticsTitle: "Analítica",
-      analyticsNavDesc:
-        "Comparaciones avanzadas del inventario. Pulse «Siguiente» para abrir la vista.",
-      analyticsPanelTitle: "Vista analítica",
-      analyticsPanelDesc:
-        "Contraste entidades frente al promedio nacional con radar, mapas térmicos y otras visualizaciones.",
+        "Abra un pozo para editar o eliminar. Las acciones quedan registradas en la trazabilidad.",
+      auditTitle: "Trazabilidad",
+      auditDesc:
+        "Revise las últimas acciones administrativas del sistema (cambios y eliminaciones de registros).",
       usersTitle: "Administración de usuarios",
       usersNavDesc:
         "Cree y active cuentas de operadora, ANH y administrador. Pulse «Siguiente» para ver el panel.",
@@ -664,7 +680,7 @@ export const es = {
         "Alta de usuarios por rol, asignación de operadora cuando aplique, y activación o desactivación de accesos.",
       endTitle: "Visita finalizada",
       endDesc:
-        "Ya conoce las herramientas de administración. Recuerde: el cuaderno de inventario es de la operadora, no del administrador.",
+        "Ya conoce el panel de administración y la gestión de usuarios. La analítica de decisión es del perfil ANH.",
     },
   },
   auth: {
@@ -863,6 +879,26 @@ export const es = {
     entityMunicipio: "Municipio",
     entityPozo: "Pozo",
     noEntityResults: "Sin coincidencias en el inventario validado.",
+    downloadPdf: "Descargar informe PDF",
+    generatingPdf: "Generando informe...",
+    pdfError: "No fue posible generar el informe. Intente de nuevo.",
+    filePrefix: "informe-analitica",
+  },
+  analyticsReport: {
+    title: "Informe de analítica global",
+    subtitle: "Comparación frente al promedio nacional — inventario validado",
+    footer:
+      "Documento generado desde el Validador del Inventario de Pozos (VIP) de la ANH. Indicadores del inventario validado.",
+    generatedAt: "Generado el {{date}}",
+    scopeTitle: "Alcance del análisis",
+    themeLabel: "Tema",
+    comparisonTitle: "Comparación",
+    nationalOnly: "Sin entidad seleccionada: se reporta el promedio nacional.",
+    sampleTitle: "Tamaño de muestra",
+    metricsTitle: "Indicadores vs. promedio nacional",
+    colMetric: "Indicador",
+    colIndex: "Índice (100 = nacional)",
+    colDelta: "Variación %",
   },
   admin: {
     usersTitle: "Administración de usuarios",

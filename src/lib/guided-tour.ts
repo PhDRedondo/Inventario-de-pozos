@@ -218,29 +218,20 @@ function buildGuidedTourSteps(t: TranslateFn, navigate: TourNavigateFn, role: Us
     ...sharedIntro,
     ...dashboardSteps,
     {
-      element: tourElement("[data-tour='nav-analitica']"),
-      popover: pop(rk("analyticsTitle"), rk("analyticsNavDesc"), "right", "start", {
-        ...goNext("/analitica", "[data-tour='analytics-page']"),
-      }),
-    },
-    {
-      element: tourElement("[data-tour='analytics-page']"),
-      popover: pop(rk("analyticsPanelTitle"), rk("analyticsPanelDesc"), "top", "start", {
-        ...goPrev("/panel", "[data-tour='nav-analitica']"),
-      }),
-      ...onPath("/analitica"),
+      element: tourElement("[data-tour='admin-audit']"),
+      popover: pop(rk("auditTitle"), rk("auditDesc"), "top", "start"),
+      ...onPath("/panel"),
     },
     {
       element: tourElement("[data-tour='nav-admin']"),
       popover: pop(rk("usersTitle"), rk("usersNavDesc"), "right", "start", {
         ...goNext("/admin/usuarios", "[data-tour='admin-users']"),
-        ...goPrev("/analitica", "[data-tour='analytics-page']"),
       }),
     },
     {
       element: tourElement("[data-tour='admin-users']"),
       popover: pop(rk("usersPanelTitle"), rk("usersPanelDesc"), "top", "start", {
-        ...goPrev("/analitica", "[data-tour='nav-admin']"),
+        ...goPrev("/panel", "[data-tour='nav-admin']"),
       }),
       ...onPath("/admin/usuarios"),
     },

@@ -18,6 +18,14 @@ const PANEL: AppNavItem = {
   tourId: "nav-dashboard",
 };
 
+const ADMIN_PANEL: AppNavItem = {
+  href: "/panel",
+  key: "nav.adminPanel",
+  shortKey: "nav.adminPanelShort",
+  icon: LayoutDashboard,
+  tourId: "nav-dashboard",
+};
+
 const NOTEBOOK: AppNavItem = {
   href: "/calidad",
   key: "nav.notebook",
@@ -45,6 +53,6 @@ const ADMIN_USERS: AppNavItem = {
 export function getNavItemsForRole(role: UserRole): AppNavItem[] {
   if (role === "anh") return [PANEL, ANALYTICS];
   if (role === "operadora") return [PANEL, NOTEBOOK];
-  if (role === "admin") return [PANEL, ANALYTICS, ADMIN_USERS];
+  if (role === "admin") return [ADMIN_PANEL, ADMIN_USERS];
   return [PANEL];
 }
