@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { previewUwi, resolveDaneCodes } from "@/lib/db";
+import { requireSession } from "@/lib/auth-scope";
 import { buildUwiComponents, generateUwiFiscalizado, validateUwiInstructivo } from "@/lib/uwi";
 import type { WellRecord } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
+  const user = requireSession(request);
+  if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
   const body = (await request.json()) as WellRecord;
   const dane = resolveDaneCodes(body.departamento, body.municipio);
   const record: WellRecord = {

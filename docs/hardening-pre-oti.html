@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Anexo hardening pre-OTI — VIP Inventario de Pozos</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --surface: #fff; --ink: #1a1a1a; --muted: #5c6370;
+    --border: #e2e5ea; --ok: #1b7f4a; --ok-bg: #e8f7ef; --partial: #9a6700;
+    --partial-bg: #fff6db; --fail: #b42318; --fail-bg: #fdecea; --accent: #0b3d5c;
+  }
+  body { margin: 0; font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; }
+  main { max-width: 920px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  h1 { color: var(--accent); font-size: 1.6rem; margin: 0 0 0.35rem; }
+  h2 { color: var(--accent); font-size: 1.15rem; margin-top: 2rem; border-bottom: 2px solid var(--border); padding-bottom: 0.35rem; }
+  .meta { color: var(--muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.15rem; margin: 1rem 0; }
+  .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 999px; }
+  .ok { background: var(--ok-bg); color: var(--ok); }
+  .partial { background: var(--partial-bg); color: var(--partial); }
+  .fail { background: var(--fail-bg); color: var(--fail); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  th, td { border: 1px solid var(--border); padding: 0.55rem 0.65rem; text-align: left; vertical-align: top; }
+  th { background: #eef2f6; }
+  code { font-size: 0.85em; background: #eef2f6; padding: 0.1rem 0.3rem; border-radius: 4px; }
+  ul { margin: 0.4rem 0 0.4rem 1.2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Anexo: hardening de aplicación aplicado antes de mesa OTI</h1>
+  <p class="meta">Fecha: 31 jul 2026 · Alcance: controles de código/piloto (no sustituye AD, cifrado en reposo institucional ni PostgreSQL gestionado).</p>
+
+  <div class="card">
+    <p><span class="badge ok">Cerrado en código</span> Controles evitables de seguridad del piloto, alineados a GU-18 / endurecimiento HTTP, sin pretender cumplimiento total Circular 23.</p>
+  </div>
+
+  <h2>1. Controles aplicados</h2>
+  <table>
+    <thead><tr><th>Control</th><th>Qué cambió</th><th>Evidencia</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Secretos</td>
+        <td>Sin defaults <code>Anh2026!</code> / <code>SESSION_SECRET</code> de producción. Env obligatorios en prod.</td>
+        <td><code>src/lib/security-env.ts</code>, <code>.env.example</code></td>
+      </tr>
+      <tr>
+        <td>Sesión</td>
+        <td>HMAC verificado en middleware (Edge); idle 30 min + absoluto 8 h; renovación sliding.</td>
+        <td><code>src/middleware.ts</code>, <code>src/lib/session-edge.ts</code>, <code>src/lib/auth-crypto.ts</code></td>
+      </tr>
+      <tr>
+        <td>APIs</td>
+        <td>Sesión en <code>/api/uwi/preview</code> y <code>/api/wells/map-image</code>; anti open-redirect en login.</td>
+        <td>Rutas API + <code>src/lib/safe-redirect.ts</code></td>
+      </tr>
+      <tr>
+        <td>HTTP</td>
+        <td>CSP, HSTS (prod), X-Frame-Options, Referrer-Policy, Permissions-Policy; check Origin en mutaciones API.</td>
+        <td><code>next.config.ts</code>, middleware</td>
+      </tr>
+      <tr>
+        <td>Login</td>
+        <td>Rate limit 10 / 15 min; auditoría success/fail; formulario real; demo solo con flag.</td>
+        <td><code>src/app/api/auth/login/route.ts</code>, login page</td>
+      </tr>
+      <tr>
+        <td>Uploads</td>
+        <td>Extensión, MIME y tope 15 MB.</td>
+        <td><code>src/lib/upload-security.ts</code></td>
+      </tr>
+      <tr>
+        <td>Auditoría</td>
+        <td><code>password_hash</code> / password redactados en <code>audit_log</code>.</td>
+        <td><code>writeAuditLog</code> en <code>auth-db.ts</code></td>
+      </tr>
+      <tr>
+        <td>CI</td>
+        <td>ESLint + <code>npm audit --audit-level=high</code> + typecheck.</td>
+        <td><code>.github/workflows/ci.yml</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>2. Brechas residuales (dependen de OTI / infra ANH)</h2>
+  <table>
+    <thead><tr><th>Brecha</th><th>Estado</th><th>Notas para mesa técnica</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>SQLite efímero en Vercel <code>/tmp</code></td>
+        <td><span class="badge fail">Bloqueante prod</span></td>
+        <td>Requiere PostgreSQL/volumen persistente + backups.</td>
+      </tr>
+      <tr>
+        <td>Active Directory / MFA institucional</td>
+        <td><span class="badge fail">Pendiente OTI</span></td>
+        <td>El login local es puente de piloto, no IdP ANH.</td>
+      </tr>
+      <tr>
+        <td>Cifrado en reposo / KMS / backups cifrados</td>
+        <td><span class="badge fail">Pendiente OTI</span></td>
+        <td>Fuera del alcance de la app Next.js.</td>
+      </tr>
+      <tr>
+        <td>Ley 1581 UX (avisos, bases, derechos ARCO)</td>
+        <td><span class="badge partial">Parcial</span></td>
+        <td>Requiere textos jurídicos y flujos institucionales.</td>
+      </tr>
+      <tr>
+        <td>WAF / rate limit distribuido / SIEM</td>
+        <td><span class="badge partial">Parcial</span></td>
+        <td>Rate limit actual es por instancia serverless.</td>
+      </tr>
+      <tr>
+        <td>SAST/DAST formal, ciclo MA-02 completo</td>
+        <td><span class="badge partial">Parcial</span></td>
+        <td>CI lint/audit es mínimo; falta pipeline OTI.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>3. Variables a configurar en Vercel antes de la demo</h2>
+  <ul>
+    <li><code>SESSION_SECRET</code> (≥32 chars, rotado)</li>
+    <li><code>ANH_ADMIN_PASSWORD</code> (fuerte, no compartida en chat)</li>
+    <li><code>DEMO_LOGIN_ENABLED=false</code> para mesa técnica (recomendado)</li>
+    <li>Si se habilita demo: <code>DEMO_PASSWORD</code> propio, rotado post-sesión</li>
+  </ul>
+
+  <h2>4. Mensaje sugerido a OTI</h2>
+  <div class="card">
+    <p>«El piloto cerró los controles de aplicación evitables (secretos, sesión HMAC, headers, rate limit, uploads, auditoría y CI). Persistencia, IdP/MFA y cifrado en reposo quedan en el backlog conjunto con OTI para pasar de piloto a producción.»</p>
+  </div>
+</main>
+</body>
+</html>

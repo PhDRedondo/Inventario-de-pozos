@@ -8,6 +8,7 @@ import { sanitizeSpanishText } from "@/lib/geo";
 import { addNotebookVersion, assertNotebookAccess } from "@/lib/notebook-db";
 import type { WellRecord } from "@/lib/types";
 import { summarizeValidation } from "@/lib/validation";
+import { validateExcelUpload } from "@/lib/upload-security";
 
 function parseExcelRow(row: Record<string, unknown>): WellRecord {
   const record: Partial<WellRecord> = {};
@@ -62,6 +63,11 @@ export async function POST(
 
   if (!file || !(file instanceof File)) {
     return NextResponse.json({ error: "Debe adjuntar un archivo Excel (.xlsx)" }, { status: 400 });
+  }
+
+  const uploadError = validateExcelUpload(file);
+  if (uploadError) {
+    return NextResponse.json({ error: uploadError }, { status: 400 });
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Evaluación de cumplimiento ANH-GTIC — VIP Inventario de Pozos (post-hardening)</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --surface: #fff; --ink: #1a1a1a; --muted: #5c6370;
+    --border: #e2e5ea; --anh-yellow: #ffe600; --anh-orange: #ff8c00; --anh-red: #e8381a;
+    --ok: #1b7f4a; --ok-bg: #e8f7ef; --partial: #9a6700; --partial-bg: #fff6db;
+    --fail: #b42318; --fail-bg: #fdecea; --na: #475467; --na-bg: #f2f4f7; --accent: #0b3d5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(180deg, #eef2f6 0%, var(--bg) 220px);
+    line-height: 1.55;
+  }
+  .bar { height: 6px; background: linear-gradient(90deg, var(--anh-yellow), var(--anh-orange), var(--anh-red)); }
+  header.hero { max-width: 1120px; margin: 0 auto; padding: 2rem 1.25rem 1rem; }
+  .eyebrow { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(1.55rem, 2.5vw, 2.15rem); margin: 0.4rem 0 0.6rem; line-height: 1.2; color: var(--accent); }
+  h2 { font-size: 1.2rem; color: var(--accent); margin: 0 0 0.85rem; }
+  h3 { font-size: 1.02rem; margin: 1.1rem 0 0.45rem; color: var(--ink); }
+  .meta { color: var(--muted); font-size: 0.95rem; }
+  .meta strong { color: var(--ink); }
+  main { max-width: 1120px; margin: 0 auto; padding: 0 1.25rem 3.5rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; margin: 1.25rem 0 1.5rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .card .label { font-size: 0.75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .card .value { font-size: 1.45rem; font-weight: 800; margin-top: .2rem; }
+  .card .sub { font-size: 0.8rem; color: var(--muted); margin-top: .15rem; }
+  section { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1.25rem 1.35rem; margin: 1rem 0; }
+  .verdict {
+    border-left: 5px solid var(--partial);
+    background: var(--partial-bg);
+    padding: 1rem 1.15rem;
+    border-radius: 0 12px 12px 0;
+    margin: 1rem 0 1.5rem;
+  }
+  .verdict strong { color: var(--partial); }
+  .badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 0.18rem 0.55rem; border-radius: 999px; white-space: nowrap; }
+  .ok { background: var(--ok-bg); color: var(--ok); }
+  .partial { background: var(--partial-bg); color: var(--partial); }
+  .fail { background: var(--fail-bg); color: var(--fail); }
+  .na { background: var(--na-bg); color: var(--na); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { border: 1px solid var(--border); padding: 0.55rem 0.65rem; text-align: left; vertical-align: top; }
+  th { background: #eef2f6; font-size: 0.82rem; }
+  code, .ev { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82em; background: #eef2f6; padding: 0.08rem 0.28rem; border-radius: 4px; }
+  ul { margin: 0.35rem 0 0.35rem 1.15rem; }
+  .delta { background: #e8f2ff; border: 1px solid #c9ddf7; border-radius: 10px; padding: 0.85rem 1rem; margin: 0.75rem 0; }
+  .delta h3 { margin-top: 0; color: var(--accent); }
+  footer { max-width: 1120px; margin: 0 auto; padding: 0 1.25rem 2.5rem; color: var(--muted); font-size: 0.85rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc li { margin: 0.25rem 0; }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header class="hero">
+  <div class="eyebrow">ANH · GTIC · Mesa técnica VORP / OTI</div>
+  <h1>Evaluación de cumplimiento — Validación Inventario de Pozos (VIP)</h1>
+  <p class="meta">
+    <strong>Fecha:</strong> 31 jul 2026 ·
+    <strong>Alcance:</strong> contraste de la aplicación frente a Circular 23, Políticas de seguridad/privacidad,
+    MA-02 (ciclo de vida) y GU-18 (desarrollo seguro) ·
+    <strong>Estado del código:</strong> post-hardening de aplicación (sesión, secretos, headers, CI).
+  </p>
+</header>
+
+<main>
+  <div class="verdict">
+    <strong>Veredicto:</strong> <span class="badge partial">Parcial — apto para piloto / mesa técnica</span>,
+    <strong>no apto aún para producción institucional</strong>.
+    Los controles evitables de aplicación (GU-18 a nivel de código) quedaron cerrados o mejorados de forma material.
+    Persisten bloqueantes de infraestructura y gobierno: SQLite efímero en Vercel <code>/tmp</code>, ausencia de IdP/MFA (AD),
+    cifrado en reposo/backups institucionales, y formalización Ley 1581 / MA-02 con OTI.
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="label">Cumple</div><div class="value" style="color:var(--ok)">14</div><div class="sub">controles app</div></div>
+    <div class="card"><div class="label">Parcial</div><div class="value" style="color:var(--partial)">12</div><div class="sub">requieren OTI/proceso</div></div>
+    <div class="card"><div class="label">No cumple</div><div class="value" style="color:var(--fail)">7</div><div class="sub">bloqueantes prod</div></div>
+    <div class="card"><div class="label">N/A piloto</div><div class="value" style="color:var(--na)">3</div><div class="sub">fuera de alcance actual</div></div>
+  </div>
+
+  <section>
+    <h2>0. Instrumentos evaluados</h2>
+    <ol>
+      <li><strong>Circular 23</strong> — lineamientos de herramientas tecnológicas / mesa técnica OTI.</li>
+      <li><strong>Políticas de seguridad de la información y privacidad</strong> (ANH).</li>
+      <li><strong>MA-02</strong> — ciclo de vida de desarrollo de software.</li>
+      <li><strong>GU-18</strong> — guía de desarrollo seguro (Anexo 3: no embeber secretos, hardening, autenticación, etc.).</li>
+    </ol>
+    <p class="meta">Nota metodológica: los PDF fuente no estaban disponibles en disco al regenerar este informe;
+    la evaluación se basa en el contraste código ↔ requisitos ya documentados en la revisión previa y en la auditoría fresca del repositorio (31 jul 2026).</p>
+  </section>
+
+  <section>
+    <h2>1. Delta desde la revisión anterior (hardening aplicado)</h2>
+    <div class="delta">
+      <h3>Qué se cerró en código antes de esta evaluación</h3>
+      <ul>
+        <li>Eliminación de defaults inseguros (<code>Anh2026!</code>, <code>SESSION_SECRET</code> embebido de prod).</li>
+        <li>Middleware con verificación HMAC real (Edge) + idle 30 min + absoluto 8 h.</li>
+        <li>Protección de <code>/api/uwi/preview</code> y <code>/api/wells/map-image</code>; anti open-redirect en login.</li>
+        <li>Headers HTTP (CSP, HSTS en prod, X-Frame-Options, Referrer-Policy, Permissions-Policy).</li>
+        <li>Rate limit de login, auditoría de login success/fail, scrub de <code>password_hash</code> en <code>audit_log</code>.</li>
+        <li>Validación de uploads (extensión, MIME, 15 MB); demo deshabilitable; CI lint/audit/typecheck.</li>
+      </ul>
+      <p>Anexo operativo: <code>docs/hardening-pre-oti.html</code>.</p>
+    </div>
+  </section>
+
+  <section id="gu18">
+    <h2>2. GU-18 — Desarrollo seguro</h2>
+    <table>
+      <thead><tr><th>Control</th><th>Estado</th><th>Hallazgo / evidencia</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>No embeber secretos / credenciales (Anexo 3)</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td>Secretos vía env obligatorios en producción (<code>src/lib/security-env.ts</code>). Demo sin password en cliente (<code>demo: true</code> server-side). Plantilla <code>.env.example</code>.</td>
+        </tr>
+        <tr>
+          <td>Autenticación y gestión de sesión</td>
+          <td><span class="badge ok">Cumple (app)</span></td>
+          <td>Cookie httpOnly + HMAC-SHA256; idle/absoluto; renovación sliding. <code>auth-crypto.ts</code>, <code>session-edge.ts</code>, <code>middleware.ts</code>. <em>No sustituye AD/MFA institucional.</em></td>
+        </tr>
+        <tr>
+          <td>Autorización por rol</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td>Roles <code>operadora</code> | <code>anh</code> | <code>admin</code>; <code>requireRole</code>/<code>buildDataScope</code>; Analítica solo ANH; Cuaderno solo operadora; Admin = stewardship.</td>
+        </tr>
+        <tr>
+          <td>Hardening HTTP / CSRF básico</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td>Headers en <code>next.config.ts</code>; Origin check en mutaciones API; <code>sameSite=lax</code>.</td>
+        </tr>
+        <tr>
+          <td>Validación de entradas / uploads</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td><code>upload-security.ts</code> en rutas de Excel; validación de negocio UWI/geografía en libs existentes.</td>
+        </tr>
+        <tr>
+          <td>Registro / auditoría de acceso</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td><code>audit_log</code> + UI admin; login success/fail; redaction de hashes. Falta SIEM institucional.</td>
+        </tr>
+        <tr>
+          <td>Rate limiting / anti fuerza bruta</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>10 intentos / 15 min por IP en memoria de instancia. En Vercel multi-instancia no es global; OTI debería aportar WAF/Redis.</td>
+        </tr>
+        <tr>
+          <td>SAST / dependencias / CI</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>GitHub Actions: ESLint + <code>npm audit</code> (informativo) + typecheck. Aún hay vulnerabilidades high en deps (p. ej. ecosistema xlsx). Falta SAST/DAST formal OTI.</td>
+        </tr>
+        <tr>
+          <td>Cifrado en tránsito</td>
+          <td><span class="badge ok">Cumple (hosting)</span></td>
+          <td>HTTPS en Vercel + HSTS en prod. Depende del despliegue correcto.</td>
+        </tr>
+        <tr>
+          <td>Cifrado en reposo / KMS</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td>SQLite en filesystem sin cifrado de aplicación. Requiere volumen/DB gestionada ANH.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="politicas">
+    <h2>3. Políticas de seguridad y privacidad</h2>
+    <table>
+      <thead><tr><th>Control</th><th>Estado</th><th>Hallazgo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Clasificación / minimización de datos</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>Inventario operativo (pozos, operadoras, coordenadas). No hay inventario formal de datos personales ni etiquetado de sensibilidad.</td>
+        </tr>
+        <tr>
+          <td>Control de acceso (need-to-know)</td>
+          <td><span class="badge ok">Cumple (app)</span></td>
+          <td>Scope por operadora; ANH ve consolidado; admin no actúa como decisor de analítica.</td>
+        </tr>
+        <tr>
+          <td>Trazabilidad de cambios</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td>Auditoría de usuarios y mutaciones de pozos/cuadernos.</td>
+        </tr>
+        <tr>
+          <td>Ley 1581 / derechos ARCO / avisos</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td>Sin flujos UX de privacidad, bases de tratamiento, ni canal ARCO. Requiere textos jurídicos institucionales.</td>
+        </tr>
+        <tr>
+          <td>Gestión de incidentes</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td>Sin runbook/contacto CSIRT ANH integrado a la app. Fuera de alcance del piloto de código.</td>
+        </tr>
+        <tr>
+          <td>Copias de seguridad</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td>DB en <code>/tmp</code> en Vercel: efímera, sin backup. Bloqueante de producción.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="ma02">
+    <h2>4. MA-02 — Ciclo de vida</h2>
+    <table>
+      <thead><tr><th>Fase / control</th><th>Estado</th><th>Hallazgo</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Requisitos / diseño documentado</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>README + guías HTML en <code>docs/</code>. No hay expediente formal MA-02 firmado con OTI.</td>
+        </tr>
+        <tr>
+          <td>Ambientes (dev / test / prod)</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>Dev local + Vercel. Falta ambiente de pruebas institucional segregado.</td>
+        </tr>
+        <tr>
+          <td>Control de cambios / repositorio</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td>GitHub <code>PhDRedondo/Inventario-de-pozos</code>; commits en <code>main</code>; CI básico.</td>
+        </tr>
+        <tr>
+          <td>Pruebas (unitarias / integración / UAT)</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>Existe <code>test:uwi</code>; no hay batería automatizada amplia ni acta UAT OTI.</td>
+        </tr>
+        <tr>
+          <td>Puesta en producción / rollback</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>Deploy Vercel automático. Sin procedimiento formal de release/rollback ANH.</td>
+        </tr>
+        <tr>
+          <td>Mantenimiento / EOL</td>
+          <td><span class="badge na">N/A piloto</span></td>
+          <td>Pendiente acuerdo de soporte con OTI.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="circular">
+    <h2>5. Circular 23 / mesa técnica OTI</h2>
+    <table>
+      <thead><tr><th>Expectativa típica mesa</th><th>Estado</th><th>Qué mostrar</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Herramienta alineada a lineamientos GTIC</td>
+          <td><span class="badge partial">Parcial</span></td>
+          <td>Piloto funcional con roles, auditoría y hardening de app. Declarar explícitamente límites infra.</td>
+        </tr>
+        <tr>
+          <td>Identidad institucional (AD / MFA)</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td>Login local; demo deshabilitable. Solicitar integración IdP a OTI.</td>
+        </tr>
+        <tr>
+          <td>Persistencia y continuidad</td>
+          <td><span class="badge fail">No cumple</span></td>
+          <td><code>src/lib/paths.ts</code> → <code>/tmp/inventario-pozos-anh-data</code> si <code>VERCEL=1</code>.</td>
+        </tr>
+        <tr>
+          <td>Seguridad demostrable en el piloto</td>
+          <td><span class="badge ok">Cumple (piloto)</span></td>
+          <td>Secretos, sesión HMAC, headers, rate limit, uploads, CI, anexo <code>hardening-pre-oti.html</code>.</td>
+        </tr>
+        <tr>
+          <td>Gobernanza de usuarios demo</td>
+          <td><span class="badge ok">Cumple</span></td>
+          <td><code>DEMO_LOGIN_ENABLED=false</code> recomendado en mesa; password nunca viaja al navegador.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="arquitectura">
+    <h2>6. Arquitectura observada (evidencia técnica)</h2>
+    <table>
+      <thead><tr><th>Componente</th><th>Evidencia</th></tr></thead>
+      <tbody>
+        <tr><td>Stack</td><td class="ev">Next.js 16 · TypeScript · SQLite (better-sqlite3) · Vercel</td></tr>
+        <tr><td>Sesión</td><td class="ev">src/lib/auth-crypto.ts · src/lib/session-edge.ts · src/middleware.ts</td></tr>
+        <tr><td>Secretos</td><td class="ev">src/lib/security-env.ts · .env.example</td></tr>
+        <tr><td>Auth / roles</td><td class="ev">src/lib/auth-db.ts · src/lib/auth-scope.ts · src/lib/navigation.ts</td></tr>
+        <tr><td>Headers</td><td class="ev">next.config.ts</td></tr>
+        <tr><td>Uploads</td><td class="ev">src/lib/upload-security.ts</td></tr>
+        <tr><td>Persistencia</td><td class="ev">src/lib/paths.ts (bloqueo prod: /tmp)</td></tr>
+        <tr><td>CI</td><td class="ev">.github/workflows/ci.yml</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="roadmap">
+    <h2>7. Roadmap sugerido hacia producción</h2>
+    <ol>
+      <li><strong>Inmediato (ya hecho en código):</strong> hardening de aplicación — ver §1.</li>
+      <li><strong>Con OTI (bloqueantes):</strong> PostgreSQL/volumen persistente + backups; IdP/MFA; cifrado en reposo; WAF.</li>
+      <li><strong>Gobierno:</strong> textos Ley 1581, matriz de datos, runbook incidentes, expediente MA-02, UAT firmada.</li>
+      <li><strong>Calidad:</strong> ampliar tests; remediar deps high (`npm audit`); SAST en pipeline OTI.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>8. Mensaje ejecutivo para OTI</h2>
+    <p>«El piloto VIP cierra los controles de <em>aplicación</em> exigibles a un equipo de desarrollo (secretos, sesión firmada, headers, autorización por rol, auditoría, uploads y CI).
+    La transición a producción depende de controles de <em>plataforma e identidad institucional</em> que debe proveer/acordar OTI:
+    persistencia no efímera, AD/MFA, cifrado/backups y formalización de privacidad y ciclo de vida.»</p>
+  </section>
+</main>
+
+<footer>
+  Documento regenerado el 31 jul 2026 · Repositorio Inventario de pozos · Uso interno mesa técnica VORP–OTI.
+  Complementa <code>docs/hardening-pre-oti.html</code> y <code>docs/guia-produccion-anh.html</code>.
+</footer>
+</body>
+</html>

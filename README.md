@@ -551,14 +551,21 @@ npm start
 
 | Variable | Obligatoria | Descripción |
 |----------|-------------|-------------|
-| `SESSION_SECRET` | Sí (prod) | Secreto para firmar cookies de sesión (`anh_session`) |
-| `ANH_ADMIN_PASSWORD` | No | Contraseña inicial del admin semilla (default: `Anh2026!`) |
+| `SESSION_SECRET` | Sí (prod, ≥32) | Secreto HMAC de la cookie `anh_session` |
+| `ANH_ADMIN_PASSWORD` | Sí (prod, ≥10) | Contraseña inicial del admin semilla |
+| `DEMO_LOGIN_ENABLED` | No | `false` en prod/mesa OTI; en desarrollo habilitado por defecto |
+| `DEMO_PASSWORD` | Si demo en prod | Contraseña de usuarios demo (nunca en el cliente) |
 | `VERCEL` | Auto | Detectada por Vercel; activa rutas `/tmp` para SQLite y outbox |
 
-Ejemplo `.env.local`:
+Ver plantilla: [`.env.example`](.env.example).
+
+Ejemplo `.env.local` (desarrollo):
 
 ```env
-SESSION_SECRET=dev-inventario-anh-secret-change-in-prod
+SESSION_SECRET=local-dev-only-session-secret-min-32chars!
+ANH_ADMIN_PASSWORD=local-dev-admin-change-me
+DEMO_LOGIN_ENABLED=true
+DEMO_PASSWORD=local-demo-password
 ```
 
 ---
@@ -571,7 +578,7 @@ El proyecto incluye `vercel.json` y rutas de datos compatibles con serverless (`
 
 1. Importar [PhDRedondo/Inventario-de-pozos](https://github.com/PhDRedondo/Inventario-de-pozos) en [vercel.com/new](https://vercel.com/new).
 2. Framework: **Next.js** (detección automática).
-3. Agregar `SESSION_SECRET` (32+ caracteres aleatorios).
+3. Agregar variables: `SESSION_SECRET`, `ANH_ADMIN_PASSWORD`, y `DEMO_LOGIN_ENABLED=false`.
 4. Deploy.
 
 ### Opción 2 — CLI
@@ -754,7 +761,9 @@ La UI incluye tour con `driver.js` (`lib/guided-tour.ts`) en panel y cuaderno.
 
 ## Acceso demo
 
-Contraseña compartida: **`Anh2026!`**
+El ingreso demo **no envía contraseñas al navegador**: el cliente pide `{ demo: true }` y el servidor resuelve credenciales solo si `DEMO_LOGIN_ENABLED` lo permite.
+
+En desarrollo, por defecto el demo está activo (contraseña vía `DEMO_PASSWORD` o valor local de desarrollo). En producción debe quedar `DEMO_LOGIN_ENABLED=false` salvo demos controladas.
 
 | Perfil | Usuario / correo | Rol | Notas |
 |--------|------------------|-----|-------|
@@ -762,13 +771,15 @@ Contraseña compartida: **`Anh2026!`**
 | **ANH** | `funcionario` | anh | Panel + analítica |
 | **Operadora** | `demo` | operadora | Amerisur Exploración Colombia Andes (demo) |
 
-Inicio de sesión: [/login](http://localhost:3000/login)
+Inicio de sesión: [/login](http://localhost:3000/login) (formulario real + botón demo si está habilitado).
 
 Operadora demo completa:
 
 ```
 AMERISUR EXPLORACIÓN COLOMBIA ANDES OPERATING COMPANY LLC SUCURSAL COLOMBIA
 ```
+
+Anexo de controles pre-OTI: [`docs/hardening-pre-oti.html`](docs/hardening-pre-oti.html).
 
 ---
 

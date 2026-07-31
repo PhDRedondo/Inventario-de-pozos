@@ -1,10 +1,10 @@
 import { hashPassword, buildAnhEmail, buildOperadoraEmail } from "./auth-crypto";
-import { DEMO_CREDENTIALS, DEMO_PASSWORD } from "./demo-auth";
+import { DEMO_CREDENTIALS } from "./demo-auth";
+import { getDemoPassword, getAdminSeedPassword, isDemoLoginEnabled } from "./security-env";
 import { getDb } from "./db";
 import type { AuditLogEntry, UserRecord, UserRole } from "./types";
 
 const ADMIN_SEED_EMAIL = "johan.redondo@anh.gov.co";
-const ADMIN_SEED_PASSWORD = process.env.ANH_ADMIN_PASSWORD ?? "Anh2026!";
 
 function ensureColumn(table: string, column: string, definition: string) {
   const database = getDb();
@@ -67,14 +67,16 @@ function seedAdminIfMissing() {
     .run(
       ADMIN_SEED_EMAIL,
       "johan.redondo",
-      hashPassword(ADMIN_SEED_PASSWORD),
+      hashPassword(getAdminSeedPassword()),
       "Johan Redondo — Administrador",
     );
 }
 
 function seedDemoUsersIfMissing() {
+  if (!isDemoLoginEnabled()) return;
+
   const database = getDb();
-  const hash = hashPassword(DEMO_PASSWORD);
+  const hash = hashPassword(getDemoPassword());
 
   const anh = DEMO_CREDENTIALS.anh;
   const anhEmail = buildAnhEmail(anh.username!);
@@ -223,6 +225,20 @@ export function deleteUser(id: number, actorEmail: string): boolean {
   return true;
 }
 
+function scrubAuditPayload(value: unknown): unknown {
+  if (value == null || typeof value !== "object") return value;
+  if (Array.isArray(value)) return value.map(scrubAuditPayload);
+  const out: Record<string, unknown> = {};
+  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+    if (key === "password_hash" || key === "password") {
+      out[key] = "[redacted]";
+      continue;
+    }
+    out[key] = scrubAuditPayload(nested);
+  }
+  return out;
+}
+
 export function writeAuditLog(input: {
   actorEmail: string;
   action: string;
@@ -232,6 +248,8 @@ export function writeAuditLog(input: {
   after?: unknown;
 }) {
   const database = getDb();
+  const before = input.before != null ? scrubAuditPayload(input.before) : null;
+  const after = input.after != null ? scrubAuditPayload(input.after) : null;
   database
     .prepare(
       `INSERT INTO audit_log (actor_email, action, entity_type, entity_id, before_json, after_json)
@@ -242,8 +260,8 @@ export function writeAuditLog(input: {
       input.action,
       input.entityType,
       input.entityId ?? null,
-      input.before ? JSON.stringify(input.before) : null,
-      input.after ? JSON.stringify(input.after) : null,
+      before ? JSON.stringify(before) : null,
+      after ? JSON.stringify(after) : null,
     );
 }
 

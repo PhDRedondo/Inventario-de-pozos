@@ -1,7 +1,11 @@
 import { buildEsriSatelliteExportUrl } from "@/lib/satellite-map";
+import { requireSession } from "@/lib/auth-scope";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
+  const user = requireSession(request);
+  if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+
   const { searchParams } = new URL(request.url);
   const lat = Number(searchParams.get("lat"));
   const lng = Number(searchParams.get("lng"));
@@ -35,7 +39,7 @@ export async function GET(request: NextRequest) {
     return new NextResponse(buffer, {
       headers: {
         "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400",
+        "Cache-Control": "private, max-age=3600",
       },
     });
   } catch {
