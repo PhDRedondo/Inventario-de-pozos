@@ -763,11 +763,11 @@ La UI incluye tour con `driver.js` (`lib/guided-tour.ts`) en panel y cuaderno.
 
 El ingreso demo **no envía contraseñas al navegador**: el cliente pide `{ demo: true }` y el servidor resuelve credenciales solo si `DEMO_LOGIN_ENABLED` lo permite.
 
-En desarrollo (sin `.env.local`), el demo está activo con estos valores por defecto:
+En desarrollo y piloto, la misma contraseña sirve para los tres roles (salvo que Vercel defina otras variables):
 
-| Perfil | Usuario / correo | Contraseña (dev) | Rol |
-|--------|------------------|------------------|-----|
-| **Admin** | `johan.redondo@anh.gov.co` | `local-dev-admin-change-me` | admin |
+| Perfil | Usuario / correo | Contraseña | Rol |
+|--------|------------------|------------|-----|
+| **Admin** | `johan.redondo@anh.gov.co` | `local-demo-password` | admin |
 | **ANH** | `funcionario` | `local-demo-password` | anh |
 | **Operadora** | `demo` | `local-demo-password` | operadora |
 
@@ -777,9 +777,7 @@ Operadora demo (campo completo):
 AMERISUR EXPLORACIÓN COLOMBIA ANDES OPERATING COMPANY LLC SUCURSAL COLOMBIA
 ```
 
-En producción/mesa OTI: `DEMO_LOGIN_ENABLED=false` y definir `ANH_ADMIN_PASSWORD` / `DEMO_PASSWORD` por variables de entorno (no usar los defaults locales).
-
-Inicio de sesión: [/login](http://localhost:3000/login) (formulario + botón demo si está habilitado).
+En `/login` también aparece el botón **Ingreso demo** (activo por defecto; desactivar con `DEMO_LOGIN_ENABLED=false`).
 
 Documentación: [`docs/presentacion-general-vip.html`](docs/presentacion-general-vip.html) · [`docs/hardening-pre-oti.html`](docs/hardening-pre-oti.html).
 

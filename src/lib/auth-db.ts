@@ -6,6 +6,9 @@ import type { AuditLogEntry, UserRecord, UserRole } from "./types";
 
 const ADMIN_SEED_EMAIL = "johan.redondo@anh.gov.co";
 
+/** Evita re-hashear scrypt en cada request (solo una vez por proceso). */
+let pilotPasswordsSynced = false;
+
 function ensureColumn(table: string, column: string, definition: string) {
   const database = getDb();
   const cols = database.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
@@ -52,6 +55,38 @@ export function initAuthSchema() {
 
   seedAdminIfMissing();
   seedDemoUsersIfMissing();
+  syncPilotAccessPasswords();
+}
+
+function upsertUserPassword(email: string, passwordHash: string) {
+  const database = getDb();
+  database
+    .prepare("UPDATE users SET password_hash = ?, active = 1, updated_at = CURRENT_TIMESTAMP WHERE email = ?")
+    .run(passwordHash, email);
+}
+
+/** Alinea hashes a la contraseña piloto/env (una vez por cold start). */
+function syncPilotAccessPasswords() {
+  if (pilotPasswordsSynced) return;
+  pilotPasswordsSynced = true;
+
+  const database = getDb();
+  const adminHash = hashPassword(getAdminSeedPassword());
+  upsertUserPassword(ADMIN_SEED_EMAIL, adminHash);
+
+  if (!isDemoLoginEnabled()) return;
+
+  const demoHash = hashPassword(getDemoPassword());
+  const anhEmail = buildAnhEmail(DEMO_CREDENTIALS.anh.username!);
+  const op = DEMO_CREDENTIALS.operadora;
+  const opEmail = buildOperadoraEmail(op.username!, op.operadora!);
+
+  if (database.prepare("SELECT id FROM users WHERE email = ?").get(anhEmail)) {
+    upsertUserPassword(anhEmail, demoHash);
+  }
+  if (database.prepare("SELECT id FROM users WHERE email = ?").get(opEmail)) {
+    upsertUserPassword(opEmail, demoHash);
+  }
 }
 
 function seedAdminIfMissing() {

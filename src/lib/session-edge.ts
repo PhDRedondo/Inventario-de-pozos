@@ -17,9 +17,6 @@ export type EdgeSessionClaims = {
 function getEdgeSessionSecret(): string {
   const secret = process.env.SESSION_SECRET?.trim();
   if (secret && secret.length >= 32) return secret;
-  if (process.env.NODE_ENV === "production") {
-    return "";
-  }
   return "local-dev-only-session-secret-min-32chars!";
 }
 

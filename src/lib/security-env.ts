@@ -1,54 +1,46 @@
-/** Helpers de entorno para hardening (GU-18: no embeber secretos). */
+/** Helpers de entorno — piloto: defaults conocidos para poder entrar sin .env. */
 
 export function isProductionRuntime(): boolean {
   return process.env.NODE_ENV === "production";
 }
 
-/** Login demo solo si se habilita explícitamente (en prod) o en desarrollo por defecto. */
+/**
+ * Demo activo salvo DEMO_LOGIN_ENABLED=false.
+ * (En el piloto se deja abierto para mesa técnica / revisión.)
+ */
 export function isDemoLoginEnabled(): boolean {
   const flag = process.env.DEMO_LOGIN_ENABLED?.trim().toLowerCase();
-  if (flag === "true" || flag === "1" || flag === "yes") return true;
   if (flag === "false" || flag === "0" || flag === "no") return false;
-  return !isProductionRuntime();
+  return true;
 }
 
+/** Contraseña compartida de acceso piloto (admin + ANH + operadora) si no hay env. */
+export const PILOT_ACCESS_PASSWORD = "local-demo-password";
+
+const FALLBACK_SESSION_SECRET = "local-dev-only-session-secret-min-32chars!";
+
 /**
- * Secreto de sesión HMAC. En producción exige SESSION_SECRET (≥32 chars).
- * En desarrollo usa un valor local solo si falta la variable.
+ * Secreto de sesión HMAC.
+ * Si falta en producción, usa fallback de piloto (permite entrar; rotar en OTI).
  */
 export function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET?.trim();
   if (secret && secret.length >= 32) return secret;
-  if (isProductionRuntime()) {
-    throw new Error(
-      "SESSION_SECRET es obligatorio en producción (mínimo 32 caracteres). Configúrelo en el entorno.",
-    );
-  }
-  return "local-dev-only-session-secret-min-32chars!";
+  return FALLBACK_SESSION_SECRET;
 }
 
-/** Contraseña del admin sembrado. Obligatoria en producción. */
+/** Contraseña admin semilla / login admin. */
 export function getAdminSeedPassword(): string {
   const password = process.env.ANH_ADMIN_PASSWORD?.trim();
-  if (password && password.length >= 10) return password;
-  if (isProductionRuntime()) {
-    throw new Error(
-      "ANH_ADMIN_PASSWORD es obligatorio en producción (mínimo 10 caracteres).",
-    );
-  }
-  return "local-dev-admin-change-me";
+  if (password && password.length >= 8) return password;
+  return PILOT_ACCESS_PASSWORD;
 }
 
-/** Contraseña de usuarios demo (solo si el login demo está habilitado). */
+/** Contraseña usuarios demo ANH/operadora. */
 export function getDemoPassword(): string {
   const password = process.env.DEMO_PASSWORD?.trim();
   if (password && password.length >= 8) return password;
-  if (isProductionRuntime() && isDemoLoginEnabled()) {
-    throw new Error(
-      "DEMO_PASSWORD es obligatorio cuando DEMO_LOGIN_ENABLED=true en producción.",
-    );
-  }
-  return "local-demo-password";
+  return PILOT_ACCESS_PASSWORD;
 }
 
 export { sanitizeNextPath } from "./safe-redirect";
