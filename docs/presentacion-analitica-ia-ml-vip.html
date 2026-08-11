@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VIP Inventario de Pozos — Analítica, IA y aprendizaje automático</title>
+<style>
+  :root {
+    --bg: #eef2f5;
+    --surface: #ffffff;
+    --ink: #142029;
+    --muted: #5b6b75;
+    --border: #d5dee5;
+    --accent: #0f3a4d;
+    --accent-2: #1a6b7a;
+    --orange: #e67a18;
+    --yellow: #f0c48c;
+    --teal: #0e8a7d;
+    --violet: #4b3f8a;
+    --ok: #1b7f4a;
+    --ok-bg: #e7f6ee;
+    --warn: #9a6700;
+    --warn-bg: #fff7df;
+    --soft: #f4f8fa;
+    --gradient: linear-gradient(105deg, #0f3a4d 0%, #1a6b7a 48%, #e67a18 100%);
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --max: 1040px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 10% -10%, rgba(26,107,122,.12), transparent 60%),
+      radial-gradient(700px 380px at 100% 0%, rgba(230,122,24,.10), transparent 55%),
+      var(--bg);
+    line-height: 1.58;
+    font-size: 15.5px;
+  }
+  .bar { height: 5px; background: linear-gradient(90deg, #ffc107, #e67a18, #d93a2b); }
+  header.hero {
+    background: var(--gradient);
+    color: #f7fbfd;
+    padding: 2.6rem 1.5rem 2.2rem;
+  }
+  header.hero .inner { max-width: var(--max); margin: 0 auto; }
+  .eyebrow {
+    margin: 0 0 .7rem;
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #ffd9a8;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 3.6vw, 2.35rem);
+    line-height: 1.15;
+    font-weight: 800;
+    max-width: 18ch;
+  }
+  .lede {
+    margin: 1rem 0 0;
+    max-width: 46rem;
+    font-size: 1.05rem;
+    color: rgba(247,251,253,.9);
+  }
+  .meta-row { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.35rem; }
+  .chip {
+    font-size: .75rem; font-weight: 700; padding: .32rem .72rem; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+  }
+  nav.toc {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    padding: .7rem 1.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  nav.toc a {
+    display: inline-block; margin-right: .95rem;
+    font-size: .8rem; font-weight: 700; color: var(--accent); text-decoration: none;
+  }
+  main { max-width: var(--max); margin: 0 auto; padding: 1.8rem 1.5rem 3.5rem; }
+  h2 {
+    margin: 2.15rem 0 .85rem;
+    font-size: 1.38rem;
+    color: var(--accent);
+    border-bottom: 3px solid var(--orange);
+    padding-bottom: .4rem;
+  }
+  h3 { margin: 1.35rem 0 .5rem; font-size: 1.05rem; color: var(--accent); }
+  p, li { margin: .4rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+  .grid-3, .grid-2 {
+    display: grid; gap: .85rem; margin: 1rem 0 1.2rem;
+  }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .card .kicker {
+    font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent-2); margin-bottom: .35rem;
+  }
+  .card strong.title { display: block; font-size: 1.02rem; margin-bottom: .35rem; }
+  .pillars .card { border-top: 4px solid var(--accent-2); }
+  .pillars .card.analytics { border-top-color: var(--teal); }
+  .pillars .card.ia { border-top-color: var(--violet); }
+  .pillars .card.ml { border-top-color: var(--orange); }
+  .callout {
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent-2);
+    border-radius: 0 12px 12px 0;
+    padding: .95rem 1.1rem;
+    margin: 1rem 0;
+  }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .badge {
+    display: inline-block; font-size: .68rem; font-weight: 800;
+    padding: .16rem .48rem; border-radius: 999px; vertical-align: middle;
+  }
+  .badge.now { background: var(--ok-bg); color: var(--ok); }
+  .badge.next { background: var(--warn-bg); color: var(--warn); }
+  .badge.layer { background: #e8eef8; color: #314d78; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; margin: .8rem 0 1rem; }
+  th, td { border: 1px solid var(--border); padding: .5rem .6rem; text-align: left; vertical-align: top; }
+  th { background: #e9eef3; font-size: .8rem; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .84em; background: #e9eef3; padding: .07rem .28rem; border-radius: 4px;
+  }
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: .55rem;
+    margin: 1rem 0;
+  }
+  .flow .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .75rem .7rem;
+    text-align: center;
+    font-size: .82rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .flow .step span {
+    display: block;
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: .25rem;
+  }
+  .stack-row {
+    display: flex; flex-wrap: wrap; gap: .4rem; margin: .55rem 0 .2rem;
+  }
+  .tag {
+    font-size: .72rem; font-weight: 700; padding: .22rem .5rem; border-radius: 999px;
+    background: #e7f1f3; color: var(--accent);
+  }
+  footer {
+    max-width: var(--max); margin: 0 auto; padding: 0 1.5rem 2.5rem;
+    color: var(--muted); font-size: .82rem;
+  }
+  @media print {
+    nav.toc { position: static; }
+    body { background: #fff; }
+    header.hero, .bar, .badge, th, .card, .callout, .flow .step {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    h2, .card, table, .callout { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">ANH · GOP / VORP · Herramienta tecnológica VIP</p>
+    <h1>Inventario de Pozos desde la analítica, la IA y el aprendizaje automático</h1>
+    <p class="lede">
+      Presentación del desarrollo de la plataforma de Validación del Inventario de Pozos (VIP):
+      cómo se gobiernan los datos, cómo se aplica analítica descriptiva y comparativa,
+      qué capas de inteligencia artificial basada en conocimiento ya operan,
+      y qué caminos de aprendizaje automático habilita esta base.
+    </p>
+    <div class="meta-row">
+      <span class="chip">3 ago 2026</span>
+      <span class="chip">Producto: VIP · Inventario de pozos</span>
+      <span class="chip">Enfoque: metodologías + aplicación</span>
+      <span class="chip">Audiencia: mesa técnica / OTI / equipo funcional</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#vision">Visión</a>
+  <a href="#marco">Marco metodológico</a>
+  <a href="#pipeline">Pipeline de datos</a>
+  <a href="#calidad">Calidad e IA basada en reglas</a>
+  <a href="#analitica">Analítica aplicada</a>
+  <a href="#geo">Analítica territorial</a>
+  <a href="#ml">Camino a ML</a>
+  <a href="#stack">Stack</a>
+  <a href="#valor">Valor institucional</a>
+</nav>
+
+<main>
+  <section id="vision">
+    <h2>1. Visión del desarrollo</h2>
+    <p>
+      VIP no es solo un formulario de carga. Es una <strong>cadena de valor de datos</strong> que convierte
+      inventarios Excel de operadoras en un <strong>activo analítico institucional</strong> para la ANH:
+      validado, trazable, territorializado y comparable a escala nacional.
+    </p>
+    <div class="grid-3 pillars">
+      <div class="card analytics">
+        <div class="kicker">Pilar 1</div>
+        <strong class="title">Analítica</strong>
+        <p>KPIs, rankings, Sankey, radars, heatmaps, scatter y reportes PDF para lectura territorial y operativa.</p>
+      </div>
+      <div class="card ia">
+        <div class="kicker">Pilar 2</div>
+        <strong class="title">Inteligencia artificial (conocimiento)</strong>
+        <p>Motor de reglas (~59) y generación/validación de UWI fiscalizado: un sistema experto auditable sobre instructivos ANH.</p>
+      </div>
+      <div class="card ml">
+        <div class="kicker">Pilar 3</div>
+        <strong class="title">Aprendizaje automático</strong>
+        <p>La plataforma deja lista la <em>capa de datos limpios</em> para modelos futuros (anomalías, ranking de riesgo, tipologías).</p>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Principio rector:</strong> primero datos gobernados y explicables; después modelos.
+      Sin calidad y semántica controladas, el aprendizaje automático institucional no es confiable.
+    </div>
+  </section>
+
+  <section id="marco">
+    <h2>2. Marco metodológico</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Capa</th>
+          <th>Metodología</th>
+          <th>Aplicación en VIP</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge layer">Datos</span></td>
+          <td>Contrato de datos + ETL + catálogos maestros</td>
+          <td>40 atributos alineados al Excel ANH; normalización geográfica DANE; reparación de encoding</td>
+          <td><span class="badge now">En producción (piloto)</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge layer">IA simbólica</span></td>
+          <td>Ingeniería de conocimiento / sistemas basados en reglas</td>
+          <td>Validación de negocio, catálogos, condicionales AVM, coordenadas, UWI instructivo</td>
+          <td><span class="badge now">En producción (piloto)</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge layer">Analítica descriptiva</span></td>
+          <td>Estadística agregada + visualización exploratoria</td>
+          <td>Panel, Sankey, rankings, mapa, filtros cruzados</td>
+          <td><span class="badge now">En producción (piloto)</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge layer">Analítica comparativa</span></td>
+          <td>Benchmarking vs línea base nacional</td>
+          <td>Módulo Analítica ANH: radar (índice 100), deltas, heatmaps, scatter producción</td>
+          <td><span class="badge now">En producción (piloto)</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge layer">Analítica geoespacial</span></td>
+          <td>SIG ligero + identidad fiscal territorial</td>
+          <td>Mapa de departamentos, marcadores, DANE, UWI, imagen satelital en PDF</td>
+          <td><span class="badge now">En producción (piloto)</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge layer">ML supervisado / no supervisado</span></td>
+          <td>Detección de anomalías, tipologías, priorización</td>
+          <td>Backlog metodológico sobre inventario validado (véase §7)</td>
+          <td><span class="badge next">Roadmap</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="pipeline">
+    <h2>3. Pipeline de datos: de Excel a activo analítico</h2>
+    <div class="flow">
+      <div class="step"><span>01</span>Carga Excel operadora</div>
+      <div class="step"><span>02</span>Parseo + ETL</div>
+      <div class="step"><span>03</span>Validación / UWI</div>
+      <div class="step"><span>04</span>Cuaderno versionado</div>
+      <div class="step"><span>05</span>Envío a ANH</div>
+      <div class="step"><span>06</span>Inventario consolidado</div>
+      <div class="step"><span>07</span>Analítica &amp; reportes</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="kicker">Gobernanza del dato</div>
+        <strong class="title">Trazabilidad de extremo a extremo</strong>
+        <ul>
+          <li>Versiones de cuaderno (<code>draft</code> → <code>submitted</code>) con eventos de carga y envío.</li>
+          <li>Hallazgos de calidad exportables a Excel para retorno a operadoras.</li>
+          <li>Alcance por rol: operadora / ANH / admin (stewardship).</li>
+          <li>Auditoría de cambios sensibles.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="kicker">Calidad como puerta</div>
+        <strong class="title">Gate analítico</strong>
+        <ul>
+          <li>Solo se permite el envío si no hay pozos <code>invalid</code>.</li>
+          <li>ANH analiza el inventario validado (<code>valid</code> / <code>warning</code>).</li>
+          <li>El dato “sucio” no contamina la línea base nacional.</li>
+          <li>Esto es precondición metodológica para cualquier modelo futuro.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="calidad">
+    <h2>4. IA basada en conocimiento: calidad y UWI</h2>
+    <p>
+      La capa de inteligencia ya desplegada es deliberadamente <strong>simbólica y auditable</strong>:
+      reglas explícitas alineadas a catálogos e instructivos ANH, no cajas negras.
+      En ciencias de la decisión y AI clásica, esto corresponde a un <strong>sistema experto / motor de reglas</strong>.
+    </p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="kicker">Motor de calidad · ~59 reglas</div>
+        <strong class="title">Familias de conocimiento codificado</strong>
+        <ul>
+          <li>Campos obligatorios y pertenencia a catálogos maestros.</li>
+          <li>Geografía DANE canónica (departamento / municipio).</li>
+          <li>ETL con correcciones y advertencias (<code>etl_geography</code>, <code>etl_encoding</code>).</li>
+          <li>Condicionales AVM y levantamiento en productores.</li>
+          <li>Númericos de producción/inyección y coordenadas.</li>
+          <li>Severidades: error / warning / info → estado del pozo.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="kicker">Identidad fiscal · UWI</div>
+        <strong class="title">Generación y validación instructivo</strong>
+        <ul>
+          <li>Ensamble: DANE + sigla + número + clúster + ángulo + trayectoria + objetivo + terminación.</li>
+          <li>Reglas de formato y consistencia vs UWI SGC.</li>
+          <li>Vista previa en registro en vivo (<code>/api/uwi/preview</code>).</li>
+          <li>Suite de pruebas automatizadas de ejemplos del instructivo.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout ok">
+      <strong>Por qué importa para IA/ML:</strong> cada hallazgo lleva <code>field</code>, <code>severity</code>, <code>message</code> y <code>rule</code>.
+      Eso convierte a VIP en un generador de <em>etiquetas de calidad</em> reutilizables para entrenamiento futuro
+      (por ejemplo, modelos de detección de anomalías o priorización de revisión humana).
+    </div>
+  </section>
+
+  <section id="analitica">
+    <h2>5. Analítica aplicada (descriptiva y comparativa)</h2>
+    <h3>5.1 Panel operativo (todos los roles con alcance)</h3>
+    <ul>
+      <li><strong>KPIs:</strong> pozos, cargas, distribución valid/warning/error.</li>
+      <li><strong>Donuts:</strong> estado de validación, estado del pozo, tipo de objetivo (P/I/M/D/EST).</li>
+      <li><strong>Rankings:</strong> top operadoras y departamentos.</li>
+      <li><strong>Sankey:</strong> flujos Departamento → Estado → Operadora (o validación), con filtro cruzado al hacer clic.</li>
+      <li><strong>Tabla + ficha:</strong> detalle de 40 atributos y hallazgos.</li>
+      <li><strong>Exportes PDF:</strong> tablero y ficha de pozo (con mapa satelital).</li>
+    </ul>
+
+    <h3>5.2 Módulo Analítica ANH</h3>
+    <p>Comparación de entidades (operadora, departamento, municipio, pozo) frente a la <strong>línea base nacional</strong>.</p>
+    <div class="grid-3">
+      <div class="card">
+        <div class="kicker">Temas</div>
+        <strong class="title">Cuatro lentes analíticos</strong>
+        <p>Producción · Inyección · Perfil operativo · Portafolio.</p>
+      </div>
+      <div class="card">
+        <div class="kicker">Índice 100</div>
+        <strong class="title">Radar normalizado</strong>
+        <p>La media nacional = 100; la entidad se expresa como porcentaje relativo.</p>
+      </div>
+      <div class="card">
+        <div class="kicker">Lectura rápida</div>
+        <strong class="title">Deltas y heatmaps</strong>
+        <p>Barras de desviación vs promedio; matrices departamento × operadora coloreadas por ratio.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="kicker">Exploración bivariada</div>
+      <strong class="title">Scatter de producción</strong>
+      <p>
+        Muestra aleatoria de pozos: petróleo vs agua, tamaño de burbuja asociado a gas.
+        Útil para detectar patrones y outliers de forma visual — paso natural hacia métodos ML de anomalías.
+      </p>
+    </div>
+  </section>
+
+  <section id="geo">
+    <h2>6. Analítica territorial e identidad espacial</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="kicker">SIG ligero</div>
+        <strong class="title">Mapa + GeoJSON de departamentos</strong>
+        <ul>
+          <li>Marcadores de pozos con filtros cruzados.</li>
+          <li>Selección territorial que alimenta KPIs y gráficos.</li>
+          <li>Coordenadas proyectadas y geográficas validadas.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="kicker">Semántica espacial</div>
+        <strong class="title">DANE + UWI fiscalizado</strong>
+        <ul>
+          <li>Códigos territoriales consistentes para cruce estadístico.</li>
+          <li>Identificador fiscal construido con reglas del instructivo.</li>
+          <li>Imagen satelital Esri en reportes PDF del pozo.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="ml">
+    <h2>7. Camino hacia aprendizaje automático</h2>
+    <p>
+      VIP ya resuelve el cuello de botella habitual de los proyectos ML institucionales:
+      <strong>disponibilidad de datos etiquetados, limpios y con semántica estable</strong>.
+      Sobre esa base, el roadmap metodológico es incremental.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Horizonte</th><th>Método</th><th>Pregunta de negocio</th><th>Insumo desde VIP</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge next">Corto</span></td>
+          <td>Detección de anomalías (isolation forest / autoencoders ligeros)</td>
+          <td>¿Qué pozos o reportes se desvían del patrón de producción/inyección?</td>
+          <td>Métricas numéricas validadas + labels de warning/error</td>
+        </tr>
+        <tr>
+          <td><span class="badge next">Corto–medio</span></td>
+          <td>Clasificación supervisada de riesgo de calidad</td>
+          <td>¿Qué cargas conviene priorizar en revisión humana?</td>
+          <td>Historial de hallazgos (<code>rule</code>, severidad) por operadora/campo</td>
+        </tr>
+        <tr>
+          <td><span class="badge next">Medio</span></td>
+          <td>Clustering / tipologías de portafolio</td>
+          <td>¿Qué grupos naturales de pozos existen (perfil operativo)?</td>
+          <td>Vectores tema Producción/Inyección/Operativo</td>
+        </tr>
+        <tr>
+          <td><span class="badge next">Medio–largo</span></td>
+          <td>Modelos predictivos / forecasting</td>
+          <td>¿Cómo evolucionarán volúmenes o estados con series temporales?</td>
+          <td>Series por pozo/campo tras acumular versiones enviadas</td>
+        </tr>
+        <tr>
+          <td><span class="badge next">Largo</span></td>
+          <td>NLP / asistencia documental</td>
+          <td>¿Cómo acelerar interpretación de observaciones y correspondencia?</td>
+          <td>Textos de hallazgos + plantillas oficiales</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>Criterio de madurez:</strong> no se introduce ML en producción hasta que (i) la persistencia institucional esté resuelta,
+      (ii) exista gobernanza de modelos con OTI, y (iii) el valor analítico descriptivo ya esté en uso rutinario.
+      VIP prioriza <em>explicabilidad</em> hoy y abre ML mañana.
+    </div>
+  </section>
+
+  <section id="stack">
+    <h2>8. Stack tecnológico alineado a la metodología</h2>
+    <div class="stack-row">
+      <span class="tag">Next.js 16 · TypeScript</span>
+      <span class="tag">SQLite (piloto)</span>
+      <span class="tag">Motor de reglas TS</span>
+      <span class="tag">SQL agregado</span>
+      <span class="tag">Recharts</span>
+      <span class="tag">Leaflet / GeoJSON</span>
+      <span class="tag">ExcelJS / xlsx</span>
+      <span class="tag">jsPDF</span>
+      <span class="tag">CI GitHub Actions</span>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="kicker">Diseño deliberado</div>
+        <strong class="title">Transparencia sobre opacidad</strong>
+        <p>
+          Las reglas de calidad y UWI son código revisable. La analítica es agregación SQL + visualización.
+          Ideal para auditoría institucional y mesa técnica.
+        </p>
+      </div>
+      <div class="card">
+        <div class="kicker">Extensibilidad</div>
+        <strong class="title">Lista para ML ops en fases</strong>
+        <p>
+          El inventario validado puede alimentarse a un servicio de modelos (batch o API) sin reescribir el flujo
+          de negocio de operadoras ni el panel ANH.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="valor">
+    <h2>9. Valor institucional y mensaje para la mesa</h2>
+    <div class="grid-3">
+      <div class="card">
+        <div class="kicker">Para operadoras</div>
+        <strong class="title">Retroalimentación accionable</strong>
+        <p>Hallazgos claros, exportables y ligados a reglas del instructivo — menos ida y vuelta.</p>
+      </div>
+      <div class="card">
+        <div class="kicker">Para ANH</div>
+        <strong class="title">Lectura nacional comparable</strong>
+        <p>Línea base, desviaciones, territorio y portafolio en un mismo tablero.</p>
+      </div>
+      <div class="card">
+        <div class="kicker">Para OTI</div>
+        <strong class="title">Base soberana de datos</strong>
+        <p>Controles de aplicación + arquitectura lista para persistencia IdP y, después, ML gobernado.</p>
+      </div>
+    </div>
+    <div class="callout ok">
+      <strong>Síntesis:</strong> VIP aplica hoy metodologías de <em>analítica descriptiva/comparativa</em> e
+      <em>inteligencia artificial basada en conocimiento</em> (calidad + UWI), sobre un pipeline de datos gobernado.
+      Con esa base, la institución puede construir con rigor la siguiente ola de <em>aprendizaje automático</em>
+      sin atajos que comprometan la confianza del dato hidrocarburífero.
+    </div>
+  </section>
+</main>
+
+<footer>
+  Presentación metodológica VIP Inventario de Pozos · Analítica · IA · ML · 3 ago 2026 · Uso interno ANH / mesa técnica.
+</footer>
+</body>
+</html>

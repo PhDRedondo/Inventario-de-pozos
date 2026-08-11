@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Procesos de automatización de datos — VIP Inventario de Pozos</title>
+<style>
+  :root {
+    --bg: #eef2f5; --surface: #fff; --ink: #142029; --muted: #5b6b75;
+    --border: #d5dee5; --accent: #0f3a4d; --teal: #1a6b7a; --orange: #e67a18;
+    --soft: #f4f8fa; --ok: #1b7f4a; --ok-bg: #e8f6ef;
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --max: 1000px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); color: var(--ink);
+    background:
+      radial-gradient(800px 360px at 0% 0%, rgba(26,107,122,.10), transparent 55%),
+      radial-gradient(700px 320px at 100% 0%, rgba(230,122,24,.08), transparent 50%),
+      var(--bg);
+    line-height: 1.58; font-size: 15.2px;
+  }
+  .bar { height: 5px; background: linear-gradient(90deg, #ffc107, #e67a18, #d93a2b); }
+  header {
+    background: linear-gradient(115deg, #0f3a4d 0%, #175866 50%, #c45f12 130%);
+    color: #f7fbfd; padding: 2.35rem 1.5rem 2rem;
+  }
+  header .inner { max-width: var(--max); margin: 0 auto; }
+  .eyebrow {
+    margin: 0 0 .6rem; font-size: .72rem; font-weight: 800;
+    letter-spacing: .16em; text-transform: uppercase; color: #ffd9a8;
+  }
+  h1 { margin: 0; font-size: clamp(1.4rem, 3.3vw, 2.1rem); line-height: 1.18; max-width: 24ch; }
+  .lede { margin: .9rem 0 0; max-width: 50rem; color: rgba(247,251,253,.92); }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.15rem; }
+  .chip {
+    font-size: .74rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+  }
+  nav.toc {
+    position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--border); padding: .65rem 1.5rem;
+    overflow-x: auto; white-space: nowrap; backdrop-filter: blur(8px);
+  }
+  nav.toc a {
+    display: inline-block; margin-right: .85rem; font-size: .78rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  main { max-width: var(--max); margin: 0 auto; padding: 1.6rem 1.5rem 3.3rem; }
+  h2 {
+    margin: 2rem 0 .7rem; font-size: 1.3rem; color: var(--accent);
+    border-bottom: 3px solid var(--orange); padding-bottom: .35rem;
+  }
+  h3 { margin: 1.2rem 0 .4rem; font-size: 1.02rem; color: var(--accent); }
+  p, li { margin: .36rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .7rem 0 1rem; }
+  th, td { border: 1px solid var(--border); padding: .48rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #e9eef3; font-size: .78rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .95rem 1.05rem; margin: .7rem 0; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .callout {
+    border-left: 4px solid var(--teal); background: var(--soft);
+    border-radius: 0 10px 10px 0; padding: .85rem 1rem; margin: .85rem 0;
+  }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+  code {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .84em;
+    background: #e9eef3; padding: .05rem .25rem; border-radius: 4px;
+  }
+  .flow {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr));
+    gap: .5rem; margin: .9rem 0 1rem;
+  }
+  .flow .step {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .7rem .55rem; text-align: center; font-size: .8rem; font-weight: 700; color: var(--accent);
+  }
+  .flow .step span {
+    display: block; font-size: .66rem; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .22rem;
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: .75rem; }
+  .tag {
+    display: inline-block; font-size: .68rem; font-weight: 800; padding: .14rem .45rem;
+    border-radius: 999px; background: #e7f1f3; color: var(--accent); margin-right: .25rem;
+  }
+  .proc-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 1.55rem; height: 1.55rem; border-radius: 999px; background: var(--accent);
+    color: #fff; font-size: .75rem; font-weight: 800; margin-right: .4rem;
+  }
+  footer {
+    max-width: var(--max); margin: 0 auto; padding: 0 1.5rem 2.3rem;
+    color: var(--muted); font-size: .8rem;
+  }
+  @media print {
+    nav.toc { position: static; }
+    body { background: #fff; }
+    header, .bar, th, .card, .callout, .flow .step, .proc-num, .tag {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    h2, .card, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <div class="inner">
+    <p class="eyebrow">ANH · VIP Inventario de Pozos · Procesos de datos</p>
+    <h1>Automatización de datos para analítica, estandarización, modelamiento, visualización y reportes</h1>
+    <p class="lede">
+      Mapa de los procesos automatizados implementados en la aplicación web: desde la ingesta Excel
+      hasta los tableros, modelos cuantitativos y generación de reportes de interés institucional.
+    </p>
+    <div class="chips">
+      <span class="chip">3 ago 2026</span>
+      <span class="chip">Enfoque: automatización de punta a punta</span>
+      <span class="chip">Producto: VIP · Inventario de pozos</span>
+      <span class="chip">Uso: mesa técnica / operación / OTI</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#vision">Visión</a>
+  <a href="#cadena">Cadena</a>
+  <a href="#estandarizacion">Estandarización</a>
+  <a href="#modelamiento">Modelamiento</a>
+  <a href="#analitica">Analítica</a>
+  <a href="#visualizacion">Visualización</a>
+  <a href="#reportes">Reportes</a>
+  <a href="#orquestacion">Orquestación</a>
+  <a href="#matriz">Matriz</a>
+</nav>
+
+<main>
+  <section id="vision">
+    <h2>1. Visión de la automatización</h2>
+    <p>
+      VIP automatiza el ciclo de vida del dato del inventario de pozos para que las operadoras y la ANH
+      no ejecuten a mano pasos repetitivos de limpieza, validación, consolidación, análisis y reporte.
+      Cada etapa dispara la siguiente mediante APIs, reglas y agregaciones, con trazabilidad por versión de cuaderno.
+    </p>
+    <div class="grid-2">
+      <div class="card">
+        <span class="tag">Entrada</span>
+        <strong>Excel oficial / registro UI</strong>
+        <p>Archivos <code>.xlsx</code> hoja INVENTARIO o formulario de registro con vista previa UWI.</p>
+      </div>
+      <div class="card">
+        <span class="tag">Salida</span>
+        <strong>Decisiones y documentos</strong>
+        <p>Tableros filtrables, analítica comparativa, Excel de calidad, PDF de panel/pozo/analítica, outbox de envío.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cadena">
+    <h2>2. Cadena automatizada de punta a punta</h2>
+    <div class="flow">
+      <div class="step"><span>P1</span>Ingesta</div>
+      <div class="step"><span>P2</span>Estandarización ETL</div>
+      <div class="step"><span>P3</span>Modelamiento calidad/UWI</div>
+      <div class="step"><span>P4</span>Versionado cuaderno</div>
+      <div class="step"><span>P5</span>Envío / consolidación</div>
+      <div class="step"><span>P6</span>Analítica</div>
+      <div class="step"><span>P7</span>Visualización</div>
+      <div class="step"><span>P8</span>Reportes</div>
+    </div>
+    <table>
+      <thead><tr><th>Proceso</th><th>Qué se automatiza</th><th>Disparador</th></tr></thead>
+      <tbody>
+        <tr><td>Ingesta</td><td>Lectura Excel, mapeo de 40 atributos, filtro de filas lista</td><td>Upload en Cuaderno</td></tr>
+        <tr><td>Estandarización</td><td>Encoding, nombres DANE, códigos territoriales</td><td>Al persistir cada pozo</td></tr>
+        <tr><td>Modelamiento</td><td>~59 reglas + ensamble/validación UWI + estado valid/warning/invalid</td><td>Post-ETL por registro</td></tr>
+        <tr><td>Gobernanza</td><td>Versión draft, gate de envío, eventos, auditoría</td><td>Upload / Submit</td></tr>
+        <tr><td>Analítica</td><td>KPIs, rankings, Sankey, baseline nacional, radar, heatmaps</td><td>Consulta panel / Analítica</td></tr>
+        <tr><td>Visualización</td><td>Mapa, donuts, barras, scatter, filtros cruzados</td><td>Cambio de filtro / selección</td></tr>
+        <tr><td>Reportes</td><td>PDF/Excel institucionales y exportación de hallazgos</td><td>Acción de usuario</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="estandarizacion">
+    <h2>3. Automatización de estandarización</h2>
+    <p><span class="proc-num">P2</span>Objetivo: convertir filas heterogéneas de operadoras en registros canónicos comparables.</p>
+    <div class="card">
+      <h3 style="margin-top:0">Pasos automatizados</h3>
+      <ol>
+        <li><strong>Parseo estructural</strong> — mapeo <code>EXCEL_COLUMN_MAP</code> + columnas especiales (coordenadas, inyección).</li>
+        <li><strong>Sanitización de texto</strong> — reparación de mojibake / encoding y normalización Unicode.</li>
+        <li><strong>Canonicidad geográfica</strong> — resolución departamento/municipio contra catálogo DANE.</li>
+        <li><strong>Asignación de códigos</strong> — <code>codigo_dane_depto</code> / <code>codigo_dane_muni</code>.</li>
+        <li><strong>Registro de advertencias ETL</strong> — hallazgos <code>etl_geography</code>, <code>etl_encoding</code> sin intervención manual.</li>
+      </ol>
+    </div>
+    <table>
+      <thead><tr><th>Actividad</th><th>Automatismo</th><th>Evidencia técnica</th></tr></thead>
+      <tbody>
+        <tr><td>Contrato de datos (40 attrs)</td><td>Plantilla → modelo interno homogéneo</td><td><code>attributes.ts</code>, <code>catalogs.ts</code></td></tr>
+        <tr><td>Normalización geo</td><td>Lookup determinista por nombre normalizado</td><td><code>etl.ts</code>, <code>geo.ts</code>, <code>db.resolveDaneCodes</code></td></tr>
+        <tr><td>Control de carga</td><td>Extensión, MIME, tope 15 MB</td><td><code>upload-security.ts</code></td></tr>
+        <tr><td>Catálogos maestros</td><td>Validación de pertenencia automática</td><td><code>data/seed.json</code> + motor de reglas</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="modelamiento">
+    <h2>4. Automatización de modelamiento</h2>
+    <p><span class="proc-num">P3</span>Objetivo: aplicar modelos de calidad, identidad fiscal e índices sin cálculo manual.</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0">Modelo de calidad</h3>
+        <ul>
+          <li>Ejecución automática de ~59 reglas por pozo.</li>
+          <li>Clasificación <code>valid</code> / <code>warning</code> / <code>invalid</code>.</li>
+          <li>Resumen de lote (conteos y totales de hallazgo).</li>
+          <li>Gate: envío bloqueado si hay inválidos.</li>
+        </ul>
+        <p><code>validation.ts</code> · hallazgos persistidos en DB</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Modelo UWI fiscalizado</h3>
+        <ul>
+          <li>Generación automática desde componentes del registro.</li>
+          <li>Validación frente al instructivo ANH.</li>
+          <li>Vista previa en vivo al registrar (<code>/api/uwi/preview</code>).</li>
+          <li>Pruebas automatizadas de ejemplos.</li>
+        </ul>
+        <p><code>uwi.ts</code> · <code>npm run test:uwi</code></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Modelos analíticos</h3>
+        <ul>
+          <li>Medias y proporciones por tema (producción, inyección, operativo, portafolio).</li>
+          <li>Índice radar base-100 vs nación.</li>
+          <li>Ratios de heatmap con umbrales de color.</li>
+          <li>Flujos Sankey por conteos multivariados.</li>
+        </ul>
+        <p><code>analytics.ts</code> · <code>analytics-db.ts</code> · <code>sankey-data.ts</code></p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Modelado de alcance</h3>
+        <ul>
+          <li>Scope automático por rol (operadora / ANH / admin).</li>
+          <li>ANH solo ve inventario validado enviado.</li>
+          <li>Filtros del panel recalculan todas las agregaciones.</li>
+        </ul>
+        <p><code>auth-scope.ts</code> · <code>buildScopeClause</code> · <code>/api/stats</code></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="analitica">
+    <h2>5. Automatización de actividades de analítica</h2>
+    <p><span class="proc-num">P6</span>Objetivo: que cada consulta produzca indicadores listos para lectura institucional.</p>
+    <table>
+      <thead><tr><th>Actividad analítica</th><th>Proceso automatizado</th><th>Salida</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Indicadores operativos del panel</td>
+          <td><code>GET /api/stats</code> recálculo con filtros activos</td>
+          <td>KPIs: pozos, cargas, valid/warning/error</td>
+        </tr>
+        <tr>
+          <td>Concentración territorial/operativa</td>
+          <td>Rankings SQL <code>COUNT</code> ordenados</td>
+          <td>Top operadoras / departamentos</td>
+        </tr>
+        <tr>
+          <td>Flujos multi-atributo</td>
+          <td>Agregación dept→estado→operadora/validación</td>
+          <td>Datos Sankey</td>
+        </tr>
+        <tr>
+          <td>Benchmarking ANH</td>
+          <td>Baseline nacional + entidad comparada en un request</td>
+          <td>Radar, deltas, sample sizes</td>
+        </tr>
+        <tr>
+          <td>Exploración bivariada</td>
+          <td>Muestra aleatoria de producción</td>
+          <td>Scatter petróleo–agua–gas</td>
+        </tr>
+        <tr>
+          <td>Matriz de desviaciones</td>
+          <td>Ratio celda/base × 100 + color por umbral</td>
+          <td>Heatmaps</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <strong>Automatización clave:</strong> el analista ANH no arma pivotes en Excel para cada pregunta.
+      Cambia entidad/tema/filtro y el sistema regenera línea base, comparación e índices.
+    </div>
+  </section>
+
+  <section id="visualizacion">
+    <h2>6. Automatización de visualización</h2>
+    <p><span class="proc-num">P7</span>Objetivo: encadenar visuales al mismo estado de filtros (visualización reactiva).</p>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0">Panel consolidado</h3>
+        <ul>
+          <li>Donuts de validación, estado y tipo de objetivo (clic → filtro).</li>
+          <li>Barras de ranking.</li>
+          <li>Sankey interactivo (nodo → filtro cruzado).</li>
+          <li>Mapa Leaflet + polígonos de departamentos + marcadores.</li>
+          <li>Tabla paginada sincronizada.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Analítica ANH</h3>
+        <ul>
+          <li>Radar normalizado (nación = 100).</li>
+          <li>Barras de delta porcentual.</li>
+          <li>Heatmaps HTML con escala de color automática.</li>
+          <li>Scatter de producción.</li>
+          <li>Autocompletado de entidades a comparar.</li>
+        </ul>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Componente</th><th>Automatismo UX↔datos</th><th>Implementación</th></tr></thead>
+      <tbody>
+        <tr><td>Filtros cruzados</td><td>Una selección actualiza KPIs, charts, mapa y tabla</td><td><code>panel/page.tsx</code>, <code>DashboardFiltersBar</code></td></tr>
+        <tr><td>Mapa territorial</td><td>Opacidad/selección según filtro; conteo por depto</td><td><code>WellsMap.tsx</code>, GeoJSON</td></tr>
+        <tr><td>Sankey</td><td>Construcción de nodos/links desde conteos</td><td><code>WellsSankeyChart.tsx</code></td></tr>
+        <tr><td>Temas de color</td><td>Paleta institucional consistente</td><td><code>chart-theme.ts</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="reportes">
+    <h2>7. Automatización de generación de reportes</h2>
+    <p><span class="proc-num">P8</span>Objetivo: producir documentos de interés sin maquetación manual.</p>
+    <table>
+      <thead><tr><th>Reporte</th><th>Contenido automatizado</th><th>Formato</th><th>Origen</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Informe de calidad / hallazgos</td>
+          <td>Filas con campo, severidad, regla y mensaje por pozo</td>
+          <td>Excel (ExcelJS + encabezado ANH)</td>
+          <td><code>/api/validations/export</code> · <code>export-calidad.ts</code></td>
+        </tr>
+        <tr>
+          <td>Inventario enviado</td>
+          <td>Round-trip a plantilla oficial al submit</td>
+          <td>Excel + outbox</td>
+          <td><code>export-upload.ts</code> · <code>mail.ts</code></td>
+        </tr>
+        <tr>
+          <td>PDF del panel</td>
+          <td>KPIs, desgloses y listado filtrado (tope)</td>
+          <td>PDF</td>
+          <td><code>dashboard-report-pdf.ts</code></td>
+        </tr>
+        <tr>
+          <td>PDF de pozo</td>
+          <td>40 atributos, hallazgos, mapa satelital Esri</td>
+          <td>PDF</td>
+          <td><code>well-report-pdf.ts</code> · <code>/api/wells/map-image</code></td>
+        </tr>
+        <tr>
+          <td>PDF de analítica</td>
+          <td>Radar, métricas, heatmaps, metadatos de comparación</td>
+          <td>PDF</td>
+          <td><code>analytics-report-pdf.ts</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      Los reportes heredan automáticamente el <strong>contexto analítico vigente</strong> (filtros, entidad, tema),
+      de modo que el documento refleja exactamente lo que el usuario está viendo en pantalla.
+    </div>
+  </section>
+
+  <section id="orquestacion">
+    <h2>8. Orquestación, disparadores y actores</h2>
+    <table>
+      <thead><tr><th>Actor</th><th>Procesos que dispara</th><th>Beneficio de automatización</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Operadora</td>
+          <td>Upload → ETL → validación → hallazgos → (reintento) → submit</td>
+          <td>Diagnóstico inmediato de calidad sin revisión manual línea a línea fuera del sistema</td>
+        </tr>
+        <tr>
+          <td>ANH</td>
+          <td>Consulta consolidada → stats/analítica → visuales → PDF</td>
+          <td>Benchmark nacional y territorial en minutos</td>
+        </tr>
+        <tr>
+          <td>Admin</td>
+          <td>Stewardship + lectura de auditoría</td>
+          <td>Trazabilidad automática de cambios sensibles</td>
+        </tr>
+        <tr>
+          <td>Sistema</td>
+          <td>Scope por rol, gates, recompute de agregados, outbox</td>
+          <td>Consistencia y seguridad del flujo sin pasos olvidados</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="card">
+      <h3 style="margin-top:0">APIs que materializan la automatización</h3>
+      <p>
+        <code>POST /api/notebooks/[id]/upload</code> ·
+        <code>POST /api/notebooks/[id]/submit</code> ·
+        <code>GET /api/stats</code> ·
+        <code>GET /api/analytics</code> ·
+        <code>GET /api/wells/map</code> ·
+        <code>GET /api/validations</code> ·
+        <code>GET /api/validations/export</code> ·
+        <code>POST /api/uwi/preview</code>
+      </p>
+    </div>
+  </section>
+
+  <section id="matriz">
+    <h2>9. Matriz de cobertura por actividad</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Actividad de interés</th>
+          <th>¿Automatizada?</th>
+          <th>Cómo se ve en VIP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Estandarización de datos</td><td>Sí</td><td>ETL + DANE + catálogos + encoding</td></tr>
+        <tr><td>Modelamiento de calidad / UWI / índices</td><td>Sí</td><td>Reglas, estados, radar, ratios, Sankey</td></tr>
+        <tr><td>Analítica descriptiva y comparativa</td><td>Sí</td><td>Panel + módulo Analítica ANH</td></tr>
+        <tr><td>Visualización interactiva</td><td>Sí</td><td>Mapa, charts, filtros cruzados</td></tr>
+        <tr><td>Generación de reportes</td><td>Sí</td><td>Excel calidad + PDF panel/pozo/analítica</td></tr>
+        <tr><td>Retrabajo con operadoras</td><td>Sí (asistido)</td><td>Hallazgos exportables y versionado de cuaderno</td></tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <strong>Síntesis:</strong> la aplicación concentra un pipeline automatizado de datos donde
+      estandarización y modelamiento alimentan analítica; la visualización reacciona al mismo estado;
+      y los reportes congelan ese estado en artefactos Excel/PDF listos para gestión y mesa técnica.
+    </div>
+  </section>
+</main>
+
+<footer>
+  Procesos de automatización de datos — VIP Inventario de Pozos · 3 ago 2026 · Uso interno ANH.
+</footer>
+</body>
+</html>

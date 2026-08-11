@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Modelos matemáticos y estadísticos — VIP Inventario de Pozos</title>
+<style>
+  :root {
+    --bg: #f0f3f6; --surface: #fff; --ink: #142029; --muted: #5b6b75;
+    --border: #d5dee5; --accent: #0f3a4d; --teal: #1a6b7a; --orange: #e67a18;
+    --soft: #f5f8fa; --formula-bg: #0f3a4d; --ok: #1b7f4a; --ok-bg: #e7f6ee;
+    --warn-bg: #fff7df; --warn: #9a6700;
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    --max: 980px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); color: var(--ink); background: var(--bg);
+    line-height: 1.58; font-size: 15.2px;
+  }
+  .bar { height: 5px; background: linear-gradient(90deg, #ffc107, #e67a18, #d93a2b); }
+  header {
+    background: linear-gradient(120deg, #0f3a4d 0%, #1a6b7a 55%, #c45f12 120%);
+    color: #f7fbfd; padding: 2.4rem 1.5rem 2rem;
+  }
+  header .inner { max-width: var(--max); margin: 0 auto; }
+  .eyebrow {
+    margin: 0 0 .65rem; font-size: .72rem; font-weight: 800;
+    letter-spacing: .16em; text-transform: uppercase; color: #ffd9a8;
+  }
+  h1 { margin: 0; font-size: clamp(1.45rem, 3.4vw, 2.15rem); line-height: 1.18; max-width: 22ch; }
+  .lede { margin: .9rem 0 0; max-width: 48rem; color: rgba(247,251,253,.92); }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.2rem; }
+  .chip {
+    font-size: .74rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+  }
+  nav.toc {
+    position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--border); padding: .68rem 1.5rem;
+    overflow-x: auto; white-space: nowrap; backdrop-filter: blur(8px);
+  }
+  nav.toc a {
+    display: inline-block; margin-right: .9rem; font-size: .78rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  main { max-width: var(--max); margin: 0 auto; padding: 1.7rem 1.5rem 3.4rem; }
+  h2 {
+    margin: 2rem 0 .75rem; font-size: 1.32rem; color: var(--accent);
+    border-bottom: 3px solid var(--orange); padding-bottom: .35rem;
+  }
+  h3 { margin: 1.25rem 0 .45rem; font-size: 1.02rem; color: var(--accent); }
+  h4 { margin: 1rem 0 .35rem; font-size: .92rem; color: var(--teal); }
+  p, li { margin: .38rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .7rem 0 1rem; }
+  th, td { border: 1px solid var(--border); padding: .48rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #e9eef3; font-size: .78rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .95rem 1.05rem; margin: .75rem 0; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .callout {
+    border-left: 4px solid var(--teal); background: var(--soft);
+    border-radius: 0 10px 10px 0; padding: .85rem 1rem; margin: .9rem 0;
+  }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .formula {
+    background: var(--formula-bg); color: #eaf4f7; border-radius: 10px;
+    padding: .85rem 1rem; margin: .65rem 0; font-family: var(--mono);
+    font-size: .9rem; overflow-x: auto; line-height: 1.55;
+  }
+  .formula .lbl { display: block; color: #9ec9d4; font-size: .72rem; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase; margin-bottom: .35rem; font-family: var(--font); }
+  code {
+    font-family: var(--mono); font-size: .84em; background: #e9eef3;
+    padding: .06rem .26rem; border-radius: 4px;
+  }
+  .badge {
+    display: inline-block; font-size: .68rem; font-weight: 800; padding: .14rem .45rem;
+    border-radius: 999px; background: #e7f1f3; color: var(--accent);
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: .8rem; }
+  .legend-swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 3px;
+    vertical-align: -2px; margin-right: .35rem; border: 1px solid rgba(0,0,0,.08);
+  }
+  footer {
+    max-width: var(--max); margin: 0 auto; padding: 0 1.5rem 2.4rem;
+    color: var(--muted); font-size: .8rem;
+  }
+  @media print {
+    nav.toc { position: static; }
+    body { background: #fff; }
+    header, .bar, .formula, th, .card, .callout, .legend-swatch {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    h2, .card, table, .formula { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <div class="inner">
+    <p class="eyebrow">ANH · VIP Inventario de Pozos · Documentación técnica</p>
+    <h1>Formulación, implementación y ajuste de modelos matemáticos y estadísticos</h1>
+    <p class="lede">
+      Descripción de los modelos cuantitativos que operan en la aplicación: clasificación de calidad,
+      agregaciones estadísticas, índices de comparación, flujos Sankey, ratios territoriales y
+      puntos de calibración (umbrales) que permiten su ajuste institucional.
+    </p>
+    <div class="chips">
+      <span class="chip">3 ago 2026</span>
+      <span class="chip">Enfoque: modelos explícitos y auditables</span>
+      <span class="chip">Implementación: TypeScript + SQL</span>
+      <span class="chip">Evidencia: código de producción del piloto</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#alcance">Alcance</a>
+  <a href="#calidad">Modelo de calidad</a>
+  <a href="#agregados">Agregados</a>
+  <a href="#radar">Índice radar</a>
+  <a href="#heatmap">Heatmap</a>
+  <a href="#sankey">Sankey</a>
+  <a href="#geo">Geo y UWI</a>
+  <a href="#ajuste">Ajuste</a>
+  <a href="#resumen">Resumen</a>
+</nav>
+
+<main>
+  <section id="alcance">
+    <h2>1. Alcance y naturaleza de los modelos</h2>
+    <p>
+      Los modelos de VIP son <strong>deterministas y paramétricos</strong>: se expresan como funciones
+      matemáticas / agregaciones estadísticas con parámetros calibrables (umbrales, catálogos, severidades).
+      No hay estimadores bayesianos ni modelos de aprendizaje automático entrenados en producción;
+      la estadística es principalmente <em>descriptiva</em> y <em>comparativa</em>.
+    </p>
+    <div class="grid-2">
+      <div class="card">
+        <h4 style="margin-top:0">Formulación</h4>
+        <p>Definición matemática del objeto (estado, métrica, índice, ratio, flujo).</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">Implementación</h4>
+        <p>Dónde vive en código: <code>validation.ts</code>, <code>analytics.ts</code>, SQL en <code>analytics-db.ts</code>, UI de heatmaps/Sankey.</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">Ajuste</h4>
+        <p>Parámetros que la institución puede modificar sin reescribir la arquitectura (umbrales, temas, reglas).</p>
+      </div>
+      <div class="card">
+        <h4 style="margin-top:0">Dominio de datos</h4>
+        <p>Inventario validado ANH (pozos <code>valid</code>/<code>warning</code> enviados) salvo el panel admin de stewardship.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="calidad">
+    <h2>2. Modelo de clasificación de calidad por pozo</h2>
+    <h3>2.1 Formulación</h3>
+    <p>
+      Sea un pozo \(i\) con conjunto de hallazgos \(H_i\). Cada hallazgo \(h\) tiene severidad
+      \(s(h) \in \{\mathrm{error},\mathrm{warning},\mathrm{info}\}\).
+    </p>
+    <div class="formula">
+      <span class="lbl">Conteo de severidades</span>
+      Eᵢ = |{ h ∈ Hᵢ : s(h) = error }|<br/>
+      Wᵢ = |{ h ∈ Hᵢ : s(h) = warning }|
+    </div>
+    <div class="formula">
+      <span class="lbl">Estado de validación del pozo</span>
+      estado(i) =<br/>
+      &nbsp;&nbsp; invalid&nbsp;&nbsp; si Eᵢ ≥ 1<br/>
+      &nbsp;&nbsp; warning&nbsp; si Eᵢ = 0 ∧ Wᵢ ≥ 1<br/>
+      &nbsp;&nbsp; valid&nbsp;&nbsp;&nbsp;&nbsp; si Eᵢ = 0 ∧ Wᵢ = 0
+    </div>
+    <p>Equivalente booleano usado en código: <code>is_valid ⇔ Eᵢ = 0</code>.</p>
+
+    <h3>2.2 Agregados de lote (cuaderno / carga)</h3>
+    <p>Para un conjunto de resultados \(R = \{r_1,\ldots,r_n\}\):</p>
+    <div class="formula">
+      <span class="lbl">Resumen de lote — summarizeValidation()</span>
+      valid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = |{ r : is_valid ∧ warning_count = 0 }|<br/>
+      with_warnings = |{ r : is_valid ∧ warning_count ≥ 1 }|<br/>
+      invalid&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = |{ r : ¬is_valid }|<br/>
+      error_total&nbsp;&nbsp; = Σ Eᵢ<br/>
+      warning_total = Σ Wᵢ
+    </div>
+    <div class="callout">
+      <strong>Puerta de envío:</strong> el cuaderno solo puede enviarse a la ANH si
+      <code>invalid_records = 0</code> (ningún pozo en estado <code>invalid</code>).
+      Los <code>warning</code> no bloquean el envío.
+    </div>
+
+    <h3>2.3 Implementación</h3>
+    <ul>
+      <li><code>src/lib/validation.ts</code> → <code>validateWell()</code>, <code>summarizeValidation()</code></li>
+      <li>~59 chequeos activos (obligatorios, catálogo, DANE, condicionales, numéricos, coordenadas, UWI).</li>
+      <li>Cada hallazgo aporta tupla <code>(field, severity, message, rule)</code>.</li>
+    </ul>
+
+    <h3>2.4 Ajuste</h3>
+    <ul>
+      <li>Cambiar severidad de una regla (<code>error</code>↔<code>warning</code>) altera la tasa de bloqueo.</li>
+      <li>Ampliar/restringir catálogos maestros cambia la función indicador de pertenencia.</li>
+      <li>Condicionales AVM y levantamiento son reglas lógicas parametrizadas por valor de atributos.</li>
+    </ul>
+  </section>
+
+  <section id="agregados">
+    <h2>3. Modelos de agregación estadística (Analítica ANH)</h2>
+    <p>
+      Las métricas se agrupan en cuatro temas \(T \in \{\mathrm{producción},\mathrm{inyección},\mathrm{operativo},\mathrm{portafolio}\}\).
+      Para una población filtrada \(S\) (línea base nacional o entidad de comparación):
+    </p>
+
+    <h3>3.1 Promedios de variables continuas</h3>
+    <p>Producción e inyección usan media aritmética sobre valores parseables:</p>
+    <div class="formula">
+      <span class="lbl">Media — ejemplo petróleo acumulado</span>
+      μ̂(prod_petroleo) = (1 / |S*|) · Σ_{j ∈ S*} x_j<br/>
+      donde S* = { pozos en S con x parseable como REAL; se excluyen vacíos vía NULLIF }
+    </div>
+    <p>Métricas: <code>prod_dias</code>, <code>prod_petroleo</code>, <code>prod_agua</code>, <code>prod_gas</code>,
+      <code>iny_dias</code>, <code>iny_agua</code>, <code>iny_gas</code>, <code>iny_otros</code>.</p>
+
+    <h3>3.2 Proporciones (perfil operativo)</h3>
+    <div class="formula">
+      <span class="lbl">Proporción / porcentaje</span>
+      p̂(A) = 100 · |{ j ∈ S : j satisface A }| / |S|
+    </div>
+    <table>
+      <thead><tr><th>Métrica</th><th>Predicado A</th></tr></thead>
+      <tbody>
+        <tr><td><code>pct_activo</code></td><td><code>estado_pozo = 'Activo'</code></td></tr>
+        <tr><td><code>pct_horizontal</code></td><td>ángulo contiene H / horizontal</td></tr>
+        <tr><td><code>pct_productor</code></td><td>objetivo contiene P / Productor</td></tr>
+        <tr><td><code>pct_inyector</code></td><td>objetivo contiene I / Inyector</td></tr>
+        <tr><td><code>pct_coords</code></td><td>latitud y longitud no vacías</td></tr>
+        <tr><td><code>pct_uwi</code></td><td>UWI fiscalizado no vacío</td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.3 Ratios de portafolio</h3>
+    <div class="formula">
+      <span class="lbl">Densidad y diversidad</span>
+      wells_per_op = |S| / |{operadoras distintas en S}|<br/>
+      dept_span&nbsp;&nbsp;&nbsp;&nbsp; = |{departamentos distintos}|<br/>
+      muni_span&nbsp;&nbsp;&nbsp;&nbsp; = |{municipios distintos}|<br/>
+      avg_contracts = |{contratos distintos}| / |{operadoras distintas}|
+    </div>
+
+    <h3>3.4 Implementación</h3>
+    <ul>
+      <li>Definición de métricas: <code>ANALYTICS_THEMES</code> en <code>src/lib/analytics.ts</code> (<code>aggregateSql</code>).</li>
+      <li>Ejecución: <code>src/lib/analytics-db.ts</code> ensambla <code>SELECT AVG(...) AS key, ...</code>.</li>
+      <li>API: <code>GET /api/analytics</code>.</li>
+    </ul>
+  </section>
+
+  <section id="radar">
+    <h2>4. Modelo de índice comparativo (radar, base 100)</h2>
+    <h3>4.1 Formulación</h3>
+    <p>
+      Sea \(b_k\) el valor crudo de la métrica \(k\) en la <strong>línea base nacional</strong>
+      y \(c_k\) el valor crudo de la entidad comparada.
+    </p>
+    <div class="formula">
+      <span class="lbl">Normalización a índice 100 — buildRadarComparison()</span>
+      baseline_k := 100<br/><br/>
+      comparison_k :=<br/>
+      &nbsp;&nbsp;(c_k / b_k)·100&nbsp;&nbsp;&nbsp;&nbsp;si b_k &gt; 0<br/>
+      &nbsp;&nbsp;120&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;si b_k = 0 ∧ c_k &gt; 0<br/>
+      &nbsp;&nbsp;0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;si b_k = 0 ∧ c_k = 0
+    </div>
+    <div class="formula">
+      <span class="lbl">Delta porcentual</span>
+      Δ_k (%) = ((c_k − b_k) / b_k)·100&nbsp;&nbsp;si b_k &gt; 0<br/>
+      Δ_k (%) = 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;si b_k = 0
+    </div>
+    <p>Redondeo de presentación: índice y delta a 1 decimal; crudos a 2 decimales.</p>
+    <div class="callout warn">
+      <strong>Interpretación:</strong> un valor de radar 100 = igual a la media/agregado nacional de esa métrica.
+      80 = 20% por debajo; 130 = 30% por encima. El caso especial 120 cuando la base es 0 evita división por cero
+      y marca presencia relativa cuando la nación no reporta magnitud.
+    </div>
+
+    <h3>4.2 Implementación</h3>
+    <ul>
+      <li><code>buildRadarComparison()</code> en <code>src/lib/analytics.ts</code></li>
+      <li>Visualización Recharts en <code>src/app/analitica/page.tsx</code></li>
+      <li>Exportación en <code>src/lib/analytics-report-pdf.ts</code></li>
+    </ul>
+
+    <h3>4.3 Ajuste</h3>
+    <ul>
+      <li>Cambiar la población base (filtros del inventario validado) redefine \(b_k\).</li>
+      <li>Sustituir media por mediana / winsorización requeriría modificar <code>aggregateSql</code>.</li>
+      <li>El valor 120 del caso \(b_k=0\) es un parámetro de diseño ajustable.</li>
+    </ul>
+  </section>
+
+  <section id="heatmap">
+    <h2>5. Modelo de heatmap (ratio vs nacional)</h2>
+    <h3>5.1 Formulación</h3>
+    <p>Para una celda (p. ej. departamento × métrica o entidad × métrica):</p>
+    <div class="formula">
+      <span class="lbl">Ratio porcentual</span>
+      ρ = (valor_celda / valor_base)·100&nbsp;&nbsp;si valor_base &gt; 0<br/>
+      ρ = 0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;en caso contrario
+    </div>
+    <h3>5.2 Escala de color (función escalón)</h3>
+    <div class="formula">
+      <span class="lbl">heatColor(ρ) — umbrales</span>
+      ρ ≥ 130 → rojo&nbsp;&nbsp;&nbsp;&nbsp;#e8381a&nbsp;&nbsp;(muy por encima)<br/>
+      ρ ≥ 110 → naranja&nbsp;#ff8c00<br/>
+      ρ ≥ 90&nbsp; → amarillo #ffe600&nbsp;(cerca de la base)<br/>
+      ρ ≥ 70&nbsp; → celeste&nbsp;&nbsp;#38bdf8<br/>
+      ρ &lt; 70&nbsp; → (rango inferior de la escala UI)
+    </div>
+    <p>
+      <span class="legend-swatch" style="background:#e8381a"></span>≥130%
+      &nbsp;&nbsp;<span class="legend-swatch" style="background:#ff8c00"></span>≥110%
+      &nbsp;&nbsp;<span class="legend-swatch" style="background:#ffe600"></span>≥90%
+      &nbsp;&nbsp;<span class="legend-swatch" style="background:#38bdf8"></span>≥70%
+    </p>
+    <h3>5.3 Implementación y ajuste</h3>
+    <ul>
+      <li>Función <code>heatColor()</code> en <code>src/app/analitica/page.tsx</code>.</li>
+      <li><strong>Ajuste institucional:</strong> mover los umbrales {70, 90, 110, 130} redefine qué se considera “normal” vs “desviado”.</li>
+      <li>Top-N de filas (p. ej. 8 deptos / 6 operadoras) es un parámetro de presentación, no del ratio.</li>
+    </ul>
+  </section>
+
+  <section id="sankey">
+    <h2>6. Modelo de flujo Sankey (conteos multivariados)</h2>
+    <h3>6.1 Formulación</h3>
+    <p>
+      Se construyen dos capas de enlaces a partir de conteos en el subconjunto filtrado del panel:
+    </p>
+    <div class="formula">
+      <span class="lbl">Pesos de enlace</span>
+      w(depto → estado)&nbsp;&nbsp;&nbsp;&nbsp; = |{ pozos : depto=d ∧ estado=e }|<br/>
+      w(estado → operadora) = |{ pozos : estado=e ∧ operadora=o }|<br/>
+      &nbsp;&nbsp;&nbsp;o bien<br/>
+      w(estado → validación)= |{ pozos : estado=e ∧ estado_validación=v }|
+    </div>
+    <p>
+      El grosor visual del enlace es proporcional a \(w\). Los nodos se indexan por clave
+      <code>columna::valor</code>; la conservación de flujo es por construcción de conteos (no es un modelo de
+      balance energético).
+    </p>
+    <h3>6.2 Implementación</h3>
+    <ul>
+      <li>Agregación SQL: <code>getSankeyFlowData()</code> en <code>src/lib/db.ts</code> vía <code>/api/stats</code>.</li>
+      <li>Grafo UI: <code>buildSankeyChartData()</code> en <code>src/lib/sankey-data.ts</code> + <code>WellsSankeyChart.tsx</code>.</li>
+      <li>Layout Recharts Sankey con <code>iterations=64</code> (parámetro numérico del algoritmo de posicionamiento, no del modelo de datos).</li>
+    </ul>
+    <h3>6.3 Rankings del panel</h3>
+    <div class="formula">
+      <span class="lbl">Ranking por frecuencia</span>
+      top_k(dimensión) = arg max_{parcial} COUNT(*) ordenado DESC, limitado a k
+    </div>
+    <p>Se aplica a operadoras y departamentos en el subconjunto filtrado actual.</p>
+  </section>
+
+  <section id="geo">
+    <h2>7. Modelos auxiliares: geografía y UWI</h2>
+    <h3>7.1 Normalización geográfica (matching)</h3>
+    <p>
+      Función de canonicidad: se aplica reparación de encoding y normalización Unicode NFD,
+      eliminación de diacríticos y colapso de espacios → clave de búsqueda en mapas DANE.
+    </p>
+    <div class="formula">
+      <span class="lbl">Igualdad geográfica</span>
+      deptNamesMatch(a,b) ⇔ normalizeGeoName(a) = normalizeGeoName(b)
+    </div>
+    <p>Implementación: <code>src/lib/geo.ts</code>, <code>src/lib/etl.ts</code>. Es un modelo de <em>equivalencia</em>, no probabilístico.</p>
+
+    <h3>7.2 Validación de coordenadas</h3>
+    <div class="formula">
+      <span class="lbl">Dominio geodésico</span>
+      latitud ∈ [−90, 90],&nbsp;&nbsp; longitud ∈ [−180, 180]<br/>
+      coordenadas proyectadas: parsability numérica (X/Y Bogotá y nacional)
+    </div>
+
+    <h3>7.3 Ensamble UWI fiscalizado</h3>
+    <p>Modelo de composición de cadena (no estadístico) según instructivo:</p>
+    <div class="formula">
+      <span class="lbl">Estructura</span>
+      UWI = Depto(2) ‖ Muni(3) ‖ Sigla(4+) ‖ Número(4) ‖ Clúster ‖ Ángulo ‖ Trayectoria ‖ Objetivo ‖ "-" ‖ Terminación
+    </div>
+    <p>
+      Funciones de extracción (sigla, número, clúster) son heurísticas deterministas sobre texto normalizado.
+      La validación del instructivo agrega hallazgos al modelo de calidad (§2).
+      Implementación: <code>src/lib/uwi.ts</code>.
+    </p>
+  </section>
+
+  <section id="ajuste">
+    <h2>8. Matriz de ajuste (parámetros calibrables)</h2>
+    <table>
+      <thead>
+        <tr><th>Modelo</th><th>Parámetro</th><th>Efecto al ajustar</th><th>Dónde</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Calidad</td>
+          <td>Severidad de reglas</td>
+          <td>Más/menos pozos bloqueados en envío</td>
+          <td><code>validation.ts</code> / reglas UWI</td>
+        </tr>
+        <tr>
+          <td>Calidad</td>
+          <td>Catálogos maestros</td>
+          <td>Tasa de errores <code>catalog</code></td>
+          <td><code>data/seed.json</code></td>
+        </tr>
+        <tr>
+          <td>Agregados</td>
+          <td><code>aggregateSql</code> (AVG vs otras)</td>
+          <td>Robustez ante outliers</td>
+          <td><code>analytics.ts</code></td>
+        </tr>
+        <tr>
+          <td>Radar</td>
+          <td>Base 100; valor 120 si base=0</td>
+          <td>Lectura de entidades sin base nacional</td>
+          <td><code>buildRadarComparison</code></td>
+        </tr>
+        <tr>
+          <td>Heatmap</td>
+          <td>Umbrales 70 / 90 / 110 / 130</td>
+          <td>Sensibilidad visual de “desviación”</td>
+          <td><code>heatColor()</code></td>
+        </tr>
+        <tr>
+          <td>Sankey / rankings</td>
+          <td>k de top-N; tercera columna</td>
+          <td>Foco analítico del tablero</td>
+          <td>Panel + <code>sankey-data.ts</code></td>
+        </tr>
+        <tr>
+          <td>Scatter producción</td>
+          <td>Tamaño de muestra aleatoria</td>
+          <td>Costo vs representatividad visual</td>
+          <td><code>analytics-db.ts</code></td>
+        </tr>
+        <tr>
+          <td>Dominio analítico</td>
+          <td>Filtro inventario validado</td>
+          <td>Quién entra a \(S\) (base y comparación)</td>
+          <td><code>validatedAnhWhere()</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <strong>Criterio de gobernanza del ajuste:</strong> cualquier cambio de umbral o severidad debería
+      documentarse (qué cambió, por qué, impacto esperado en tasas de validación o en lectura del radar/heatmap)
+      y validarse en ambiente de pruebas antes de producción institucional.
+    </div>
+  </section>
+
+  <section id="resumen">
+    <h2>9. Síntesis</h2>
+    <p>VIP implementa una <strong>pila cuantitativa explícita</strong>:</p>
+    <ol>
+      <li><strong>Clasificador de calidad</strong> por conteo de errores/warnings.</li>
+      <li><strong>Estimadores descriptivos</strong> (medias, proporciones, ratios de diversidad).</li>
+      <li><strong>Índice relativo base-100</strong> para benchmarking entidad vs nación.</li>
+      <li><strong>Ratios coloreados por umbrales</strong> (heatmap).</li>
+      <li><strong>Flujos de conteo</strong> (Sankey) y rankings por frecuencia.</li>
+      <li><strong>Funciones de equivalencia y composición</strong> (geo, UWI) que alimentan los modelos anteriores.</li>
+    </ol>
+    <p>
+      Formulación, implementación y ajuste están acoplados de forma deliberada: las matemáticas son legibles,
+      el código las refleja 1:1, y los umbrales/catálogos son los tornillos de calibración institucional.
+    </p>
+  </section>
+</main>
+
+<footer>
+  Modelos matemáticos y estadísticos — VIP Inventario de Pozos · 3 ago 2026 · Uso técnico interno ANH.
+</footer>
+</body>
+</html>

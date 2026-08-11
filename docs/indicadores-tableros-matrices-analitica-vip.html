@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Indicadores, tableros, matrices y herramientas analíticas — VIP</title>
+<style>
+  :root {
+    --bg: #eef2f5; --surface: #fff; --ink: #142029; --muted: #5b6b75;
+    --border: #d5dee5; --accent: #0f3a4d; --teal: #1a6b7a; --orange: #e67a18;
+    --soft: #f4f8fa; --ok: #1b7f4a; --ok-bg: #e8f6ef; --warn-bg: #fff7df; --warn: #9a6700;
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif; --max: 1000px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); color: var(--ink); font-size: 15.2px; line-height: 1.58;
+    background:
+      radial-gradient(780px 340px at 5% 0%, rgba(26,107,122,.11), transparent 55%),
+      radial-gradient(680px 300px at 100% 0%, rgba(230,122,24,.09), transparent 50%),
+      var(--bg);
+  }
+  .bar { height: 5px; background: linear-gradient(90deg, #ffc107, #e67a18, #d93a2b); }
+  header {
+    background: linear-gradient(118deg, #0f3a4d 0%, #176070 52%, #c45f12 125%);
+    color: #f7fbfd; padding: 2.35rem 1.5rem 2rem;
+  }
+  header .inner { max-width: var(--max); margin: 0 auto; }
+  .eyebrow {
+    margin: 0 0 .6rem; font-size: .72rem; font-weight: 800; letter-spacing: .16em;
+    text-transform: uppercase; color: #ffd9a8;
+  }
+  h1 { margin: 0; font-size: clamp(1.4rem, 3.3vw, 2.1rem); line-height: 1.18; max-width: 24ch; }
+  .lede { margin: .9rem 0 0; max-width: 50rem; color: rgba(247,251,253,.92); }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.15rem; }
+  .chip {
+    font-size: .74rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+  }
+  nav.toc {
+    position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.94);
+    border-bottom: 1px solid var(--border); padding: .65rem 1.5rem;
+    overflow-x: auto; white-space: nowrap; backdrop-filter: blur(8px);
+  }
+  nav.toc a {
+    display: inline-block; margin-right: .85rem; font-size: .78rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  main { max-width: var(--max); margin: 0 auto; padding: 1.6rem 1.5rem 3.3rem; }
+  h2 {
+    margin: 2rem 0 .7rem; font-size: 1.3rem; color: var(--accent);
+    border-bottom: 3px solid var(--orange); padding-bottom: .35rem;
+  }
+  h3 { margin: 1.15rem 0 .4rem; font-size: 1.02rem; color: var(--accent); }
+  p, li { margin: .35rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .7rem 0 1rem; }
+  th, td { border: 1px solid var(--border); padding: .48rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #e9eef3; font-size: .78rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .95rem 1.05rem; margin: .7rem 0; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: .75rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .65rem; margin: .9rem 0; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .8rem .9rem; border-top: 4px solid var(--teal);
+  }
+  .kpi .lbl { font-size: .7rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .kpi .val { font-size: .95rem; font-weight: 800; color: var(--accent); margin-top: .25rem; }
+  .callout {
+    border-left: 4px solid var(--teal); background: var(--soft);
+    border-radius: 0 10px 10px 0; padding: .85rem 1rem; margin: .85rem 0;
+  }
+  .callout.ok { border-left-color: var(--ok); background: var(--ok-bg); }
+  .badge {
+    display: inline-block; font-size: .68rem; font-weight: 800; padding: .14rem .45rem;
+    border-radius: 999px; background: #e7f1f3; color: var(--accent);
+  }
+  .badge.done { background: var(--ok-bg); color: var(--ok); }
+  code {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .84em;
+    background: #e9eef3; padding: .05rem .25rem; border-radius: 4px;
+  }
+  footer {
+    max-width: var(--max); margin: 0 auto; padding: 0 1.5rem 2.3rem;
+    color: var(--muted); font-size: .8rem;
+  }
+  @media print {
+    nav.toc { position: static; }
+    body { background: #fff; }
+    header, .bar, th, .card, .kpi, .callout, .badge {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    h2, .card, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <div class="inner">
+    <p class="eyebrow">ANH · VIP Inventario de Pozos · Gestión por indicadores</p>
+    <h1>Indicadores estratégicos, tableros de control, matrices de seguimiento y herramientas analíticas</h1>
+    <p class="lede">
+      Evidencia de cómo la aplicación web traduce la visión de seguimiento del inventario de pozos
+      en un sistema de indicadores, tableros, matrices y analítica operativa para operadoras y ANH.
+    </p>
+    <div class="chips">
+      <span class="chip">3 ago 2026</span>
+      <span class="chip">Cumplimiento de diseño de gestión</span>
+      <span class="chip">Panel · Analítica · Calidad · Reportes</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#marco">Marco</a>
+  <a href="#indicadores">Indicadores</a>
+  <a href="#tableros">Tableros</a>
+  <a href="#matrices">Matrices</a>
+  <a href="#herramientas">Herramientas</a>
+  <a href="#seguimiento">Ciclo de seguimiento</a>
+  <a href="#evidencia">Evidencia</a>
+</nav>
+
+<main>
+  <section id="marco">
+    <h2>1. Marco de diseño cumplido</h2>
+    <p>
+      El diseño de VIP responde a cuatro entregables clásicos de gestión basada en datos.
+      Cada uno tiene dueño de uso, fuente de cálculo y soporte visual en la aplicación.
+    </p>
+    <div class="grid-4">
+      <div class="kpi"><div class="lbl">1. Indicadores</div><div class="val">KPIs de calidad, cobertura y operación</div></div>
+      <div class="kpi" style="border-top-color:#e67a18"><div class="lbl">2. Tableros</div><div class="val">Panel consolidado y Analítica ANH</div></div>
+      <div class="kpi" style="border-top-color:#4b3f8a"><div class="lbl">3. Matrices</div><div class="val">Heatmaps, hallazgos y auditoría</div></div>
+      <div class="kpi" style="border-top-color:#0e8a7d"><div class="lbl">4. Herramientas</div><div class="val">Filtros, mapa, radar, PDF/Excel</div></div>
+    </div>
+    <div class="callout ok">
+      <strong>Principio de diseño:</strong> un mismo inventario filtrable alimenta indicadores, tableros y matrices;
+      las herramientas analíticas no son pantallas aisladas, sino vistas del mismo estado de control.
+    </div>
+  </section>
+
+  <section id="indicadores">
+    <h2>2. Diseño de indicadores estratégicos</h2>
+    <p>
+      Los indicadores se diseñaron en tres capas: <strong>calidad del dato</strong>,
+      <strong>cobertura territorial/operativa</strong> y <strong>desempeño relativo</strong> frente a la nación.
+    </p>
+
+    <h3>2.1 Catálogo de indicadores implementados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Indicador</th>
+          <th>Pregunta de gestión</th>
+          <th>Capa</th>
+          <th>Dónde se ve</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pozos en vista / catálogo</td>
+          <td>¿Cuál es el tamaño del inventario bajo control?</td>
+          <td>Volumen</td>
+          <td>KPI cards del Panel</td>
+        </tr>
+        <tr>
+          <td>Distribución valid / warning / invalid</td>
+          <td>¿Qué tan sano está el dato que llega o se consolida?</td>
+          <td>Calidad estratégica</td>
+          <td>KPI + donut de validación</td>
+        </tr>
+        <tr>
+          <td>Cargas / versiones enviadas</td>
+          <td>¿Hay flujo de entrega por parte de operadoras?</td>
+          <td>Proceso</td>
+          <td>KPI uploads · Cuaderno</td>
+        </tr>
+        <tr>
+          <td>% activos, horizontales, productores, inyectores</td>
+          <td>¿Cómo se compone el portafolio operativo?</td>
+          <td>Perfil operativo</td>
+          <td>Analítica · tema Operativo</td>
+        </tr>
+        <tr>
+          <td>% con coordenadas / % con UWI</td>
+          <td>¿Hay completitud para control territorial y fiscal?</td>
+          <td>Completitud</td>
+          <td>Analítica · tema Operativo</td>
+        </tr>
+        <tr>
+          <td>Medias de producción e inyección</td>
+          <td>¿Qué magnitud reporta la entidad vs el país?</td>
+          <td>Desempeño</td>
+          <td>Analítica · temas Producción / Inyección</td>
+        </tr>
+        <tr>
+          <td>Índice radar (base 100)</td>
+          <td>¿La entidad está por encima o debajo de la línea nacional?</td>
+          <td>Benchmark estratégico</td>
+          <td>Analítica · radar + deltas</td>
+        </tr>
+        <tr>
+          <td>Wells/operadora, span dept/muni, contratos/op</td>
+          <td>¿Cómo se concentra el portafolio?</td>
+          <td>Estructura</td>
+          <td>Analítica · tema Portafolio</td>
+        </tr>
+        <tr>
+          <td>Top operadoras / departamentos</td>
+          <td>¿Dónde hay mayor concentración de pozos?</td>
+          <td>Focalización</td>
+          <td>Barras del Panel</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>2.2 Atributos de diseño del indicador</h3>
+    <div class="grid-2">
+      <div class="card">
+        <ul>
+          <li><span class="badge done">Definido</span> nombre, unidad y fórmula agregada SQL/TS.</li>
+          <li><span class="badge done">Trazable</span> dominio = inventario filtrado / validado ANH.</li>
+          <li><span class="badge done">Accionable</span> clic en KPI/segmento aplica filtro de seguimiento.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <ul>
+          <li><span class="badge done">Comparable</span> línea base nacional = 100 en el radar.</li>
+          <li><span class="badge done">Segmentable</span> por rol, operadora, depto, municipio, estado, objetivo.</li>
+          <li><span class="badge done">Reportable</span> exportable a PDF de panel y de analítica.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="tableros">
+    <h2>3. Tableros de control implementados</h2>
+
+    <h3>3.1 Tablero operativo consolidado — <code>/panel</code></h3>
+    <div class="card">
+      <p><strong>Propósito de control:</strong> monitoreo diario del inventario bajo el alcance del rol.</p>
+      <ul>
+        <li>Franja de KPIs (volumen y calidad).</li>
+        <li>Donuts de estado de validación, estado del pozo y tipo de objetivo.</li>
+        <li>Rankings de concentración (operadoras / departamentos).</li>
+        <li>Sankey Departamento → Estado → Operadora/Validación.</li>
+        <li>Mapa territorial + tabla de detalle sincronizada.</li>
+        <li>Barra de filtros espaciales y de calidad.</li>
+      </ul>
+      <p>Dueños de uso: operadora (su perímetro), ANH (consolidado validado), admin (stewardship).</p>
+    </div>
+
+    <h3>3.2 Tablero de analítica gerencial — <code>/analitica</code> (rol ANH)</h3>
+    <div class="card">
+      <p><strong>Propósito de control:</strong> comparación estratégica de entidades vs nación.</p>
+      <ul>
+        <li>Selector de tema: Producción · Inyección · Perfil operativo · Portafolio.</li>
+        <li>Comparación operadora / departamento / municipio / pozo.</li>
+        <li>Radar índice 100 + barras de desviación.</li>
+        <li>Scatter de producción y heatmaps de ratio.</li>
+        <li>Exportación PDF del análisis vigente.</li>
+      </ul>
+    </div>
+
+    <h3>3.3 Tablero de calidad (Cuaderno) — <code>/calidad</code> (operadora)</h3>
+    <div class="card">
+      <p><strong>Propósito de control:</strong> seguimiento del ciclo de preparación y envío.</p>
+      <ul>
+        <li>Versiones draft/submitted y línea de eventos.</li>
+        <li>Resumen valid / warning / invalid por carga.</li>
+        <li>Lista de hallazgos accionables y exportación Excel.</li>
+        <li>Gate automático: no hay envío con pozos inválidos.</li>
+      </ul>
+    </div>
+
+    <h3>3.4 Tablero de stewardship — Administración</h3>
+    <div class="card">
+      <p><strong>Propósito de control:</strong> gobernanza de usuarios y trazabilidad, no decisión analítica nacional.</p>
+      <ul>
+        <li>Gestión de usuarios por rol.</li>
+        <li>Franja / consulta de <code>audit_log</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="matrices">
+    <h2>4. Matrices de seguimiento</h2>
+    <p>
+      Además de KPIs puntuales, VIP implementa matrices para ver <em>cruces</em> y desviaciones,
+      típicas del seguimiento gerencial.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Matriz</th><th>Dimensiones</th><th>Señal de seguimiento</th><th>Uso</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Heatmap analítico</td>
+          <td>Entidad / departamento × métrica del tema</td>
+          <td>Ratio vs nacional (umbrales 70/90/110/130)</td>
+          <td>Detectar focos por encima/debajo de la base</td>
+        </tr>
+        <tr>
+          <td>Sankey (matriz de flujos)</td>
+          <td>Depto × Estado × Operadora/Validación</td>
+          <td>Grosor = conteo de pozos</td>
+          <td>Seguir composición y rutas territoriales</td>
+        </tr>
+        <tr>
+          <td>Matriz de hallazgos de calidad</td>
+          <td>Pozo × campo × severidad × regla</td>
+          <td>Errores vs advertencias</td>
+          <td>Plan de corrección con operadoras</td>
+        </tr>
+        <tr>
+          <td>Matriz de completitud</td>
+          <td>% coords · % UWI · perfiles P/I/H/Activo</td>
+          <td>Proporciones del tema operativo</td>
+          <td>Brechas de información para control</td>
+        </tr>
+        <tr>
+          <td>Matriz de auditoría</td>
+          <td>Actor × acción × entidad × tiempo</td>
+          <td>Eventos de cambio/login</td>
+          <td>Seguimiento de gobernanza</td>
+        </tr>
+        <tr>
+          <td>Comparación entidad vs nación</td>
+          <td>Métrica × (baseline, comparación, Δ%)</td>
+          <td>Índice 100 y delta</td>
+          <td>Agenda de seguimiento ANH por entidad</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="herramientas">
+    <h2>5. Herramientas analíticas disponibles</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0">Exploración y control</h3>
+        <ul>
+          <li>Filtros cruzados (texto, estado, depto, operadora, validación, tipo objetivo).</li>
+          <li>Mapa interactivo con polígonos departamentales.</li>
+          <li>Selección en charts que reescribe el resto del tablero.</li>
+          <li>Tabla paginada + ficha de pozo (40 atributos).</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Análisis y difusión</h3>
+        <ul>
+          <li>Radar y deltas vs línea base nacional.</li>
+          <li>Scatter petróleo–agua–gas.</li>
+          <li>Heatmaps de ratio.</li>
+          <li>Exportes: PDF panel, PDF pozo (con satélite), PDF analítica, Excel de calidad.</li>
+        </ul>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Necesidad de gestión</th><th>Herramienta VIP</th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td>Ver el “tablero del día”</td><td>Panel + KPIs + mapa</td><td>Situación consolidada al instante</td></tr>
+        <tr><td>Comparar operadora/territorio vs país</td><td>Analítica ANH</td><td>Benchmark con índice 100</td></tr>
+        <tr><td>Priorizar correcciones de calidad</td><td>Cuaderno + Excel hallazgos</td><td>Lista accionable por regla/campo</td></tr>
+        <tr><td>Documentar para mesa/comité</td><td>PDF panel / analítica / pozo</td><td>Paquete de evidencia</td></tr>
+        <tr><td>Auditar cambios</td><td>audit_log admin</td><td>Trazabilidad de stewardship</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="seguimiento">
+    <h2>6. Ciclo de seguimiento que habilitan estos artefactos</h2>
+    <ol>
+      <li><strong>Captura y calidad</strong> — operadora carga; indicadores de validación del lote.</li>
+      <li><strong>Consolidación</strong> — solo lotes sin inválidos alimentan el tablero ANH.</li>
+      <li><strong>Monitoreo</strong> — panel y mapa para control territorial/operativo continuo.</li>
+      <li><strong>Diagnóstico</strong> — matrices heatmap/Sankey/hallazgos para ubicar focos.</li>
+      <li><strong>Comparación estratégica</strong> — analítica vs nación por tema.</li>
+      <li><strong>Decisión y archivo</strong> — PDF/Excel como insumos de seguimiento formal.</li>
+    </ol>
+    <div class="callout">
+      Así se cumple el diseño de un sistema de control: indicadores miden, tableros monitorean,
+      matrices explican cruces y desviaciones, y las herramientas analíticas cierran el ciclo con acción y reporte.
+    </div>
+  </section>
+
+  <section id="evidencia">
+    <h2>7. Evidencia de cumplimiento en la aplicación</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Entregable de diseño</th>
+          <th>Estado</th>
+          <th>Evidencia en producto</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Indicadores estratégicos definidos y calculados</td>
+          <td><span class="badge done">Cumple</span></td>
+          <td><code>/api/stats</code>, <code>/api/analytics</code>, temas en <code>analytics.ts</code></td>
+        </tr>
+        <tr>
+          <td>Tableros de control por rol</td>
+          <td><span class="badge done">Cumple</span></td>
+          <td><code>/panel</code>, <code>/analitica</code>, <code>/calidad</code>, admin</td>
+        </tr>
+        <tr>
+          <td>Matrices de seguimiento</td>
+          <td><span class="badge done">Cumple</span></td>
+          <td>Heatmaps, Sankey, hallazgos, auditoría, radar/deltas</td>
+        </tr>
+        <tr>
+          <td>Herramientas analíticas integradas</td>
+          <td><span class="badge done">Cumple</span></td>
+          <td>Filtros cruzados, mapa, charts, exportaciones PDF/Excel</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <strong>Síntesis para la revisión:</strong> VIP no presenta indicadores sueltos: implementa un
+      <em>sistema de control analítico</em> donde cada KPI tiene tablero, cada tablero tiene matrices de lectura
+      y cada hallazgo puede convertirse en reporte de seguimiento.
+    </div>
+  </section>
+</main>
+
+<footer>
+  Indicadores, tableros, matrices y herramientas analíticas — VIP Inventario de Pozos · 3 ago 2026 · Uso interno ANH.
+</footer>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Presentación general — VIP Inventario de Pozos ANH</title>
+<style>
+  :root {
+    --bg: #eef2f5; --surface: #fff; --ink: #142029; --muted: #5b6b75;
+    --border: #d5dee5; --accent: #0f3a4d; --teal: #1a6b7a; --orange: #e67a18;
+    --soft: #f4f8fa; --ok: #1b7f4a; --ok-bg: #e8f6ef; --warn: #9a6700; --warn-bg: #fff7df;
+    --fail: #b42318; --fail-bg: #fdecea;
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif; --max: 980px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); color: var(--ink); font-size: 15.2px; line-height: 1.58;
+    background: var(--bg);
+  }
+  .bar { height: 5px; background: linear-gradient(90deg, #ffe600, #ff8c00, #e8381a); }
+  header {
+    background: linear-gradient(118deg, #0f3a4d 0%, #176070 50%, #c45f12 125%);
+    color: #f7fbfd; padding: 2.4rem 1.5rem 2rem;
+  }
+  header .inner { max-width: var(--max); margin: 0 auto; }
+  .logo-row { display: flex; align-items: center; gap: 14px; margin-bottom: 1rem; }
+  .logo-row img { height: 48px; background: #fff; border-radius: 8px; padding: 4px 8px; }
+  .eyebrow {
+    margin: 0 0 .55rem; font-size: .72rem; font-weight: 800; letter-spacing: .16em;
+    text-transform: uppercase; color: #ffd9a8;
+  }
+  h1 { margin: 0; font-size: clamp(1.45rem, 3.3vw, 2.15rem); line-height: 1.15; max-width: 20ch; }
+  .lede { margin: .9rem 0 0; max-width: 48rem; color: rgba(247,251,253,.92); }
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.15rem; }
+  .chip {
+    font-size: .74rem; font-weight: 700; padding: .3rem .7rem; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+  }
+  nav.toc {
+    position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.95);
+    border-bottom: 1px solid var(--border); padding: .65rem 1.5rem;
+    overflow-x: auto; white-space: nowrap; backdrop-filter: blur(8px);
+  }
+  nav.toc a {
+    display: inline-block; margin-right: .85rem; font-size: .78rem; font-weight: 700;
+    color: var(--accent); text-decoration: none;
+  }
+  main { max-width: var(--max); margin: 0 auto; padding: 1.55rem 1.5rem 3.2rem; }
+  h2 {
+    margin: 2rem 0 .7rem; font-size: 1.28rem; color: var(--accent);
+    border-bottom: 3px solid var(--orange); padding-bottom: .35rem;
+  }
+  h3 { margin: 1.1rem 0 .4rem; font-size: 1.02rem; color: var(--accent); }
+  p, li { margin: .35rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: .7rem 0 1rem; }
+  th, td { border: 1px solid var(--border); padding: .48rem .55rem; text-align: left; vertical-align: top; }
+  th { background: #e9eef3; font-size: .78rem; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: .95rem 1.05rem; margin: .7rem 0; box-shadow: 0 1px 2px rgba(16,24,40,.04);
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: .75rem; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .7rem; }
+  .callout {
+    border-left: 4px solid var(--teal); background: var(--soft);
+    border-radius: 0 10px 10px 0; padding: .85rem 1rem; margin: .85rem 0;
+  }
+  .callout.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+  .shot {
+    margin: 1rem 0 1.35rem; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(16,24,40,.06);
+  }
+  .shot img { display: block; width: 100%; height: auto; }
+  .shot figcaption {
+    padding: .65rem .9rem; font-size: .82rem; color: var(--muted); border-top: 1px solid var(--border);
+  }
+  .flow {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: .45rem; margin: .85rem 0;
+  }
+  .flow .step {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: .65rem .45rem; text-align: center; font-size: .78rem; font-weight: 700; color: var(--accent);
+  }
+  .flow .step span {
+    display: block; font-size: .64rem; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .2rem;
+  }
+  .badge {
+    display: inline-block; font-size: .68rem; font-weight: 800; padding: .14rem .45rem;
+    border-radius: 999px; background: #e7f1f3; color: var(--accent);
+  }
+  footer {
+    max-width: var(--max); margin: 0 auto; padding: 0 1.5rem 2.3rem;
+    color: var(--muted); font-size: .8rem;
+  }
+  @media print {
+    nav.toc { position: static; }
+    body { background: #fff; }
+    header, .bar, th, .card, .callout, .flow .step, .shot {
+      -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    }
+    h2, .shot, .card, table { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <div class="inner">
+    <div class="logo-row">
+      <img src="presentacion-assets/anh-logo.png" alt="ANH" />
+      <div>
+        <p class="eyebrow" style="margin:0">Agencia Nacional de Hidrocarburos · Sistema GOP</p>
+      </div>
+    </div>
+    <h1>VIP — Validación Inventario de Pozos</h1>
+    <p class="lede">
+      Presentación ejecutiva de la aplicación web: justificación, objetivos, alcances, limitaciones,
+      usuarios, procesos y vistas principales para contextualizar rápidamente el producto.
+    </p>
+    <div class="chips">
+      <span class="chip">3 ago 2026</span>
+      <span class="chip">Piloto funcional</span>
+      <span class="chip">Next.js · TypeScript · SQLite</span>
+      <span class="chip">Roles: Operadora · ANH · Admin</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#que-es">Qué es</a>
+  <a href="#justificacion">Justificación</a>
+  <a href="#objetivos">Objetivos</a>
+  <a href="#alcances">Alcances</a>
+  <a href="#limitaciones">Limitaciones</a>
+  <a href="#usuarios">Usuarios</a>
+  <a href="#procesos">Procesos</a>
+  <a href="#vistas">Vistas</a>
+  <a href="#mensaje">Mensaje</a>
+</nav>
+
+<main>
+  <section id="que-es">
+    <h2>1. ¿Qué es VIP?</h2>
+    <p>
+      <strong>VIP (Validación Inventario de Pozos)</strong> es una aplicación web institucional que permite a las
+      operadoras cargar y validar su inventario Excel, generar identidad fiscal (UWI), enviar a la ANH un
+      consolidado trazable y habilitar a los funcionarios ANH un panel territorial y un módulo de analítica comparativa.
+    </p>
+    <div class="grid-3">
+      <div class="card"><strong>Para operadoras</strong><p>Cuaderno de calidad, hallazgos y envío gobernado.</p></div>
+      <div class="card"><strong>Para ANH</strong><p>Inventario consolidado, mapa, KPIs y benchmarking nacional.</p></div>
+      <div class="card"><strong>Para admin</strong><p>Usuarios y auditoría (stewardship), no decisión analítica.</p></div>
+    </div>
+  </section>
+
+  <section id="justificacion">
+    <h2>2. Justificación</h2>
+    <ul>
+      <li><strong>Fragmentación del dato:</strong> el inventario llega en Excel con calidad heterogénea entre operadoras.</li>
+      <li><strong>Costo de revisión manual:</strong> sin reglas automáticas, la validación y el UWI son lentos y poco trazables.</li>
+      <li><strong>Necesidad de lectura nacional:</strong> la ANH requiere consolidar, mapear y comparar territorios/operadoras.</li>
+      <li><strong>Base para mesa técnica / OTI:</strong> demostrar un piloto seguro de aplicación sobre el cual construir plataforma institucional.</li>
+    </ul>
+  </section>
+
+  <section id="objetivos">
+    <h2>3. Objetivos</h2>
+    <h3>General</h3>
+    <p>Disponer de una plataforma web que estandarice, valide, consolide y analice el inventario de pozos reportado a la ANH.</p>
+    <h3>Específicos</h3>
+    <ol>
+      <li>Automatizar la ingesta y estandarización del Excel oficial.</li>
+      <li>Aplicar un motor de calidad (~59 reglas) y generación/validación de UWI fiscalizado.</li>
+      <li>Versionar el trabajo de la operadora (cuaderno) hasta el envío.</li>
+      <li>Exponer tableros, matrices y analítica comparativa para la ANH.</li>
+      <li>Generar reportes Excel/PDF de calidad, panel, pozo y analítica.</li>
+    </ol>
+  </section>
+
+  <section id="alcances">
+    <h2>4. Alcances</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0">Incluye</h3>
+        <ul>
+          <li>Web app con autenticación por roles y sesión firmada.</li>
+          <li>Pipeline Excel → ETL → validación → cuaderno → envío.</li>
+          <li>Panel con KPIs, mapa, Sankey, rankings y tabla.</li>
+          <li>Analítica ANH (radar base-100, heatmaps, scatter, PDF).</li>
+          <li>Exportes de calidad y reportes PDF.</li>
+          <li>Documentación de cumplimiento, producción y metodologías.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0">Fuera de alcance del piloto</h3>
+        <ul>
+          <li>Integración Active Directory / MFA institucional.</li>
+          <li>Base de datos productiva no efímera (PostgreSQL ANH).</li>
+          <li>Modelos de machine learning en producción.</li>
+          <li>Flujos formales Ley 1581 / CSIRT.</li>
+          <li>Correo real a correspondencia ANH (hoy outbox simulado).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="limitaciones">
+    <h2>5. Limitaciones (declaración abierta)</h2>
+    <table>
+      <thead><tr><th>Limitación</th><th>Implicación</th></tr></thead>
+      <tbody>
+        <tr><td>SQLite en <code>/tmp</code> en Vercel</td><td>Datos del piloto pueden reiniciarse; no es producción oficial</td></tr>
+        <tr><td>Identidad local (no AD)</td><td>Puente de piloto; falta IdP institucional</td></tr>
+        <tr><td>Analítica descriptiva/comparativa</td><td>No hay forecasting ni ML desplegado</td></tr>
+        <tr><td>Rate limit por instancia</td><td>No sustituye WAF/perímetro OTI</td></tr>
+        <tr><td>Mockups de UI en este documento</td><td>Ilustran la experiencia; la app real puede variar en datos/layout fino</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      VIP está listo como <strong>piloto demostrable</strong> y base de trabajo con OTI; la producción institucional
+      requiere persistencia, identidad y gobierno de plataforma.
+    </div>
+  </section>
+
+  <section id="usuarios">
+    <h2>6. Usuarios</h2>
+    <table>
+      <thead><tr><th>Rol</th><th>Navegación</th><th>Responsabilidad principal</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge">Operadora</span></td><td>Panel · Cuaderno</td><td>Cargar Excel, corregir hallazgos, enviar inventario</td></tr>
+        <tr><td><span class="badge">ANH</span></td><td>Panel · Analítica</td><td>Consultar consolidado, comparar vs nación, exportar</td></tr>
+        <tr><td><span class="badge">Admin</span></td><td>Administración · Usuarios</td><td>Gestionar usuarios y revisar auditoría</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="procesos">
+    <h2>7. Procesos de negocio (vista rápida)</h2>
+    <div class="flow">
+      <div class="step"><span>01</span>Acceso por rol</div>
+      <div class="step"><span>02</span>Carga Excel</div>
+      <div class="step"><span>03</span>ETL + validación</div>
+      <div class="step"><span>04</span>Revisión hallazgos</div>
+      <div class="step"><span>05</span>Envío a ANH</div>
+      <div class="step"><span>06</span>Consolidación</div>
+      <div class="step"><span>07</span>Tablero / mapa</div>
+      <div class="step"><span>08</span>Analítica / reportes</div>
+    </div>
+    <ul>
+      <li><strong>Operadora:</strong> no puede enviar si existen pozos inválidos.</li>
+      <li><strong>ANH:</strong> analiza solo inventario validado enviado (más seed de referencia en piloto).</li>
+      <li><strong>Sistema:</strong> versiona cuadernos, audita cambios sensibles y recalcula indicadores con filtros.</li>
+    </ul>
+  </section>
+
+  <section id="vistas">
+    <h2>8. Vistas de la aplicación</h2>
+    <p class="muted" style="color:var(--muted);font-size:.9rem">
+      Imágenes ilustrativas de la interfaz (mockups fieles al branding y layout del producto) para lectura rápida.
+    </p>
+
+    <h3>8.1 Landing institucional</h3>
+    <figure class="shot">
+      <img src="presentacion-assets/screen-landing.png" alt="Landing VIP Inventario de Pozos" />
+      <figcaption>Portada: valor del sistema GOP, acceso al login y métricas de contexto del piloto.</figcaption>
+    </figure>
+
+    <h3>8.2 Acceso por rol</h3>
+    <figure class="shot">
+      <img src="presentacion-assets/screen-login.png" alt="Pantalla de login" />
+      <figcaption>Login con selector Operadora / ANH / Administrador y credenciales institucionales.</figcaption>
+    </figure>
+
+    <h3>8.3 Panel consolidado (tablero de control)</h3>
+    <figure class="shot">
+      <img src="presentacion-assets/screen-panel.png" alt="Panel consolidado" />
+      <figcaption>KPIs de calidad, mapa territorial, distribución de validación, rankings y tabla de pozos.</figcaption>
+    </figure>
+
+    <h3>8.4 Analítica ANH</h3>
+    <figure class="shot">
+      <img src="presentacion-assets/screen-analitica.png" alt="Módulo de analítica" />
+      <figcaption>Comparación vs línea base nacional (radar 100), deltas y heatmap de ratios.</figcaption>
+    </figure>
+
+    <h3>8.5 Cuaderno de la operadora</h3>
+    <figure class="shot">
+      <img src="presentacion-assets/screen-cuaderno.png" alt="Cuaderno de calidad" />
+      <figcaption>Flujo de carga, resumen valid/warning/invalid, hallazgos por regla y gate de envío.</figcaption>
+    </figure>
+  </section>
+
+  <section id="mensaje">
+    <h2>9. Mensaje de cierre</h2>
+    <div class="callout">
+      VIP concentra en una sola aplicación el ciclo <strong>cargar → estandarizar → validar → enviar → monitorear → comparar → reportar</strong>.
+      Es la base demostrable del inventario de pozos para conversar con OTI sobre persistencia, identidad institucional
+      y puesta en producción, sin perder la lógica de negocio ya construida.
+    </div>
+    <p><strong>Documentos complementarios en <code>docs/</code>:</strong> cumplimiento ANH-GTIC, guía de producción,
+      metodologías de analítica/IA, modelos matemáticos, automatización de datos e indicadores/tableros.</p>
+  </section>
+</main>
+
+<footer>
+  Presentación general VIP Inventario de Pozos · ANH / Sistema GOP · 3 ago 2026 · Uso interno.
+</footer>
+</body>
+</html>

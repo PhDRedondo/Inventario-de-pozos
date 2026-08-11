@@ -763,23 +763,25 @@ La UI incluye tour con `driver.js` (`lib/guided-tour.ts`) en panel y cuaderno.
 
 El ingreso demo **no envía contraseñas al navegador**: el cliente pide `{ demo: true }` y el servidor resuelve credenciales solo si `DEMO_LOGIN_ENABLED` lo permite.
 
-En desarrollo, por defecto el demo está activo (contraseña vía `DEMO_PASSWORD` o valor local de desarrollo). En producción debe quedar `DEMO_LOGIN_ENABLED=false` salvo demos controladas.
+En desarrollo (sin `.env.local`), el demo está activo con estos valores por defecto:
 
-| Perfil | Usuario / correo | Rol | Notas |
-|--------|------------------|-----|-------|
-| **Admin** | `johan.redondo@anh.gov.co` | admin | Gestión completa |
-| **ANH** | `funcionario` | anh | Panel + analítica |
-| **Operadora** | `demo` | operadora | Amerisur Exploración Colombia Andes (demo) |
+| Perfil | Usuario / correo | Contraseña (dev) | Rol |
+|--------|------------------|------------------|-----|
+| **Admin** | `johan.redondo@anh.gov.co` | `local-dev-admin-change-me` | admin |
+| **ANH** | `funcionario` | `local-demo-password` | anh |
+| **Operadora** | `demo` | `local-demo-password` | operadora |
 
-Inicio de sesión: [/login](http://localhost:3000/login) (formulario real + botón demo si está habilitado).
-
-Operadora demo completa:
+Operadora demo (campo completo):
 
 ```
 AMERISUR EXPLORACIÓN COLOMBIA ANDES OPERATING COMPANY LLC SUCURSAL COLOMBIA
 ```
 
-Anexo de controles pre-OTI: [`docs/hardening-pre-oti.html`](docs/hardening-pre-oti.html).
+En producción/mesa OTI: `DEMO_LOGIN_ENABLED=false` y definir `ANH_ADMIN_PASSWORD` / `DEMO_PASSWORD` por variables de entorno (no usar los defaults locales).
+
+Inicio de sesión: [/login](http://localhost:3000/login) (formulario + botón demo si está habilitado).
+
+Documentación: [`docs/presentacion-general-vip.html`](docs/presentacion-general-vip.html) · [`docs/hardening-pre-oti.html`](docs/hardening-pre-oti.html).
 
 ---
 
