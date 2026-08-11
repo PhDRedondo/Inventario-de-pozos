@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword, sessionCookieOptions } from "@/lib/auth-crypto";
-import { resolveLoginIdentity, writeAuditLog } from "@/lib/auth-db";
+import { initAuthSchema, resolveLoginIdentity, writeAuditLog } from "@/lib/auth-db";
 import { resolveLoginEmail, SESSION_COOKIE, createSessionToken } from "@/lib/auth";
 import { getServerDemoCredentials, isDemoLoginEnabled } from "@/lib/demo-auth-server";
 import { checkRateLimit, pruneRateLimitBuckets } from "@/lib/rate-limit";
+import { getDb } from "@/lib/db";
 import type { UserRole } from "@/lib/types";
 
 function clientKey(request: NextRequest): string {
@@ -13,8 +14,13 @@ function clientKey(request: NextRequest): string {
 }
 
 export async function POST(request: NextRequest) {
+  // Asegura usuarios + hashes del piloto antes de autenticar.
+  getDb();
+  initAuthSchema();
+
   pruneRateLimitBuckets();
-  const limit = checkRateLimit(clientKey(request), 10, 15 * 60 * 1000);
+  // Límite amplio para la mesa de revisión.
+  const limit = checkRateLimit(clientKey(request), 60, 15 * 60 * 1000);
   if (!limit.allowed) {
     return NextResponse.json(
       { error: "Demasiados intentos. Intente de nuevo más tarde." },
@@ -46,7 +52,8 @@ export async function POST(request: NextRequest) {
     operadora: body.operadora,
   };
 
-  if (body.demo) {
+  // Entrada de piloto: un clic con { demo: true } o sin password.
+  if (body.demo || !password) {
     if (!isDemoLoginEnabled()) {
       return NextResponse.json({ error: "Acceso demo deshabilitado" }, { status: 403 });
     }
@@ -85,7 +92,7 @@ export async function POST(request: NextRequest) {
     action: "auth.login.success",
     entityType: "auth",
     entityId: user.id,
-    after: { role: user.role, demo: Boolean(body.demo) },
+    after: { role: user.role, demo: Boolean(body.demo) || !body.password },
   });
 
   const token = createSessionToken(user.id);

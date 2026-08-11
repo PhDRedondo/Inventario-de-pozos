@@ -763,21 +763,19 @@ La UI incluye tour con `driver.js` (`lib/guided-tour.ts`) en panel y cuaderno.
 
 El ingreso demo **no envía contraseñas al navegador**: el cliente pide `{ demo: true }` y el servidor resuelve credenciales solo si `DEMO_LOGIN_ENABLED` lo permite.
 
-En desarrollo y piloto, la misma contraseña sirve para los tres roles (salvo que Vercel defina otras variables):
+En el piloto la contraseña es fija y visible en `/login`. Elija el rol y pulse **Ingresar** (no hay que escribirla):
 
-| Perfil | Usuario / correo | Contraseña | Rol |
-|--------|------------------|------------|-----|
-| **Admin** | `johan.redondo@anh.gov.co` | `local-demo-password` | admin |
-| **ANH** | `funcionario` | `local-demo-password` | anh |
-| **Operadora** | `demo` | `local-demo-password` | operadora |
+| Perfil | Usuario | Contraseña |
+|--------|---------|------------|
+| **Admin** | `johan.redondo@anh.gov.co` | `Anh2026!` |
+| **ANH** | `funcionario` | `Anh2026!` |
+| **Operadora** | `demo` | `Anh2026!` |
 
 Operadora demo (campo completo):
 
 ```
 AMERISUR EXPLORACIÓN COLOMBIA ANDES OPERATING COMPANY LLC SUCURSAL COLOMBIA
 ```
-
-En `/login` también aparece el botón **Ingreso demo** (activo por defecto; desactivar con `DEMO_LOGIN_ENABLED=false`).
 
 Documentación: [`docs/presentacion-general-vip.html`](docs/presentacion-general-vip.html) · [`docs/hardening-pre-oti.html`](docs/hardening-pre-oti.html).
 

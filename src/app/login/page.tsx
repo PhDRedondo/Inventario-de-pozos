@@ -10,21 +10,26 @@ import { sanitizeNextPath } from "@/lib/safe-redirect";
 import { useT } from "@/context/AppPreferences";
 import { useAuth } from "@/context/AuthContext";
 
-const ROLES: { id: UserRole; label: string; description: string }[] = [
+const PILOT_PASSWORD = "Anh2026!";
+
+const ROLES: { id: UserRole; label: string; description: string; howTo: string }[] = [
   {
     id: "operadora",
     label: "Operadora",
     description: "Carga, valida y envía el inventario de su operadora.",
+    howTo: "Usuario: demo",
   },
   {
     id: "anh",
     label: "ANH",
     description: "Consulta el inventario consolidado recibido de operadoras.",
+    howTo: "Usuario: funcionario",
   },
   {
     id: "admin",
     label: "Administrador",
     description: "Gestiona usuarios, edita y elimina registros con trazabilidad.",
+    howTo: "Correo: johan.redondo@anh.gov.co",
   },
 ];
 
@@ -37,22 +42,12 @@ function LoginForm() {
   const roleParam = searchParams.get("role") as UserRole | null;
 
   const [role, setRole] = useState<UserRole>("operadora");
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [operadora, setOperadora] = useState(DEMO_OPERADORA);
-  const [password, setPassword] = useState("");
-  const [demoEnabled, setDemoEnabled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const applyRole = useCallback((nextRole: UserRole) => {
     setRole(nextRole);
     setError(null);
-    const demo = getDemoCredentials(nextRole);
-    setEmail(demo.email ?? "");
-    setUsername(demo.username ?? "");
-    setOperadora(demo.operadora ?? DEMO_OPERADORA);
-    setPassword("");
   }, []);
 
   useEffect(() => {
@@ -61,31 +56,19 @@ function LoginForm() {
     }
   }, [roleParam, applyRole]);
 
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/auth/config")
-      .then((r) => r.json())
-      .then((data: { demoLoginEnabled?: boolean }) => {
-        if (!cancelled) setDemoEnabled(Boolean(data.demoLoginEnabled));
-      })
-      .catch(() => {
-        if (!cancelled) setDemoEnabled(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
+  const selected = ROLES.find((r) => r.id === role)!;
   const demo = getDemoCredentials(role);
 
-  async function submitLogin(payload: Record<string, unknown>) {
+  async function handleEnter(e?: React.FormEvent) {
+    e?.preventDefault();
     setLoading(true);
     setError(null);
     try {
+      // Entrada fija de piloto: el servidor resuelve usuario + Anh2026!
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ role, demo: true }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Error de autenticación");
@@ -98,21 +81,6 @@ function LoginForm() {
     } finally {
       setLoading(false);
     }
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    await submitLogin({
-      role,
-      email: role === "admin" ? email : undefined,
-      username: role !== "admin" ? username : undefined,
-      operadora: role === "operadora" ? operadora : undefined,
-      password,
-    });
-  }
-
-  async function handleDemoLogin() {
-    await submitLogin({ role, demo: true });
   }
 
   return (
@@ -131,10 +99,16 @@ function LoginForm() {
             priority
           />
           <h1 className="text-2xl font-bold text-anh-primary">Inventario de Pozos</h1>
-          <p className="mt-2 text-sm text-anh-muted">Sistema GOP — Acceso institucional</p>
+          <p className="mt-2 text-sm text-anh-muted">Sistema GOP — Acceso institucional (piloto)</p>
         </div>
 
         <div className="card p-6">
+          <div className="mb-4 rounded-lg border border-anh-secondary/40 bg-anh-secondary/10 px-4 py-3 text-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-anh-muted">Acceso fijo del piloto</p>
+            <p className="mt-1 font-semibold text-anh-primary">Contraseña para todos los roles: {PILOT_PASSWORD}</p>
+            <p className="mt-1 text-anh-muted">Elija el rol y pulse Ingresar. No necesita escribir nada.</p>
+          </div>
+
           <div className="mb-6 grid grid-cols-3 gap-2">
             {ROLES.map((r) => (
               <button
@@ -152,60 +126,16 @@ function LoginForm() {
             ))}
           </div>
 
-          <p className="mb-4 text-sm text-anh-muted">{ROLES.find((r) => r.id === role)?.description}</p>
+          <p className="mb-2 text-sm text-anh-muted">{selected.description}</p>
+          <p className="mb-4 text-sm font-medium text-anh-primary">
+            {selected.howTo}
+            {role === "operadora" ? (
+              <span className="mt-1 block text-xs font-normal text-anh-muted">{DEMO_OPERADORA}</span>
+            ) : null}
+            <span className="mt-1 block text-xs text-anh-muted">Cuenta: {demo.label}</span>
+          </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {role === "admin" ? (
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium text-anh-primary">Correo</span>
-                <input
-                  type="email"
-                  autoComplete="username"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-anh-border bg-white px-3 py-2"
-                />
-              </label>
-            ) : (
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium text-anh-primary">Usuario</span>
-                <input
-                  type="text"
-                  autoComplete="username"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full rounded-lg border border-anh-border bg-white px-3 py-2"
-                />
-              </label>
-            )}
-
-            {role === "operadora" && (
-              <label className="block text-sm">
-                <span className="mb-1 block font-medium text-anh-primary">Operadora</span>
-                <input
-                  type="text"
-                  required
-                  value={operadora}
-                  onChange={(e) => setOperadora(e.target.value)}
-                  className="w-full rounded-lg border border-anh-border bg-white px-3 py-2"
-                />
-              </label>
-            )}
-
-            <label className="block text-sm">
-              <span className="mb-1 block font-medium text-anh-primary">Contraseña</span>
-              <input
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg border border-anh-border bg-white px-3 py-2"
-              />
-            </label>
-
+          <form onSubmit={handleEnter} className="space-y-4">
             {error && (
               <p className="rounded-lg border border-anh-danger/30 bg-anh-danger/5 px-3 py-2 text-sm text-anh-danger">
                 {error}
@@ -213,26 +143,9 @@ function LoginForm() {
             )}
 
             <button type="submit" className="btn-primary w-full" disabled={loading}>
-              {loading ? t("auth.signingIn") : t("auth.signIn")}
+              {loading ? t("auth.signingIn") : `Ingresar como ${selected.label}`}
             </button>
           </form>
-
-          {demoEnabled && (
-            <div className="mt-4 border-t border-anh-border pt-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-anh-muted">
-                {t("auth.demoAccess")}
-              </p>
-              <p className="mb-3 text-sm text-anh-muted">{demo.label}</p>
-              <button
-                type="button"
-                className="btn-secondary w-full"
-                disabled={loading}
-                onClick={handleDemoLogin}
-              >
-                Ingreso demo ({ROLES.find((r) => r.id === role)?.label})
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
