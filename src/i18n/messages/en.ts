@@ -410,6 +410,11 @@ export const en = {
     validateVersion: "Validate and create version",
     uploadLabel: "New inventory version",
     uploadHint: "Each upload creates a numbered version in the notebook for full exercise traceability.",
+    wellCountLabel: "How many wells will you register?",
+    templateTitle: "Don't have the file? Download the template",
+    templateHint:
+      "Download an Excel template with the official headers, ready-to-fill rows and dropdown lists on fields with predefined values. Fill it in and upload it right here.",
+    downloadTemplateCount: "Download template ({{count}} wells)",
     exportVersion: "Export this version report",
     newNotebook: "New notebook",
     started: "New notebook started.",

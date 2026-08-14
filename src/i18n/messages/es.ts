@@ -418,6 +418,11 @@ export const es = {
     validateVersion: "Validar y crear versión",
     uploadLabel: "Nueva versión del inventario",
     uploadHint: "Cada carga genera una versión numerada dentro del cuaderno para trazabilidad del ejercicio.",
+    wellCountLabel: "¿Cuántos pozos va a registrar?",
+    templateTitle: "¿No tiene el archivo? Descargue la plantilla",
+    templateHint:
+      "Descargue una plantilla en Excel con los encabezados oficiales, filas listas para diligenciar y listas desplegables en los campos con valores predeterminados. Complétela y cárguela aquí mismo.",
+    downloadTemplateCount: "Descargar plantilla ({{count}} pozos)",
     exportVersion: "Exportar informe de esta versión",
     newNotebook: "Nuevo cuaderno",
     started: "Cuaderno nuevo iniciado.",

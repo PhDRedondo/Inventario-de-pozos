@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Upload } from "lucide-react";
+import { ArrowLeft, Download, Upload } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getAttributeLabel } from "@/lib/attributes";
 import { PageHeader } from "@/components/ui";
@@ -73,6 +73,7 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
   const [filter, setFilter] = useState<FindingFilter>("all");
   const [file, setFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [templateRows, setTemplateRows] = useState(10);
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -176,6 +177,16 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
     }
     setError(null);
     setFile(next);
+  }
+
+  function downloadTemplate() {
+    const safeRows = Math.min(500, Math.max(1, Math.floor(templateRows) || 1));
+    const params = new URLSearchParams({ rows: String(safeRows) });
+    if (isAdmin && detail) params.set("operadora", detail.notebook.operadora);
+    const anchor = document.createElement("a");
+    anchor.href = `/api/notebooks/template?${params.toString()}`;
+    anchor.rel = "noopener";
+    anchor.click();
   }
 
   async function handleUpload(e: React.FormEvent) {
@@ -395,6 +406,36 @@ export function NotebookWorkspace({ notebookId, operadora, isAdmin = false }: No
             onSubmit={handleUpload}
             className={`mt-4 space-y-3 border-t border-anh-border pt-4 ${operatorBrand ? "operator-upload-card" : ""}`}
           >
+            <div className="rounded-lg border border-anh-border bg-anh-bg/60 p-3">
+              <p className="text-sm font-semibold text-anh-primary">{t("notebook.templateTitle")}</p>
+              <p className="mt-1 text-xs text-anh-muted">{t("notebook.templateHint")}</p>
+              <div className="mt-2 flex flex-wrap items-end gap-2">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-anh-muted">
+                    {t("notebook.wellCountLabel")}
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    className="input-field w-28"
+                    value={templateRows}
+                    onChange={(e) => setTemplateRows(Number(e.target.value))}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary inline-flex items-center gap-2"
+                  onClick={downloadTemplate}
+                >
+                  <Download className="h-4 w-4" />
+                  {t("notebook.downloadTemplateCount", {
+                    count: String(Math.min(500, Math.max(1, Math.floor(templateRows) || 1))),
+                  })}
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="mb-1 block text-sm font-semibold">
                 {operatorBrand

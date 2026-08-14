@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Download, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { RoleWorkflowSteps, roleWorkflowIntro } from "@/components/RoleWorkflowSteps";
 import { PageHeader } from "@/components/ui";
@@ -43,7 +43,18 @@ export function NotebookInventory({
   const [creating, setCreating] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [title, setTitle] = useState("");
+  const [wellCount, setWellCount] = useState(10);
   const [error, setError] = useState<string | null>(null);
+
+  function downloadTemplate(rows: number) {
+    const safeRows = Math.min(500, Math.max(1, Math.floor(rows) || 1));
+    const params = new URLSearchParams({ rows: String(safeRows) });
+    if (isAdmin && operadora) params.set("operadora", operadora);
+    const anchor = document.createElement("a");
+    anchor.href = `/api/notebooks/template?${params.toString()}`;
+    anchor.rel = "noopener";
+    anchor.click();
+  }
 
   const loadNotebooks = useCallback(async () => {
     if (!operadora) {
@@ -140,15 +151,43 @@ export function NotebookInventory({
         <div className="card mb-4 p-4">
           <h3 className="mb-3 font-bold text-anh-primary">{t("notebook.createNotebook")}</h3>
           <form onSubmit={handleCreate} className="space-y-3">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-anh-muted">{t("notebook.titleLabel")}</label>
-              <input
-                className="input-field"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={t("notebook.titlePlaceholder")}
-              />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-anh-muted">{t("notebook.titleLabel")}</label>
+                <input
+                  className="input-field"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("notebook.titlePlaceholder")}
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-anh-muted">
+                  {t("notebook.wellCountLabel")}
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={500}
+                  className="input-field"
+                  value={wellCount}
+                  onChange={(e) => setWellCount(Number(e.target.value))}
+                />
+              </div>
             </div>
+
+            <div className="rounded-lg border border-anh-border bg-anh-bg/60 p-3">
+              <p className="text-xs text-anh-muted">{t("notebook.templateHint")}</p>
+              <button
+                type="button"
+                className="btn-secondary mt-2 inline-flex items-center gap-2"
+                onClick={() => downloadTemplate(wellCount)}
+              >
+                <Download className="h-4 w-4" />
+                {t("notebook.downloadTemplateCount", { count: String(Math.min(500, Math.max(1, Math.floor(wellCount) || 1))) })}
+              </button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <button type="submit" className="btn-primary" disabled={creating}>
                 {creating ? t("common.loading") : t("notebook.createAndOpen")}

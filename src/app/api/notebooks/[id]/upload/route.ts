@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { EXCEL_SPECIAL_COLUMN_BINDINGS } from "@/lib/attributes";
 import { EXCEL_COLUMN_MAP } from "@/lib/catalogs";
+import { TEMPLATE_SPECIAL_COLUMN_MAP } from "@/lib/template-columns";
 import { resolveDaneCodes } from "@/lib/db";
 import { requireRole, requireSession } from "@/lib/auth-scope";
 import { sanitizeSpanishText } from "@/lib/geo";
@@ -23,6 +24,14 @@ function parseExcelRow(row: Record<string, unknown>): WellRecord {
   for (const { excelHeader, key } of EXCEL_SPECIAL_COLUMN_BINDINGS) {
     const value = row[excelHeader] ?? (key === "coord_bogota_y" ? row["Unnamed: 29"] : undefined)
       ?? (key === "iny_dias" ? row["DIAS ACUMULADOS "] : undefined);
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      (record as Record<string, string | null>)[key] = String(value);
+    }
+  }
+
+  // Encabezados limpios de la plantilla descargable (coordenadas e inyección).
+  for (const [templateHeader, key] of Object.entries(TEMPLATE_SPECIAL_COLUMN_MAP)) {
+    const value = row[templateHeader];
     if (value !== undefined && value !== null && String(value).trim() !== "") {
       (record as Record<string, string | null>)[key] = String(value);
     }
