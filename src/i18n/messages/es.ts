@@ -502,11 +502,15 @@ export const es = {
     architectureTitle: "Arquitectura",
     architectureBody: "Aplicación monolítica full-stack con capas bien separadas:",
     architectureItems:
-      "Presentación: Next.js App Router, React 19, Tailwind CSS, componentes reutilizables (mapa Leaflet, gráficos Recharts).|API REST interna: rutas en /api para pozos, estadísticas, cargas, validaciones y catálogos.|Lógica de negocio: validación por reglas, generación UWI, ETL geográfico y filtros cruzados.|Persistencia: SQLite (better-sqlite3) con tablas wells, validation_issues, uploads y catálogos en seed.json.|Geo: polígonos departamentales/municipales (GeoJSON) y mapas base OSM/Carto.",
+      "Presentación: Next.js App Router, React 19, Tailwind CSS, componentes reutilizables (mapa Leaflet, gráficos Recharts).|API REST interna: rutas en /api para pozos, estadísticas, cargas, validaciones, catálogos y generación de plantillas.|Lógica de negocio (src/lib): validación por reglas, generación UWI, ETL geográfico y filtros cruzados.|Plantilla del cuaderno: notebook-template.ts (ExcelJS) y template-columns.ts, definición de columnas compartida con el parser de carga para round-trip.|Persistencia: SQLite (better-sqlite3) con tablas wells, validation_issues, uploads, notebooks y catálogos en seed.json.|Geo: polígonos departamentales/municipales (GeoJSON) y mapas base OSM/Carto.",
     stackTitle: "Stack tecnológico",
     stackBody: "Componentes y librerías principales:",
     stackItems:
-      "Next.js 16 · TypeScript · React 19|SQLite (better-sqlite3) · ExcelJS / xlsx para importación|Leaflet / react-leaflet · Recharts · driver.js (visita guiada)|jsPDF + html2canvas (informe PDF por pozo)|i18n ES/EN · tema claro/oscuro",
+      "Next.js 16.2 · TypeScript · React 19.2|SQLite (better-sqlite3 12) · ExcelJS (generación) / xlsx (lectura)|Leaflet / react-leaflet · Recharts · driver.js (visita guiada)|jsPDF + html2canvas (informe PDF por pozo)|i18n ES/EN · tema claro/oscuro",
+    securityTitle: "Seguridad y control de acceso",
+    securityBody: "Controles vigentes en el módulo (visibles solo para el perfil administrador):",
+    securityItems:
+      "Sesión por cookie anh_session firmada con HMAC (SESSION_SECRET); middleware verifica cada petición y protege todo salvo rutas públicas.|Autorización por rol: requireSession() + requireRole() en cada endpoint sensible; el rol ANH solo ve inventario validado.|Alcance de datos: buildScopeClause() filtra los pozos por operadora y estado (los borradores no salen del cuaderno).|Carga de archivos: upload-security.ts valida tipo y tamaño del Excel antes de parsear.|Auditoría: audit_log registra acciones administrativas (edición/eliminación de pozos, envíos).|Secretos por entorno: SESSION_SECRET y ANH_ADMIN_PASSWORD; el acceso demo nunca envía contraseñas al navegador.",
     uwiTitle: "UWI fiscalizado",
     uwiBody:
       "El identificador único se construye según el instructivo ANH (abril 2026): códigos DANE de departamento y municipio, sigla de operadora, número de pozo, clúster, ángulo, trayectoria, objetivo y terminación. El sistema lo calcula en carga y lo expone en consultas e informes.",
@@ -530,7 +534,7 @@ export const es = {
       processTitle: "Su flujo de trabajo",
       processBody: "El recorrido recomendado dentro de VIP es:",
       processItems:
-        "Diligencie el Excel oficial (hoja FORMATO INVENTARIO POZOS) con los datos de sus pozos.|Cree un cuaderno de inventario y cargue el archivo; el sistema valida y asigna UWI fiscalizado.|Revise errores y advertencias; ajuste el Excel y cargue una nueva versión hasta obtener cero errores.|Aplique el envío a la ANH; recibirá confirmación y su inventario quedará visible en el panel institucional.",
+        "Cree un cuaderno, indique cuántos pozos registrará y descargue la plantilla Excel con encabezados oficiales y listas desplegables.|Diligencie la plantilla (o su Excel oficial) con los datos de sus pozos.|Cargue el archivo en el cuaderno; el sistema valida y asigna UWI fiscalizado.|Revise errores y advertencias; ajuste el Excel y cargue una nueva versión hasta obtener cero errores.|Aplique el envío a la ANH; recibirá confirmación y su inventario quedará visible en el panel institucional.",
       modulesTitle: "Secciones que utiliza",
       modulesBody: "Como operadora, VIP le ofrece dos áreas principales:",
       modulesItems:
@@ -538,7 +542,7 @@ export const es = {
       notebookTitle: "Cuaderno de inventario",
       notebookBody: "El cuaderno concentra la preparación y el envío de cada ejercicio de reporte:",
       notebookItems:
-        "Cree un cuaderno con un nombre identificable (por ejemplo, inventario del trimestre).|Cada carga genera una versión numerada con trazabilidad de validación.|Consulte la línea de tiempo del cuaderno: creación, cargues, validaciones y aplicación.|Exporte el informe de calidad de una versión para compartir observaciones con su equipo.|Cuando no haya errores, use «Aplicar envío a ANH» para publicar el inventario.",
+        "Cree un cuaderno con un nombre identificable (por ejemplo, inventario del trimestre).|Descargue la plantilla del cuaderno con el número de pozos que va a registrar; trae selectores en los campos con valores predeterminados.|Cada carga genera una versión numerada con trazabilidad de validación.|Consulte la línea de tiempo del cuaderno: creación, cargues, validaciones y aplicación.|Exporte el informe de calidad de una versión para compartir observaciones con su equipo.|Cuando no haya errores, use «Aplicar envío a ANH» para publicar el inventario.",
       validationTitle: "Calidad de datos y observaciones",
       validationBody: "Durante la validación el sistema clasifica hallazgos por severidad:",
       validationItems:

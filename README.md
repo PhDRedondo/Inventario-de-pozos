@@ -2,13 +2,17 @@
 
 Sistema web de la **Agencia Nacional de Hidrocarburos (ANH)** para la recepción, validación, consolidación y consulta del inventario de pozos reportado por operadoras. Implementa el flujo institucional del **Sistema de Gestión de Operaciones y Producción (GOP)**, con asignación de **UWI fiscalizado** según el instructivo ANH (abril 2026).
 
+También se le conoce por su sigla interna: **VIP — Validador del Inventario de Pozos**.
+
 **Repositorio:** [github.com/PhDRedondo/Inventario-de-pozos](https://github.com/PhDRedondo/Inventario-de-pozos)
 
 | Capa | Tecnología |
 |------|------------|
-| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
-| Backend | API Routes (mismo proceso Node.js) |
-| Base de datos | SQLite (`better-sqlite3`) |
+| Frontend | Next.js 16.2 (App Router), React 19.2, Tailwind CSS 4 |
+| Backend | API Routes (mismo proceso Node.js — sin servicio aparte) |
+| Base de datos | SQLite (`better-sqlite3` 12) |
+| Excel | Lectura con `xlsx` (SheetJS) · generación/exportación con `ExcelJS` |
+| Mapas / PDF | Leaflet + GeoJSON · `jsPDF` |
 | i18n | Español (por defecto) / English |
 | Despliegue | Vercel (SQLite efímero en `/tmp`) |
 
@@ -18,6 +22,11 @@ Sistema web de la **Agencia Nacional de Hidrocarburos (ANH)** para la recepción
 
 - [Resumen ejecutivo](#resumen-ejecutivo)
 - [Arquitectura del sistema](#arquitectura-del-sistema)
+  - [Vista de capas](#vista-de-capas)
+  - [Ciclo de una petición](#ciclo-de-una-petición)
+  - [Módulos principales](#módulos-principales)
+- [Recorrido funcional de extremo a extremo](#recorrido-funcional-de-extremo-a-extremo)
+- [Plantilla descargable del cuaderno](#plantilla-descargable-del-cuaderno)
 - [Flujo de carga Excel y validación](#flujo-de-carga-excel-y-validación)
 - [Cuadernos de inventario (versiones y trazabilidad)](#cuadernos-de-inventario-versiones-y-trazabilidad)
 - [Autenticación, roles y rutas](#autenticación-roles-y-rutas)
@@ -46,83 +55,185 @@ Sistema web de la **Agencia Nacional de Hidrocarburos (ANH)** para la recepción
 
 El sistema cubre el ciclo completo del inventario de pozos:
 
-1. La **operadora** crea un **cuaderno de inventario**, carga versiones del Excel oficial y corrige hallazgos hasta obtener **cero errores** en la versión activa.
-2. Al **aplicar el envío a la ANH**, el lote pasa de `draft` a `submitted`, queda visible en el panel institucional y se genera un paquete en `data/outbox/` (simulación de correo a `correspondenciaanh@anh.gov.co`).
-3. **Funcionarios ANH** consultan el inventario **ya validado** en el panel y profundizan en **analítica comparativa** (radar, mapas térmicos, nubes de producción).
-4. El **administrador** gestiona usuarios y puede operar cuadernos en nombre de cualquier operadora.
+1. La **operadora** crea un **cuaderno de inventario**, indica cuántos pozos va a registrar y **descarga una plantilla Excel** con los encabezados oficiales, listas desplegables y filas listas para diligenciar.
+2. Carga versiones del Excel diligenciado y **corrige hallazgos** hasta obtener **cero pozos inválidos** en la versión activa.
+3. Al **aplicar el envío a la ANH**, el lote pasa de `draft` a `submitted`, queda visible en el panel institucional y se genera un paquete en `data/outbox/` (simulación de correo a `correspondenciaanh@anh.gov.co`).
+4. **Funcionarios ANH** consultan el inventario **ya validado** en el panel y profundizan en **analítica comparativa** (radar, mapas térmicos, nubes de producción).
+5. El **administrador** gestiona usuarios y puede operar cuadernos en nombre de cualquier operadora.
 
-Los **40 atributos** del formato Excel están centralizados en `src/lib/attributes.ts` (29 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado).
+Los **40 atributos** del formato Excel están centralizados en `src/lib/catalogs.ts` (temas) y `src/lib/attributes.ts` (29 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado). La misma definición alimenta el **formulario, la validación, la plantilla descargable y el parser de carga**, de modo que las cuatro caras del sistema nunca se desincronizan.
 
 ---
 
 ## Arquitectura del sistema
 
-Vista de capas: una sola aplicación Next.js full-stack; no hay microservicios ni cola de mensajes externa.
+Una sola aplicación **Next.js full-stack**: el frontend (React) y el backend (API Routes) viven en el mismo proceso. No hay microservicios, colas de mensajes ni servicios externos; la persistencia es un archivo SQLite local.
+
+### Vista de capas
 
 ```mermaid
 flowchart TB
-  subgraph Cliente["Cliente (navegador)"]
-    UI["Páginas React<br/>/panel · /calidad · /analitica"]
-    Prefs["Preferencias<br/>tema · idioma ES/EN"]
+  subgraph Cliente["🖥️  Cliente (navegador)"]
+    UI["Páginas React<br/>/ · /panel · /calidad · /analitica"]
+    CTX["Contextos<br/>AuthContext · AppPreferences (tema, ES/EN)"]
   end
 
-  subgraph NextJS["Next.js 16 — App Router"]
-    MW["middleware.ts<br/>cookie de sesión"]
+  subgraph Edge["🛡️  Borde"]
+    MW["src/middleware.ts<br/>Verifica cookie anh_session<br/>Deja pasar rutas públicas"]
+  end
+
+  subgraph App["⚙️  Next.js 16 — App Router (Node.js)"]
     Pages["app/**/page.tsx<br/>Server + Client Components"]
-    API["app/api/**/route.ts<br/>REST handlers"]
+    API["app/api/**/route.ts<br/>Handlers REST"]
   end
 
-  subgraph Dominio["Capa de dominio (src/lib)"]
-    Auth["auth.ts · auth-db.ts · auth-scope.ts"]
-    DB["db.ts — pozos, uploads, stats"]
-    NB["notebook-db.ts — cuadernos, eventos"]
-    VAL["validation.ts · validation-findings.ts"]
-    UWI["uwi.ts — generación fiscalizada"]
-    XLS["xlsx / ExcelJS — lectura y export"]
-    Mail["mail.ts — outbox simulado"]
+  subgraph Dominio["🧠  Capa de dominio — src/lib (SQL directo, sin ORM)"]
+    Auth["auth · auth-db · auth-scope<br/>sesión, usuarios, alcance por rol"]
+    DB["db · notebook-db<br/>pozos, cargues, cuadernos, eventos"]
+    VAL["validation · validation-findings<br/>etl · uwi<br/>reglas + UWI fiscalizado"]
+    XLSX["xlsx (lectura)<br/>notebook-template + ExcelJS (generación)<br/>export-calidad / export-upload"]
+    MAIL["mail<br/>outbox simulado"]
   end
 
-  subgraph Persistencia["Persistencia"]
-    SQLite[("SQLite<br/>data/inventario.db<br/>o /tmp en Vercel")]
+  subgraph Datos["💾  Persistencia y recursos"]
+    SQLite[("SQLite<br/>data/inventario.db<br/>(o /tmp en Vercel)")]
+    Seed["data/seed.json<br/>~70 pozos + catálogos DANE"]
     Outbox["data/outbox/<br/>correo + Excel simulados"]
     Geo["public/geo/<br/>GeoJSON Colombia"]
-    Seed["data/seed.json<br/>~70 pozos + catálogos"]
   end
 
-  UI --> Pages
-  UI --> API
-  Prefs --> UI
-  MW --> Pages
-  MW --> API
+  UI --> MW --> Pages
+  UI -->|fetch| MW --> API
+  CTX --> UI
   Pages --> API
-  API --> Auth
-  API --> DB
-  API --> NB
-  API --> VAL
-  DB --> SQLite
-  NB --> SQLite
+  API --> Auth & DB & VAL & XLSX & MAIL
   Auth --> SQLite
-  VAL --> UWI
-  API --> XLS
-  API --> Mail
-  Mail --> Outbox
+  DB --> SQLite
   DB --> Seed
+  VAL --> DB
+  MAIL --> Outbox
   Pages --> Geo
+```
+
+> **Regla de oro del diseño:** toda la lógica de negocio vive en `src/lib`. Las páginas y los `route.ts` son capas delgadas que autentican, delegan al dominio y serializan la respuesta.
+
+### Ciclo de una petición
+
+```mermaid
+sequenceDiagram
+  participant B as Navegador
+  participant MW as middleware.ts
+  participant R as route.ts (API)
+  participant S as auth-scope.ts
+  participant L as src/lib (dominio)
+  participant DB as SQLite
+
+  B->>MW: HTTP + cookie anh_session
+  alt Ruta pública
+    MW-->>R: continúa sin sesión
+  else Ruta protegida
+    MW->>MW: valida firma HMAC de la cookie
+    MW-->>B: 401 / redirect a /login (si inválida)
+    MW->>R: continúa (si válida)
+  end
+  R->>S: requireSession() + requireRole()
+  S-->>R: usuario y rol (o 401/403)
+  R->>L: llamada de dominio (validar, guardar, generar…)
+  L->>DB: SQL (better-sqlite3, síncrono)
+  DB-->>L: filas
+  L-->>R: resultado tipado
+  R-->>B: JSON o archivo (.xlsx / .pdf)
 ```
 
 ### Módulos principales
 
 | Módulo | Ubicación | Responsabilidad |
 |--------|-----------|-----------------|
-| **Autenticación** | `auth.ts`, `auth-db.ts`, `auth-scope.ts` | Sesión por cookie firmada, usuarios, `audit_log`, alcance de datos por rol |
-| **Pozos y cargues** | `db.ts` | CRUD de pozos, lotes (`uploads`), informes de validación, filtros del panel |
+| **Autenticación** | `auth.ts`, `auth-db.ts`, `auth-scope.ts` | Sesión por cookie firmada (HMAC), usuarios, `audit_log`, alcance de datos por rol |
+| **Pozos y cargues** | `db.ts` | CRUD de pozos, lotes (`uploads`), informes de validación, filtros del panel, códigos DANE |
 | **Cuadernos** | `notebook-db.ts` | Ciclo de vida del cuaderno, versiones, timeline de eventos |
 | **Validación** | `validation.ts` | Reglas de negocio por pozo; catálogos desde `seed.json` |
+| **ETL / normalización** | `etl.ts` | Reparación de codificación, canonización de departamento/municipio, códigos DANE |
 | **Hallazgos** | `validation-findings.ts` | Conteo y filtrado de issues (error / warning / info) |
 | **UWI** | `uwi.ts` | Generación y validación según instructivo abril 2026 |
+| **Plantilla** | `notebook-template.ts`, `template-columns.ts` | Genera la plantilla `.xlsx` con selectores; define columnas compartidas con el parser |
+| **Excel (export)** | `export-calidad.ts`, `export-upload.ts` | Informes de calidad y de versión en Excel |
 | **Analítica** | `analytics.ts`, `analytics-db.ts` | Temas, radar comparativo, entidades |
+| **Correo** | `mail.ts` | Paquete simulado en `data/outbox/` al aplicar envío |
 | **UI cuaderno** | `NotebookInventory.tsx`, `NotebookWorkspace.tsx` | Inventario de cuadernos y workspace con trazabilidad |
 | **i18n** | `i18n/messages/es.ts`, `en.ts` | Traducciones; locale en `localStorage` |
+
+---
+
+## Recorrido funcional de extremo a extremo
+
+Vista única del camino feliz, desde que la operadora inicia hasta que la ANH consulta el dato validado.
+
+```mermaid
+flowchart LR
+  subgraph OP["👷 Operadora"]
+    A1["Crear cuaderno<br/>+ nº de pozos"]
+    A2["Descargar<br/>plantilla .xlsx"]
+    A3["Diligenciar<br/>en Excel"]
+    A4["Cargar versión"]
+    A5{"¿0 pozos<br/>inválidos?"}
+    A6["Aplicar<br/>envío a ANH"]
+  end
+  subgraph SYS["⚙️ Sistema"]
+    B1["Validación<br/>determinista"]
+    B2["Paquete en<br/>data/outbox/"]
+  end
+  subgraph ANH["🏛️ ANH"]
+    C1["Panel<br/>(inventario validado)"]
+    C2["Analítica<br/>comparativa"]
+  end
+
+  A1 --> A2 --> A3 --> A4 --> B1 --> A5
+  A5 -->|No: corregir| A3
+  A5 -->|Sí| A6 --> B2 --> C1 --> C2
+```
+
+---
+
+## Plantilla descargable del cuaderno
+
+Para que la operadora **no tenga que adivinar el formato**, el sistema genera bajo demanda una plantilla Excel lista para diligenciar. Es el mismo archivo que luego se vuelve a cargar: descargar → diligenciar → cargar.
+
+```mermaid
+sequenceDiagram
+  actor Op as Operadora
+  participant UI as Crear cuaderno / NotebookWorkspace
+  participant API as GET /api/notebooks/template?rows=N
+  participant GEN as notebook-template.ts (ExcelJS)
+  participant CAT as getCatalogs() (seed.json)
+
+  Op->>UI: Indica «¿cuántos pozos?» (N)
+  Op->>UI: Clic «Descargar plantilla (N pozos)»
+  UI->>API: rows=N (+ operadora si admin)
+  API->>GEN: buildNotebookTemplate({ rows, operadora })
+  GEN->>CAT: Opciones de cada catálogo
+  GEN-->>API: .xlsx (hojas INVENTARIO · Listas · Instrucciones)
+  API-->>Op: Descarga del archivo
+  Note over Op: Diligencia en Excel y vuelve a cargar<br/>(mismo archivo, parser lo reconoce)
+```
+
+**Qué contiene el archivo generado** (`notebook-template.ts`):
+
+| Hoja | Contenido |
+|------|-----------|
+| **INVENTARIO** | Encabezados oficiales del formato ANH y **N filas** listas para diligenciar. Operadora **prellenada**. |
+| **Listas** (oculta) | Una columna por catálogo; las celdas de INVENTARIO referencian estos rangos como **listas desplegables**. |
+| **Instrucciones** | Cómo diligenciar, campos obligatorios y que los códigos DANE / UWI se calculan al cargar. |
+
+- **Selectores (data validation):** 14 columnas de catálogo (estado del pozo, tipo de pozo, operadora, contrato, campo AVM, departamento, municipio, formaciones…) se despliegan desde la hoja `Listas`.
+- **Obligatorios:** resaltados en naranja + nota «Campo obligatorio». No se marca con `*` en el encabezado, porque el texto del encabezado es la **llave que usa el parser** para mapear cada columna a su atributo.
+- **Columnas compartidas:** `template-columns.ts` define las columnas una sola vez y las usan tanto el **generador** como el **parser de carga**. Las 29 columnas ya mapeadas reutilizan los encabezados oficiales; las 10 columnas especiales (coordenadas e inyección) usan encabezados limpios registrados en `TEMPLATE_SPECIAL_COLUMN_MAP`, de modo que la plantilla **hace round-trip** al recargarse.
+- **Municipio:** lista completa del catálogo DANE (sin cascada dependiente del departamento) por robustez en Excel; la validación al cargar corrige lo que no coincida.
+
+Puntos de descarga (misma función en dos lugares):
+
+- **Al crear el cuaderno** — campo «¿Cuántos pozos va a registrar?» + botón «Descargar plantilla (N pozos)».
+- **En la página del cuaderno** (`/calidad/[id]`) — bloque «¿No tiene el archivo? Descargue la plantilla», justo encima de la zona de carga.
 
 ---
 
@@ -135,22 +246,26 @@ sequenceDiagram
   actor Op as Operadora / Admin
   participant UI as NotebookWorkspace
   participant API as POST /api/notebooks/[id]/upload
+  participant SEC as upload-security.ts
   participant XLS as xlsx (parser)
-  participant DB as saveUploadBatch()
+  participant ETL as etl.ts (normaliza)
+  participant DB as addNotebookVersion()
   participant VAL as validateWell()
   participant SQL as SQLite
 
   Op->>UI: Selecciona archivo .xlsx
   UI->>API: multipart/form-data (file)
+  API->>SEC: validateExcelUpload() (tipo, tamaño)
   API->>XLS: Lee hoja INVENTARIO
-  XLS->>API: WellRecord[] (parseExcelRow)
-  API->>DB: addNotebookVersion()
+  XLS->>API: filas crudas → parseExcelRow()
+  API->>ETL: normaliza depto/municipio + códigos DANE
+  API->>DB: addNotebookVersion(records)
   loop Por cada pozo
     DB->>VAL: validateWell(record)
     VAL-->>DB: ValidationResult + issues
     DB->>SQL: INSERT wells + validation_issues
   end
-  DB->>SQL: UPDATE uploads (totales + error_issues, warning_issues, info_issues)
+  DB->>SQL: UPDATE uploads (totales + error/warning/info_issues)
   DB->>SQL: INSERT notebook_events (upload)
   API-->>UI: version, summary, results
   UI->>UI: Actualiza timeline y detalle de hallazgos
@@ -168,7 +283,7 @@ sequenceDiagram
 
 | Severidad | Efecto en el pozo | Bloquea aplicar envío |
 |-----------|-------------------|------------------------|
-| `error` | Pozos inválidos (`invalid_records`) | Sí — la versión activa debe tener 0 pozos inválidos |
+| `error` | Pozos inválidos (`invalid_records`) | **Sí** — la versión activa debe tener 0 pozos inválidos |
 | `warning` | Pozos con advertencias | No |
 | `info` | Informativo (p. ej. diferencia UWI SGC vs fiscalizado) | No |
 
@@ -182,7 +297,7 @@ Un **cuaderno** agrupa el ejercicio de inventario de una operadora. Cada carga E
 stateDiagram-v2
   [*] --> active: Crear cuaderno
   active --> active: Cargar versión N (draft)
-  active --> submitted: Aplicar envío (0 errores)
+  active --> submitted: Aplicar envío (0 pozos inválidos)
   submitted --> archived: Crear nuevo cuaderno activo
   active --> archived: Crear nuevo cuaderno activo
 
@@ -202,17 +317,19 @@ stateDiagram-v2
 ```mermaid
 flowchart LR
   subgraph Cuaderno["Cuaderno activo (/calidad/[id])"]
+    T["Plantilla<br/>GET /api/notebooks/template"]
     V1["Versión 1<br/>upload draft"]
     V2["Versión 2<br/>upload draft"]
     TL["Timeline<br/>notebook_events"]
     HF["Detalle hallazgos<br/>filtrado por uploadId"]
   end
 
+  T -.->|diligenciar y cargar| V1
   V1 -.-> TL
   V2 --> TL
   V2 --> HF
   HF --> API2["GET /api/validations?uploadId="]
-  V2 -->|versión activa sin errores| SUB["POST .../submit"]
+  V2 -->|versión activa sin pozos inválidos| SUB["POST .../submit"]
   SUB --> Panel["Panel /panel<br/>pozos submitted"]
 ```
 
@@ -229,7 +346,7 @@ Solo puede haber **un cuaderno activo** por operadora. Al crear uno nuevo, el an
 
 ### Cuaderno demo automático
 
-Para la operadora demo (`DEMO_OPERADORA`), `ensureDemoNotebook()` crea en la primera instancia un cuaderno **«Cuaderno demo — inventario de prueba»** con 2 pozos sintéticos que igualmente pasan por `validateWell()`. Las cargas reales del usuario (p. ej. «DEMO base prueba inventario pozos.xlsx») son independientes y generan versiones adicionales.
+Para la operadora demo (`DEMO_OPERADORA`), `ensureDemoNotebook()` crea en la primera instancia un cuaderno **«Cuaderno demo — inventario de prueba»** con 2 pozos sintéticos que igualmente pasan por `validateWell()`. Las cargas reales del usuario son independientes y generan versiones adicionales.
 
 ---
 
@@ -237,20 +354,20 @@ Para la operadora demo (`DEMO_OPERADORA`), `ensureDemoNotebook()` crea en la pri
 
 ```mermaid
 flowchart TD
-  REQ["Petición HTTP"] --> PUB{Ruta pública?}
-  PUB -->|Sí| OK["Continuar"]
-  PUB -->|No| COOKIE{Cookie anh_session válida?}
-  COOKIE -->|No| API401["API → 401 JSON"]
-  COOKIE -->|No| REDIR["Página → /login?next="]
+  REQ["Petición HTTP"] --> PUB{"¿Ruta pública?"}
+  PUB -->|Sí| OK["Continuar sin sesión"]
+  PUB -->|No| COOKIE{"¿Cookie anh_session válida?"}
+  COOKIE -->|No, API| API401["401 JSON"]
+  COOKIE -->|No, página| REDIR["Redirige a /login?next="]
   COOKIE -->|Sí| HANDLER["Handler API / página"]
-  HANDLER --> ROLE{requireRole en API}
+  HANDLER --> ROLE{"requireRole en API"}
   ROLE -->|Sin permiso| DENY["403 No autorizado"]
-  ROLE -->|OK| SCOPE["buildDataScope()<br/>filtra por operadora / submitted"]
+  ROLE -->|OK| SCOPE["Alcance de datos<br/>filtra por operadora / estado submitted"]
 ```
 
 ### Rutas públicas (sin sesión)
 
-Definidas en `middleware.ts`:
+Definidas en `src/middleware.ts`:
 
 - `/` — landing
 - `/login`
@@ -288,7 +405,7 @@ Implementado en `buildScopeClause()` (`db.ts`):
 | `/login` | Inicio de sesión |
 | `/panel` | Dashboard principal (mapa, KPIs, Sankey, tabla) |
 | `/calidad` | Inventario de cuadernos |
-| `/calidad/[id]` | Workspace: versiones, trazabilidad, hallazgos, cargue |
+| `/calidad/[id]` | Workspace: descarga de plantilla, versiones, trazabilidad, hallazgos, cargue |
 | `/analitica` | Analítica comparativa (ANH y admin) |
 | `/admin/usuarios` | CRUD de usuarios (admin) |
 | `/registrar` | Formulario manual de un pozo (validación en línea) |
@@ -388,7 +505,7 @@ El esquema evoluciona con `ensureColumn()` y `CREATE TABLE IF NOT EXISTS` al ini
 
 | Rol | Menú | Alcance de datos | Acciones clave |
 |-----|------|------------------|----------------|
-| **Operadora** | Panel · Cuaderno | Solo su operadora; panel sin borradores | Crear cuaderno, cargar Excel, corregir, aplicar envío |
+| **Operadora** | Panel · Cuaderno | Solo su operadora; panel sin borradores | Crear cuaderno, descargar plantilla, cargar Excel, corregir, aplicar envío |
 | **ANH** | Panel · Analítica | Inventario consolidado validado | Consulta, analítica comparativa, export PDF |
 | **Admin** | Panel · Cuaderno · Analítica · Usuarios | Acceso completo | Todo lo anterior + CRUD usuarios + cuadernos por operadora |
 
@@ -399,7 +516,7 @@ El esquema evoluciona con `ensureColumn()` y `CREATE TABLE IF NOT EXISTS` al ini
 ### Operadora
 
 ```
-Crear cuaderno → Cargar Excel → Validar (versiones) → Corregir errores → Aplicar a ANH
+Crear cuaderno → Descargar plantilla → Diligenciar → Cargar (versiones) → Corregir → Aplicar a ANH
 ```
 
 - Rutas: `/calidad` (listado) y `/calidad/[id]` (trabajo).
@@ -436,7 +553,7 @@ Motor en `src/lib/validation.ts`. Reglas activas (~59 comprobaciones según `get
 | **Condicionales** | Campos AVM si «SE MANTIENE» / «MODIFIC»; sistema de levantamiento si productor |
 | **Numéricos** | Producción e inyección acumulada |
 | **Coordenadas** | Planas (Bogotá, nacional) y geográficas (lat/long) |
-| **UWI fiscalizado** | Generación automática + 18 reglas del instructivo (`uwi.ts`) |
+| **UWI fiscalizado** | Generación automática + reglas del instructivo (`uwi.ts`) |
 | **Consistencia** | Comparación UWI SGC vs fiscalizado (severidad `info`) |
 
 **Estructura UWI fiscalizado:**
@@ -491,7 +608,7 @@ Visualizaciones: radar comparativo (base = 100 nacional), barras de delta, nube 
 
 ## Landing pública
 
-La ruta `/` es pública (`middleware.ts`) y funciona como vitrina institucional del VIP. Componentes principales:
+La ruta `/` es pública (`src/middleware.ts`) y funciona como vitrina institucional del VIP. Componentes principales:
 
 | Componente | Archivo | Comportamiento |
 |------------|---------|----------------|
@@ -500,7 +617,7 @@ La ruta `/` es pública (`middleware.ts`) y funciona como vitrina institucional 
 | **Flujo GOP** | `page.tsx` | Tres pasos del ciclo institucional (carga → validación → envío) |
 | **Portales por rol** | `LandingRoles.tsx` | Banda oscura con dos paneles interactivos (Operadora / Funcionario ANH), puente animado operadora→ANH, chips de capacidades y CTA a `/login?role=` o al panel si hay sesión |
 
-Navegación con sesión activa: el logo ANH en `AppSidebar` y el header móvil (`AppShell`) enlazan a `/` **sin cerrar sesión** (antes redirigía siempre a `/panel`).
+Navegación con sesión activa: el logo ANH en `AppSidebar` y el header móvil (`AppShell`) enlazan a `/` **sin cerrar sesión**.
 
 ---
 
@@ -589,8 +706,6 @@ vercel login
 ./scripts/vercel-deploy.sh
 ```
 
-O doble clic en `Desplegar-Vercel-ANH.command` (macOS).
-
 ```mermaid
 flowchart LR
   subgraph Vercel["Vercel Serverless"]
@@ -610,56 +725,63 @@ flowchart LR
 
 ```
 inventario-pozos-anh/
-├── docs/
-│   └── guia-produccion-anh.html   # Plan detallado puesta en producción institucional
+├── docs/                          # Documentación institucional (HTML autocontenido)
+│   ├── guia-produccion-anh.html   #   Plan de puesta en producción
+│   ├── presentacion-general-vip.html
+│   ├── revision-cumplimiento-anh-gtic.html
+│   └── ... (analítica, IA/ML, hardening OTI)
 ├── data/
-│   ├── seed.json              # ~70 pozos + catálogos oficiales
-│   ├── inventario.db          # Generada localmente (gitignored)
-│   └── outbox/                # Correos y Excel simulados al aplicar envío
+│   ├── seed.json                  # ~70 pozos + catálogos oficiales (DANE)
+│   ├── inventario.db              # Generada localmente (gitignored)
+│   └── outbox/                    # Correos y Excel simulados al aplicar envío
 ├── public/
-│   ├── geo/                   # GeoJSON departamentos y municipios
-│   └── anh-logo.*             # Identidad visual ANH
+│   ├── geo/                       # GeoJSON departamentos y municipios
+│   └── anh-logo.*                 # Identidad visual ANH
 ├── scripts/
 │   ├── github-setup.sh
 │   ├── vercel-deploy.sh
 │   └── test-uwi.ts
 ├── src/
-│   ├── app/                   # App Router
-│   │   ├── page.tsx           # Landing
+│   ├── middleware.ts              # Verificación de sesión + rutas públicas
+│   ├── app/                       # App Router
+│   │   ├── page.tsx               # Landing pública
 │   │   ├── login/
-│   │   ├── panel/             # Dashboard principal
-│   │   ├── calidad/           # Inventario de cuadernos
-│   │   ├── calidad/[id]/      # Workspace del cuaderno
-│   │   ├── analitica/         # Analítica global
-│   │   ├── admin/usuarios/    # Administración de usuarios
-│   │   ├── registrar/         # Alta manual de pozo
-│   │   └── api/               # REST (ver tabla API)
+│   │   ├── panel/                 # Dashboard principal
+│   │   ├── calidad/               # Inventario de cuadernos
+│   │   ├── calidad/[id]/          # Workspace del cuaderno
+│   │   ├── analitica/             # Analítica global
+│   │   ├── admin/usuarios/        # Administración de usuarios
+│   │   ├── registrar/             # Alta manual de pozo
+│   │   └── api/                   # REST (ver tabla API)
 │   ├── components/
-│   │   ├── NotebookWorkspace.tsx   # Cuaderno: versiones, timeline, hallazgos
-│   │   ├── NotebookInventory.tsx
-│   │   ├── LandingCapabilities.tsx # Landing: pestañas de capacidades (auto 3 s)
-│   │   ├── LandingRoles.tsx        # Landing: portales operadora / ANH
+│   │   ├── NotebookWorkspace.tsx      # Cuaderno: plantilla, versiones, timeline, hallazgos
+│   │   ├── NotebookInventory.tsx      # Listado + crear cuaderno + descargar plantilla
+│   │   ├── LandingCapabilities.tsx    # Landing: pestañas de capacidades (auto 3 s)
+│   │   ├── LandingRoles.tsx           # Landing: portales operadora / ANH
 │   │   ├── WellsMap.tsx · WellsSankeyChart.tsx
 │   │   └── AppShell.tsx · AppSidebar.tsx
 │   ├── context/
 │   │   ├── AuthContext.tsx
-│   │   └── AppPreferences.tsx      # Tema + i18n
+│   │   └── AppPreferences.tsx         # Tema + i18n
 │   ├── hooks/
 │   ├── i18n/
 │   │   └── messages/es.ts · en.ts
-│   ├── lib/
-│   │   ├── attributes.ts      # 40 atributos del formato
-│   │   ├── catalogs.ts        # Mapa columnas Excel
-│   │   ├── db.ts              # SQLite, pozos, uploads, panel
-│   │   ├── notebook-db.ts     # Cuadernos, versiones, eventos
-│   │   ├── validation.ts        # Reglas de validación
-│   │   ├── validation-findings.ts
-│   │   ├── uwi.ts
-│   │   ├── analytics.ts · analytics-db.ts
-│   │   ├── auth.ts · auth-db.ts · auth-scope.ts
-│   │   ├── mail.ts            # Outbox simulado
-│   │   └── paths.ts           # data/ vs /tmp
-│   └── middleware.ts
+│   └── lib/
+│       ├── attributes.ts          # Atributos del formato + columnas especiales
+│       ├── catalogs.ts            # Temas, campos y mapa de columnas Excel
+│       ├── template-columns.ts    # Columnas de la plantilla (compartidas con el parser)
+│       ├── notebook-template.ts   # Generación de la plantilla .xlsx (ExcelJS)
+│       ├── db.ts                  # SQLite, pozos, uploads, panel, DANE
+│       ├── notebook-db.ts         # Cuadernos, versiones, eventos
+│       ├── validation.ts          # Reglas de validación
+│       ├── validation-findings.ts # Conteo/filtrado de hallazgos
+│       ├── etl.ts                 # Normalización geográfica y de codificación
+│       ├── uwi.ts                 # UWI fiscalizado
+│       ├── export-calidad.ts · export-upload.ts
+│       ├── analytics.ts · analytics-db.ts
+│       ├── auth.ts · auth-db.ts · auth-scope.ts
+│       ├── mail.ts                # Outbox simulado
+│       └── paths.ts               # data/ vs /tmp
 ├── vercel.json
 └── package.json
 ```
@@ -677,6 +799,7 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 | `/api/auth/login` | POST | Público | Inicio de sesión |
 | `/api/auth/logout` | POST | Autenticado | Cerrar sesión |
 | `/api/auth/me` | GET | Autenticado | Usuario actual |
+| `/api/auth/config` | GET | Público | Config de login (demo habilitado, etc.) |
 
 ### Cuadernos e inventario
 
@@ -684,6 +807,7 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 |----------|--------|-------|-------------|
 | `/api/notebooks` | GET | operadora, admin | Listar cuadernos |
 | `/api/notebooks` | POST | operadora, admin | Crear cuaderno |
+| `/api/notebooks/template` | GET | operadora, admin | **Descargar plantilla `.xlsx`** (`?rows=N`, con selectores) |
 | `/api/notebooks/[id]` | GET | operadora, admin | Detalle, versiones, eventos |
 | `/api/notebooks/[id]/upload` | POST | operadora, admin | Cargar Excel (multipart) |
 | `/api/notebooks/[id]/submit` | POST | operadora, admin | Aplicar inventario a ANH |
@@ -700,8 +824,10 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 | `/api/wells` | GET/POST | Según scope | Listado / alta manual |
 | `/api/wells/[id]` | GET/PATCH/DELETE | admin | Detalle y edición |
 | `/api/wells/map` | GET | Autenticado | Puntos para mapa |
-| `/api/upload` | POST | Legacy carga directa | |
-| `/api/uploads/[id]/submit` | POST | Legacy envío | |
+| `/api/wells/map-image` | GET | Autenticado | Imagen del mapa (informes) |
+| `/api/upload` | POST | Legacy | Carga directa |
+| `/api/uploads/[id]/submit` | POST | Legacy | Envío |
+| `/api/uploads/latest` | GET | Autenticado | Último cargue |
 | `/api/uwi/preview` | POST | Autenticado | Vista previa UWI |
 
 \* Rol ANH: solo uploads `submitted`/`processed` y pozos `valid`/`warning`.
@@ -723,6 +849,7 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 |----------|--------|-------|-------------|
 | `/api/admin/users` | GET/POST | admin | Listar / crear usuarios |
 | `/api/admin/users/[id]` | PATCH/DELETE | admin | Actualizar / desactivar |
+| `/api/admin/audit` | GET | admin | Registro de auditoría |
 
 ---
 
@@ -733,16 +860,18 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 - **App Router** de Next.js: páginas en `src/app/`, lógica de negocio en `src/lib/` (sin capa ORM; SQL directo con `better-sqlite3`).
 - **Componentes cliente** (`"use client"`) para interactividad; datos iniciales vía `fetch` a API routes.
 - **i18n**: claves en `i18n/messages/`; usar `useT()` en componentes; español por defecto.
-- **Atributos del inventario**: siempre referenciar etiquetas vía `getAttributeLabel()` / `attributes.ts`.
+- **Atributos del inventario**: siempre referenciar etiquetas vía `getAttributeLabel()` / `attributes.ts`. La plantilla y el parser comparten `template-columns.ts` para no desincronizarse.
+
+> ⚠️ **Nota del repo (`AGENTS.md`):** esta versión de Next.js puede traer cambios de API respecto a lo conocido. Consulta las guías en `node_modules/next/dist/docs/` antes de escribir código nuevo.
 
 ### Estilo de commits (observado en el repo)
 
 Mensajes en inglés, imperativo, enfocados en el *porqué*:
 
 ```
+Add downloadable notebook template with dropdowns and well-count flow.
 Align notebook traceability counts with validation findings.
 Scope notebook findings to the selected upload version.
-Fix empty notebook validation findings for draft upload versions.
 ```
 
 ### Pruebas locales útiles
@@ -806,7 +935,7 @@ Incluye:
 - Roadmap por fases: gobernanza → migración repo → PostgreSQL → staging → SSO → correo → go-live
 - Checklist maestro, riesgos, variables de entorno y estimación de esfuerzo
 
-> Complementa la sección [Despliegue en Vercel](#despliegue-en-vercel) y [Limitaciones](#limitaciones-y-próximos-pasos) con el plan institucional completo.
+> Complementa las secciones [Despliegue en Vercel](#despliegue-en-vercel) y [Limitaciones](#limitaciones-y-próximos-pasos) con el plan institucional completo.
 
 ---
 
@@ -817,7 +946,7 @@ Incluye:
 | **Persistencia Vercel** | SQLite en `/tmp`, no durable | Migrar a base gestionada |
 | **Correo** | Simulado en `data/outbox/` | Integrar SMTP institucional |
 | **Autenticación** | Usuarios locales (demo) | SSO / LDAP ANH |
-| **ControlDoc** | Export Excel manual | Automatizar si la ANH lo requiere |
+| **Plantilla — cascada municipio** | Lista completa sin dependencia del departamento | Listas dependientes (INDIRECT) si se requiere |
 | **Migraciones DB** | `ensureColumn` ad hoc | Herramienta de migraciones versionadas |
 | **Producción institucional** | Demo en Vercel + repo personal | Ver [`docs/guia-produccion-anh.html`](docs/guia-produccion-anh.html) |
 

@@ -494,11 +494,15 @@ export const en = {
     architectureTitle: "Architecture",
     architectureBody: "Full-stack monolithic application with clear layers:",
     architectureItems:
-      "Presentation: Next.js App Router, React 19, Tailwind CSS, reusable components (Leaflet map, Recharts charts).|Internal REST API: /api routes for wells, stats, uploads, validations, and catalogs.|Business logic: rule-based validation, UWI generation, geographic ETL, and cross-filters.|Persistence: SQLite (better-sqlite3) with wells, validation_issues, uploads tables and catalogs in seed.json.|Geo: departmental/municipal polygons (GeoJSON) and OSM/Carto base maps.",
+      "Presentation: Next.js App Router, React 19, Tailwind CSS, reusable components (Leaflet map, Recharts charts).|Internal REST API: /api routes for wells, stats, uploads, validations, catalogs, and template generation.|Business logic (src/lib): rule-based validation, UWI generation, geographic ETL, and cross-filters.|Notebook template: notebook-template.ts (ExcelJS) and template-columns.ts, with the column definition shared with the upload parser for round-trip.|Persistence: SQLite (better-sqlite3) with wells, validation_issues, uploads, notebooks tables and catalogs in seed.json.|Geo: departmental/municipal polygons (GeoJSON) and OSM/Carto base maps.",
     stackTitle: "Technology stack",
     stackBody: "Main components and libraries:",
     stackItems:
-      "Next.js 16 · TypeScript · React 19|SQLite (better-sqlite3) · ExcelJS / xlsx for import|Leaflet / react-leaflet · Recharts · driver.js (guided tour)|jsPDF + html2canvas (per-well PDF report)|ES/EN i18n · light/dark theme",
+      "Next.js 16.2 · TypeScript · React 19.2|SQLite (better-sqlite3 12) · ExcelJS (generation) / xlsx (reading)|Leaflet / react-leaflet · Recharts · driver.js (guided tour)|jsPDF + html2canvas (per-well PDF report)|ES/EN i18n · light/dark theme",
+    securityTitle: "Security and access control",
+    securityBody: "Controls in place for this module (visible to the administrator profile only):",
+    securityItems:
+      "Session via HMAC-signed anh_session cookie (SESSION_SECRET); middleware verifies every request and protects everything except public routes.|Role authorization: requireSession() + requireRole() on every sensitive endpoint; the ANH role only sees validated inventory.|Data scope: buildScopeClause() filters wells by operator and status (drafts never leave the notebook).|File upload: upload-security.ts validates the Excel type and size before parsing.|Auditing: audit_log records administrative actions (well edits/deletes, submissions).|Per-environment secrets: SESSION_SECRET and ANH_ADMIN_PASSWORD; demo login never sends passwords to the browser.",
     uwiTitle: "Fiscal UWI",
     uwiBody:
       "The unique identifier is built per the ANH guideline (April 2026): DANE department and municipality codes, operator acronym, well number, cluster, angle, trajectory, objective, and completion. The system computes it on intake and exposes it in queries and reports.",
@@ -522,7 +526,7 @@ export const en = {
       processTitle: "Your workflow",
       processBody: "The recommended path within VIP is:",
       processItems:
-        "Complete the official Excel (FORMATO INVENTARIO POZOS sheet) with your well data.|Create an inventory notebook and upload the file; the system validates and assigns fiscal UWI.|Review errors and warnings; adjust the Excel and upload a new version until you have zero errors.|Apply submission to ANH; you receive confirmation and your inventory appears on the institutional dashboard.",
+        "Create a notebook, state how many wells you will register, and download the Excel template with official headers and dropdown lists.|Fill in the template (or your official Excel) with your well data.|Upload the file to the notebook; the system validates and assigns fiscal UWI.|Review errors and warnings; adjust the Excel and upload a new version until you have zero errors.|Apply submission to ANH; you receive confirmation and your inventory appears on the institutional dashboard.",
       modulesTitle: "Sections you use",
       modulesBody: "As an operator, VIP offers two main areas:",
       modulesItems:
@@ -530,7 +534,7 @@ export const en = {
       notebookTitle: "Inventory notebook",
       notebookBody: "The notebook focuses preparation and submission for each reporting exercise:",
       notebookItems:
-        "Create a notebook with a recognizable name (e.g. quarterly inventory).|Each upload generates a numbered version with validation traceability.|Review the notebook timeline: creation, uploads, validations, and application.|Export a version's quality report to share observations with your team.|When there are no errors, use «Apply submission to ANH» to publish the inventory.",
+        "Create a notebook with a recognizable name (e.g. quarterly inventory).|Download the notebook template for the number of wells you will register; it includes dropdowns on fields with predefined values.|Each upload generates a numbered version with validation traceability.|Review the notebook timeline: creation, uploads, validations, and application.|Export a version's quality report to share observations with your team.|When there are no errors, use «Apply submission to ANH» to publish the inventory.",
       validationTitle: "Data quality and observations",
       validationBody: "During validation the system classifies findings by severity:",
       validationItems:
