@@ -1,0 +1,175 @@
+{
+  "count": 2,
+  "rows": [
+    {
+      "fields": {
+        "pozo_existente_avm": "SE MANTIENE",
+        "operadora": "HOCOL S.A.",
+        "contrato": "ABANICO",
+        "campo_avm": "ABANICO",
+        "pozo_formacion_avm": null,
+        "pozo_avm": null,
+        "formacion_avm": null,
+        "formacion_forma_9sh": null,
+        "formacion_ruty": null,
+        "yacimiento_ruty": null,
+        "tipo_angulo": "H (horizontal)",
+        "tipo_trayectoria": "ST (Sidetrack)",
+        "tipo_objetivo": "P (Productor)",
+        "tipo_terminacion": "LR (Liner Ranurado)",
+        "sistema_levantamiento": "Gas Lift",
+        "clasificacion_lahee": null,
+        "nombre_pozo_forma_6cr": null,
+        "nombre_pozo_sgc": "RUBIALES 323",
+        "uwi_sgc": null,
+        "estado_pozo": "Activo",
+        "departamento": "META",
+        "municipio": "PUERTO GAITÁN",
+        "locacion_cluster": "AMBAR 116",
+        "coord_bogota_x": "1000000.5",
+        "coord_bogota_y": null,
+        "coord_nacional_x": null,
+        "coord_nacional_y": null,
+        "longitud": "-71.5",
+        "latitud": "4.2",
+        "prod_dias": null,
+        "prod_petroleo": "12345",
+        "prod_agua": null,
+        "prod_gas": null,
+        "iny_dias": null,
+        "iny_agua": "500",
+        "iny_gas": null,
+        "iny_otros": null,
+        "codigo_dane_depto": "50",
+        "codigo_dane_muni": "50568"
+      },
+      "uwi": "50568RUBI0323AM0116HSTP-LR",
+      "validation_status": "invalid",
+      "error_count": 1,
+      "warning_count": 3,
+      "issues": [
+        {
+          "field": "pozo_avm",
+          "severity": "warning",
+          "rule": "conditional_required",
+          "message": "Para registros de mantenimiento o modificación se recomienda diligenciar el atributo \"Pozo AVM\"."
+        },
+        {
+          "field": "formacion_avm",
+          "severity": "warning",
+          "rule": "conditional_required",
+          "message": "Para registros de mantenimiento o modificación se recomienda diligenciar el atributo \"Formación AVM\"."
+        },
+        {
+          "field": "pozo_formacion_avm",
+          "severity": "warning",
+          "rule": "conditional_required",
+          "message": "Para registros de mantenimiento o modificación se recomienda diligenciar el atributo \"Pozo formación AVM\"."
+        },
+        {
+          "field": "uwi_fiscalizado",
+          "severity": "error",
+          "rule": "uwi_format",
+          "message": "El UWI \"50568RUBI0323AM0116HSTP-LR\" no cumple la estructura del instructivo."
+        }
+      ]
+    },
+    {
+      "fields": {
+        "pozo_existente_avm": null,
+        "operadora": "GEOPARK COLOMBIA S.A.S.",
+        "contrato": null,
+        "campo_avm": null,
+        "pozo_formacion_avm": null,
+        "pozo_avm": null,
+        "formacion_avm": null,
+        "formacion_forma_9sh": null,
+        "formacion_ruty": null,
+        "yacimiento_ruty": null,
+        "tipo_angulo": null,
+        "tipo_trayectoria": null,
+        "tipo_objetivo": null,
+        "tipo_terminacion": null,
+        "sistema_levantamiento": null,
+        "clasificacion_lahee": null,
+        "nombre_pozo_forma_6cr": null,
+        "nombre_pozo_sgc": null,
+        "uwi_sgc": null,
+        "estado_pozo": null,
+        "departamento": null,
+        "municipio": null,
+        "locacion_cluster": null,
+        "coord_bogota_x": null,
+        "coord_bogota_y": null,
+        "coord_nacional_x": null,
+        "coord_nacional_y": null,
+        "longitud": null,
+        "latitud": null,
+        "prod_dias": null,
+        "prod_petroleo": null,
+        "prod_agua": null,
+        "prod_gas": null,
+        "iny_dias": null,
+        "iny_agua": null,
+        "iny_gas": null,
+        "iny_otros": null,
+        "codigo_dane_depto": null,
+        "codigo_dane_muni": null
+      },
+      "uwi": null,
+      "validation_status": "invalid",
+      "error_count": 8,
+      "warning_count": 0,
+      "issues": [
+        {
+          "field": "pozo_existente_avm",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"¿Pozo existente en AVM ANH?\" es obligatorio."
+        },
+        {
+          "field": "contrato",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Contrato según AVM ANH\" es obligatorio."
+        },
+        {
+          "field": "campo_avm",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Campo AVM\" es obligatorio."
+        },
+        {
+          "field": "nombre_pozo_sgc",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Nombre pozo (SGC)\" es obligatorio."
+        },
+        {
+          "field": "estado_pozo",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Estado del pozo\" es obligatorio."
+        },
+        {
+          "field": "departamento",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Departamento\" es obligatorio."
+        },
+        {
+          "field": "municipio",
+          "severity": "error",
+          "rule": "required",
+          "message": "El atributo \"Municipio\" es obligatorio."
+        },
+        {
+          "field": "nombre_pozo_sgc",
+          "severity": "error",
+          "rule": "uwi_nombre",
+          "message": "Se requiere el nombre del pozo para generar el UWI fiscalizado."
+        }
+      ]
+    }
+  ]
+}

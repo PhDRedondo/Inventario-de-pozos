@@ -14,8 +14,8 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 
 | Proyecto | Rol |
 |---|---|
-| `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/UwiGenerator.cs`), **validación** (`Validation/WellValidator.cs`) y **ETL geográfico** (`Etl/WellEtl.cs`, `Geo/GeographyResolver.cs`). Sin dependencias. |
-| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core) mapeado al esquema `[vip]`, `DbCatalogProvider` y `DbGeographyResolver` (catálogos/DANE desde SQL Server). |
+| `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
+| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`), `DbCatalogProvider`, `DbGeographyResolver` y **`ExcelSheetReader`** (lectura de Excel con ClosedXML). |
 | `src/Anh.Vip.Api` | Web API mínima: `/health` y `POST /api/uwi/preview`. |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
@@ -83,12 +83,22 @@ hallazgos `etl_geography` / `etl_encoding` / `catalog_geography`.
 > y rompe `String.Normalize(FormD)`, del que depende quitar tildes en la
 > canonización. Detectado por la paridad del ETL (nombres con tildes).
 
+## Módulo portado: ingesta de Excel
+
+`Excel/ExcelColumnMap.cs` (port de `parseExcelRow` + los tres mapas de columnas)
+convierte una fila en un pozo; `Infrastructure/Excel/ExcelSheetReader.cs` lee la
+hoja INVENTARIO con ClosedXML replicando `sheet_to_json` (encabezados en la fila
+1, `__EMPTY`/sufijos para vacíos y duplicados). `Ingest/WellIngestor.cs` compone
+el pipeline completo — parseo → ETL → códigos DANE → validación — igual que
+`saveWell`/`saveUploadBatch`, incluido el filtro de filas (OPERADORA presente y
+sin «LISTA»).
+
 ## Estado de verificación
 
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **21/21 pruebas superadas**:
+- ✅ **`dotnet test`:** **23/23 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -96,6 +106,10 @@ hallazgos `etl_geography` / `etl_encoding` / `catalog_geography`.
   - **ETL (6):** paridad de `normalizeWellRecordForIngest` + `resolveDaneCodes`
     contra el piloto para 5 registros (limpio, minúsculas, desconocido,
     mojibake, vacío) (`Fixtures/etl-parity.json`) y `isCanonicalDepartamento`.
+  - **Ingesta (2):** paridad de extremo a extremo desde un `.xlsx` real
+    (`Fixtures/inventario-sample.xlsx`) — parseo, ETL, DANE, UWI, estado y
+    hallazgos de cada pozo, más el filtro de la fila «LISTA»
+    (`Fixtures/ingestion-parity.json`).
 
 Reproducir:
 
