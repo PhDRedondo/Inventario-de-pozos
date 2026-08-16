@@ -15,8 +15,8 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 | Proyecto | Rol |
 |---|---|
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
-| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`), `DbCatalogProvider`, `DbGeographyResolver` y **`ExcelSheetReader`** (lectura de Excel con ClosedXML). |
-| `src/Anh.Vip.Api` | Web API mínima: `/health` y `POST /api/uwi/preview`. |
+| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y **`NotebookUploadService`** (ingesta + persistencia). |
+| `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, y **cuadernos** (crear, cargar Excel, consultar). |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
 ## Requisitos
@@ -40,11 +40,21 @@ dotnet test            # ejecuta la paridad del UWI (8 casos del instructivo + 2
 cd dotnet
 dotnet run --project src/Anh.Vip.Api
 # GET  /health
-# POST /api/uwi/preview   (JSON con nombrePozoSgc, codigoDaneDepto, codigoDaneMuni, ...)
+# POST /api/uwi/preview          (JSON; no requiere base de datos)
+# POST /api/notebooks            (crear cuaderno: { operadora, title })
+# POST /api/notebooks/{id}/upload (multipart 'file' = .xlsx; crea una versión)
+# GET  /api/notebooks/{id}       (versiones y eventos)
 # Swagger UI en desarrollo: /swagger
 ```
 
-`POST /api/uwi/preview` **no requiere base de datos** (solo lógica de dominio).
+`POST /api/notebooks/{id}/upload` compone toda la ingesta: lee la hoja
+INVENTARIO con `ExcelSheetReader`, ingiere con `WellIngestor` (catálogos/DANE
+desde SQL Server vía `CatalogCache`) y persiste el lote (upload, wells, issues,
+evento) con EF Core, replicando `addNotebookVersion`/`saveUploadBatch`.
+
+> Nota: los endpoints aún **no tienen autenticación** (el upload usa
+> `DisableAntiforgery`); AD/OIDC + MFA y CSRF institucional entran en la fase de
+> seguridad (ver guía de producción §4, fase 4).
 
 ## Módulo portado en esta fase: UWI fiscalizado
 
@@ -98,7 +108,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **23/23 pruebas superadas**:
+- ✅ **`dotnet test`:** **25/25 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -110,6 +120,11 @@ sin «LISTA»).
     (`Fixtures/inventario-sample.xlsx`) — parseo, ETL, DANE, UWI, estado y
     hallazgos de cada pozo, más el filtro de la fila «LISTA»
     (`Fixtures/ingestion-parity.json`).
+  - **API (2):** integración del endpoint de carga con `WebApplicationFactory`
+    + EF Core InMemory (catálogos sembrados desde `seed.json`): crear cuaderno,
+    `POST .../upload` del `.xlsx`, y verificación de la persistencia (upload,
+    2 pozos con operadora forzada, hallazgos, UWI `50568RUBI…`, versión activa,
+    eventos), segunda versión, y 404 para cuaderno inexistente.
 
 Reproducir:
 

@@ -5,6 +5,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.8" />
     <PackageReference Include="xunit" Version="2.9.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
       <PrivateAssets>all</PrivateAssets>
@@ -14,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Anh.Vip.Domain\Anh.Vip.Domain.csproj" />
     <ProjectReference Include="..\..\src\Anh.Vip.Infrastructure\Anh.Vip.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Anh.Vip.Api\Anh.Vip.Api.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Catálogos oficiales (mismos datos que el piloto) y verdad de referencia de validación. -->
