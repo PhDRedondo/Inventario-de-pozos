@@ -2,6 +2,15 @@
 .page-title { font-size: 1.3rem; color: #1e3a4a; border-bottom: 2px solid #ff8c00; padding-bottom: 0.4rem; }
 .hint { color: #5a6b7d; font-size: 0.85rem; margin: 0.3rem 0; }
 .alert.error { background: #fdecea; color: #b42318; border: 1px solid #f3c2bd; border-radius: 10px; padding: 0.75rem 1rem; }
+.modes { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.5rem 0 0.7rem; font-size: 0.82rem; }
+.modes .group { font-weight: 700; color: #1e3a4a; margin-right: 0.2rem; }
+.modes button {
+  border: 1px solid #c3d0dc; background: #fff; color: #1e3a4a;
+  padding: 0.32rem 0.75rem; border-radius: 999px; cursor: pointer; font-size: 0.82rem;
+}
+.modes button:hover { border-color: #ff8c00; }
+.modes button.active { background: #1e3a4a; color: #fff; border-color: #1e3a4a; }
+
 .map {
   height: 480px;
   width: 100%;

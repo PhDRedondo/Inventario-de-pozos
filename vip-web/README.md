@@ -32,10 +32,13 @@ con el sufijo `%` solo en el tema perfil.
 desde `GET /api/analytics/sankey`.
 
 **Mapa** (`/mapa`): mapa territorial (Leaflet) con **coropleto municipal**
-(GeoJSON DANE `colombia-municipios.geojson`, unido por `MPIO_CCNCT`) sombreado
-por número de pozos desde `GET /api/wells/by-municipio`, el **contorno de los
-departamentos** como contexto y **un punto por pozo** coloreado por validación
-desde `GET /api/wells/map`. Cada municipio tiene un **tooltip** (hover) con la
+(GeoJSON DANE `colombia-municipios.geojson`, unido por `MPIO_CCNCT`) desde
+`GET /api/wells/by-municipio`, el **contorno de los departamentos** como
+contexto y **un punto por pozo** coloreado por validación desde
+`GET /api/wells/map`. Un **conmutador de vista** colorea el coropleto por
+**número de pozos** (escala teal 1/2/3+) o por **producción de petróleo**
+(escala ámbar: sin producción / <10.000 / 10.000–20.000 / ≥20.000 BBL), cada
+uno con su leyenda. Cada municipio tiene un **tooltip** (hover) con la
 producción acumulada (petróleo BBL · gas KPC · agua BBL) y un **popup** (clic)
 con el total, el desglose válido/advertencia/inválido y la producción detallada.
 

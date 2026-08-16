@@ -13,11 +13,21 @@ const STATUS_COLOR: Record<string, string> = {
   pending: '#5a6b7d',
 };
 
+export type MapMode = 'pozos' | 'produccion';
+
 /** Escala secuencial (teal) por número de pozos en el municipio. */
-function choroplethColor(total: number): string {
+function countColor(total: number): string {
   if (total >= 3) return '#0b525b';
   if (total === 2) return '#1a7f8e';
   return '#7fc3cc';
+}
+
+/** Escala secuencial (ámbar) por barriles de petróleo acumulados en el municipio. */
+function oilColor(bbl: number): string {
+  if (bbl >= 20000) return '#b5650a';
+  if (bbl >= 10000) return '#f0a733';
+  if (bbl > 0) return '#fbdd9a';
+  return '#d8cfc2'; // sin producción de petróleo (p. ej. municipios de inyección)
 }
 
 /** Formatea un valor de producción con separador de miles (es-CO), sin decimales. */
@@ -26,9 +36,9 @@ function fmt(n: number): string {
 }
 
 /**
- * Mapa territorial (Leaflet): coropleto municipal (GeoJSON DANE) sombreado por
- * número de pozos, contorno de departamentos como contexto y un punto por pozo
- * aplicado coloreado por su estado de validación.
+ * Mapa territorial (Leaflet): coropleto municipal (GeoJSON DANE) sombreable por
+ * número de pozos o por producción de petróleo, contorno de departamentos como
+ * contexto y un punto por pozo aplicado coloreado por su estado de validación.
  */
 @Component({
   selector: 'app-mapa',
@@ -43,7 +53,11 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
   error: string | null = null;
   count = 0;
   municipioCount = 0;
+  mode: MapMode = 'pozos';
+
   private map?: L.Map;
+  private muniLayer?: L.GeoJSON;
+  private byDane = new Map<string, MunicipioCount>();
 
   constructor(private readonly api: VipApiService, private readonly http: HttpClient) {}
 
@@ -69,6 +83,20 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /** Alterna el criterio del coropleto y re-sombrea la capa municipal. */
+  setMode(mode: MapMode): void {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.muniLayer?.setStyle((feature) => this.muniStyle(feature));
+  }
+
+  /** Relleno del municipio según el modo activo (pozos | producción). */
+  private muniStyle(feature?: GeoJSON.Feature): L.PathOptions {
+    const c = this.byDane.get(String(feature?.properties?.['MPIO_CCNCT']));
+    const fillColor = this.mode === 'produccion' ? oilColor(c?.prodPetroleo ?? 0) : countColor(c?.total ?? 0);
+    return { color: '#4a3b26', weight: 1, fillColor, fillOpacity: 0.6 };
+  }
+
   /** Contorno de departamentos como contexto (sin relleno). */
   private addDepartments(geo: GeoJSON.FeatureCollection): void {
     if (!this.map) return;
@@ -77,29 +105,21 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
   }
 
-  /** Coropleto municipal: solo los municipios con pozos, sombreados por conteo. */
+  /** Coropleto municipal: solo los municipios con pozos. */
   private addMunicipios(geo: GeoJSON.FeatureCollection, counts: MunicipioCount[]): void {
     if (!this.map) return;
-    const byDane = new Map(counts.map((c) => [c.codigoDane, c]));
+    this.byDane = new Map(counts.map((c) => [c.codigoDane, c]));
     this.municipioCount = counts.length;
 
     const withWells = {
       ...geo,
-      features: geo.features.filter((f) => byDane.has(String(f.properties?.['MPIO_CCNCT']))),
+      features: geo.features.filter((f) => this.byDane.has(String(f.properties?.['MPIO_CCNCT']))),
     } as GeoJSON.FeatureCollection;
 
-    L.geoJSON(withWells, {
-      style: (feature) => {
-        const c = byDane.get(String(feature?.properties?.['MPIO_CCNCT']));
-        return {
-          color: '#0b525b',
-          weight: 1,
-          fillColor: choroplethColor(c?.total ?? 0),
-          fillOpacity: 0.55,
-        };
-      },
+    this.muniLayer = L.geoJSON(withWells, {
+      style: (feature) => this.muniStyle(feature),
       onEachFeature: (feature, layer) => {
-        const c = byDane.get(String(feature.properties?.['MPIO_CCNCT']));
+        const c = this.byDane.get(String(feature.properties?.['MPIO_CCNCT']));
         if (!c) return;
         const nombre = c.municipio ?? feature.properties?.['MPIO_CNMBR'];
 

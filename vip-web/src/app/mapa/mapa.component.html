@@ -1,15 +1,30 @@
 <h2 class="page-title">Mapa territorial</h2>
-<p class="hint">Coropleto municipal (código DANE) sombreado por número de pozos, con un punto por pozo aplicado coloreado por validación.</p>
+<p class="hint">Coropleto municipal (código DANE) sombreado por número de pozos o por producción de petróleo, con un punto por pozo aplicado coloreado por validación.</p>
+
+<div class="modes">
+  <span class="group">Colorear por:</span>
+  <button type="button" [class.active]="mode === 'pozos'" (click)="setMode('pozos')">Pozos</button>
+  <button type="button" [class.active]="mode === 'produccion'" (click)="setMode('produccion')">Producción (petróleo)</button>
+</div>
 
 <div class="alert error" *ngIf="error">{{ error }}</div>
 
 <div #map class="map"></div>
 
 <div class="legend">
-  <span class="group">Pozos por municipio:</span>
-  <span><i class="sw sq" style="background:#7fc3cc"></i> 1</span>
-  <span><i class="sw sq" style="background:#1a7f8e"></i> 2</span>
-  <span><i class="sw sq" style="background:#0b525b"></i> 3+</span>
+  <ng-container *ngIf="mode === 'pozos'">
+    <span class="group">Pozos por municipio:</span>
+    <span><i class="sw sq" style="background:#7fc3cc"></i> 1</span>
+    <span><i class="sw sq" style="background:#1a7f8e"></i> 2</span>
+    <span><i class="sw sq" style="background:#0b525b"></i> 3+</span>
+  </ng-container>
+  <ng-container *ngIf="mode === 'produccion'">
+    <span class="group">Petróleo (BBL) por municipio:</span>
+    <span><i class="sw sq" style="background:#d8cfc2"></i> Sin producción</span>
+    <span><i class="sw sq" style="background:#fbdd9a"></i> &lt; 10.000</span>
+    <span><i class="sw sq" style="background:#f0a733"></i> 10.000–20.000</span>
+    <span><i class="sw sq" style="background:#b5650a"></i> ≥ 20.000</span>
+  </ng-container>
   <span class="sep">|</span>
   <span class="group">Validación:</span>
   <span><i class="sw" style="background:#1b7f4a"></i> Válido</span>
