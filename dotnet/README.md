@@ -184,7 +184,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **49/49 pruebas superadas**:
+- ✅ **`dotnet test`:** **53/53 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -222,10 +222,32 @@ sin «LISTA»).
     marcado `submitted`); **validaciones** (hallazgos por versión); y **plantilla**
     (37 encabezados, N filas, operadora prellenada, hojas Listas/Instrucciones y
     selectores).
+  - **OTI (4):** fail-closed de la config Entra/OIDC (`OidcConfig.Validate` lanza
+    en producción sin `Oidc:Authority`/`Oidc:Audience`, acepta un tenant válido,
+    y se omite en Dev/pruebas); y la **notificación SMTP** al aplicar — un emisor
+    capturador confirma destinatario ANH, asunto con la operadora y cuerpo con
+    `N/N pozos válidos`.
 - ✅ **Migración `InitialCreate`:** compila y genera **T-SQL válido** (10 tablas
-  en `[vip]`, 9 índices, columnas dimensionadas e indexables). ⛔ **Aplicación a
-  una instancia SQL Server real:** pendiente (no hay instancia en este entorno);
-  ejecutar `dotnet ef database update` contra una base 2019/2022 de la OTI.
+  en `[vip]`, 9 índices, columnas dimensionadas e indexables).
+- ✅ **Aplicación a un SQL Server real:** `dotnet ef database update` aplicado
+  contra **SQL Server 2022** (contenedor `mcr.microsoft.com/mssql/server:2022`)
+  → base `VIP_Inventario` con las **10 tablas en `[vip]`** + `__EFMigrationsHistory`.
+  La API arrancada con `UseInMemoryDatabase=false` y `ConnectionStrings:VipDb`
+  hacia esa instancia completa un **round-trip real**: `POST /api/notebooks`
+  persiste el cuaderno y `GET /api/notebooks` lo lee vía EF Core (fila verificada
+  en `vip.notebooks` con `sqlcmd`). En la OTI basta apuntar `VIP_Db` a la
+  instancia 2019/2022 institucional (autenticación integrada / cuenta de servicio).
+  Ver [docs/OTI-INTEGRACION.md](docs/OTI-INTEGRACION.md).
+- ✅ **SMTP (correo de aplicación):** al aplicar un cuaderno, `SmtpEmailSender`
+  transmitió un **SMTP real** recibido por un catcher local (`maildev`):
+  `vip@anh.gov.co → inventariopozos@anh.gov.co`, asunto
+  `VIP · Inventario aplicado — HOCOL S.A.`. Sin `Smtp:Host` se usa el emisor de
+  solo-registro. Envío *best-effort* (no revierte el submit si el SMTP falla).
+- ✅ **Entra ID (fail-closed):** en producción la API exige `Oidc:Authority` +
+  `Oidc:Audience` (tenant Entra) o aborta el arranque; JWT Bearer valida el token
+  y lee roles del claim `roles`. ⛔ **Validación contra un tenant Entra real:**
+  pendiente (no hay tenant en este entorno); MFA se exige por Acceso Condicional
+  en Entra, no en el código. Ver [docs/OTI-INTEGRACION.md](docs/OTI-INTEGRACION.md).
 
 Reproducir:
 

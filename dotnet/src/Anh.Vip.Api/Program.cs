@@ -6,6 +6,7 @@ using Anh.Vip.Domain.Uwi;
 using Anh.Vip.Infrastructure;
 using Anh.Vip.Infrastructure.Excel;
 using Anh.Vip.Infrastructure.Ingestion;
+using Anh.Vip.Infrastructure.Notifications;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -27,10 +28,22 @@ builder.Services.AddScoped<NotebookSubmitService>();
 builder.Services.AddScoped<Anh.Vip.Infrastructure.Stats.StatsService>();
 builder.Services.AddScoped<Anh.Vip.Infrastructure.Stats.AnalyticsService>();
 
+// Correo institucional (SMTP GU-18): emisor SMTP real si hay host configurado;
+// en desarrollo/InMemory se usa el emisor de solo-registro (sin servidor SMTP).
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+if (!string.IsNullOrWhiteSpace(builder.Configuration["Smtp:Host"]))
+    builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+else
+    builder.Services.AddScoped<IEmailSender, LoggingEmailSender>();
+
 // --- Autenticación / autorización (GU-18 Anexo 2) ---------------------------
 // Producción: JWT Bearer contra el proveedor OIDC/AD institucional.
 // Desarrollo: esquema Dev que auto-autentica un usuario demo (nunca en prod).
 var isDev = builder.Environment.IsDevelopment();
+// Fail-closed: en producción exige el tenant Entra ID configurado (se omite en
+// el perfil Dev y en el arnés de pruebas, que sustituyen la autenticación).
+var skipOidcValidation = isDev || builder.Environment.IsEnvironment("Testing");
+OidcConfig.Validate(builder.Configuration["Oidc:Authority"], builder.Configuration["Oidc:Audience"], skipOidcValidation);
 var auth = builder.Services.AddAuthentication(options =>
 {
     var scheme = isDev ? DevAuthHandler.SchemeName : JwtBearerDefaults.AuthenticationScheme;

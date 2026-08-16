@@ -1,6 +1,9 @@
 using System.Text.Json;
 using Anh.Vip.Domain.Entities;
+using Anh.Vip.Infrastructure.Notifications;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Anh.Vip.Infrastructure.Ingestion;
 
@@ -10,9 +13,13 @@ public sealed record SubmitResult(int UploadId, int VersionNumber);
 /// <summary>
 /// Aplica el inventario del cuaderno a la ANH — port de <c>submitNotebook</c>:
 /// exige 0 pozos inválidos en la versión activa, marca la versión y el cuaderno
-/// como <c>submitted</c> y registra el evento.
+/// como <c>submitted</c>, registra el evento y notifica a la ANH por correo.
 /// </summary>
-public sealed class NotebookSubmitService(VipDbContext db)
+public sealed class NotebookSubmitService(
+    VipDbContext db,
+    IEmailSender email,
+    IOptions<SmtpOptions> smtp,
+    ILogger<NotebookSubmitService> logger)
 {
     public async Task<SubmitResult> SubmitAsync(int notebookId, string submittedBy, CancellationToken ct = default)
     {
@@ -56,7 +63,23 @@ public sealed class NotebookSubmitService(VipDbContext db)
         });
 
         await db.SaveChangesAsync(ct);
-        // TODO: generar el Excel y enviar el correo institucional (fase de correo/SMTP).
+
+        // Notificación institucional a la ANH (best-effort: no revierte el submit).
+        var recipient = smtp.Value.AnhRecipient;
+        var message = new EmailMessage(
+            recipient,
+            $"VIP · Inventario aplicado — {notebook.Operadora}",
+            $"La operadora {notebook.Operadora} aplicó el inventario del cuaderno #{notebookId} " +
+            $"(versión {upload.VersionNumber}, {upload.ValidRecords}/{upload.TotalRecords} pozos válidos) " +
+            $"el {now:yyyy-MM-dd HH:mm} UTC por {submittedBy}.");
+        try
+        {
+            await email.SendAsync(message, ct);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "No se pudo enviar el correo de aplicación del cuaderno #{Id}", notebookId);
+        }
 
         return new SubmitResult(upload.Id, upload.VersionNumber);
     }
