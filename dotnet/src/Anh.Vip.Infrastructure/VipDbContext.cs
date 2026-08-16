@@ -21,9 +21,27 @@ public class VipDbContext(DbContextOptions<VipDbContext> options) : DbContext(op
     public DbSet<CatMunicipio> CatMunicipios => Set<CatMunicipio>();
     public DbSet<CatListaValor> CatListaValores => Set<CatListaValor>();
 
+    /// <summary>
+    /// Longitud por defecto de las columnas de texto (indexables en SQL Server).
+    /// Las columnas más largas o ilimitadas se ajustan en OnModelCreating.
+    /// </summary>
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        configurationBuilder.Properties<string>().HaveMaxLength(300);
+    }
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
+
+        // Columnas de texto largas o sin límite (no indexadas).
+        b.Entity<User>().Property(u => u.PasswordHash).HasMaxLength(512);
+        b.Entity<Upload>().Property(u => u.Filename).HasMaxLength(400);
+        b.Entity<ValidationIssue>().Property(i => i.Message).HasMaxLength(1000);
+        b.Entity<NotebookEvent>().Property(e => e.Message).HasMaxLength(1000);
+        b.Entity<AuditLog>().Property(a => a.BeforeJson).HasColumnType("nvarchar(max)");
+        b.Entity<AuditLog>().Property(a => a.AfterJson).HasColumnType("nvarchar(max)");
+        b.Entity<NotebookEvent>().Property(e => e.MetadataJson).HasColumnType("nvarchar(max)");
 
         b.Entity<User>().HasIndex(u => u.Email).IsUnique();
 

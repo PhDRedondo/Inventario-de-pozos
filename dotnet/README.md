@@ -15,7 +15,7 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 | Proyecto | Rol |
 |---|---|
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
-| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y **`NotebookUploadService`** (ingesta + persistencia). |
+| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) + **migraciones** (`Migrations/`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y `NotebookUploadService` (ingesta + persistencia). |
 | `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, y **cuadernos** (crear, cargar Excel, consultar). |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
@@ -69,6 +69,35 @@ paridad se verifica contra los 8 casos de referencia del instructivo
 | RUBIALES 323 / RUBIALES 323 | `50568RUBI0323C` |
 | MORICHE 56 / 1289 | `15572MORI00561289` |
 | AMBAR 157H ST1 / AMBAR 116 (H, ST, P, LR) | `50568AMBA0157AM0116HST1P-LR` |
+
+## Migraciones EF Core (esquema SQL Server)
+
+El esquema `[vip]` se gestiona con **migraciones EF Core** (carpeta
+`src/Anh.Vip.Infrastructure/Migrations/`). Es el esquema canónico del backend
+.NET y está alineado con el DDL de la Fase 1
+([`../migration/sqlserver`](../migration/sqlserver)), que se conserva como
+referencia para DBAs sin .NET.
+
+`VipDbContextFactory` (diseño) permite ejecutar las herramientas sin la API; la
+cadena de conexión sale de la variable `VIP_DB` o de un valor local por defecto.
+
+```bash
+# Instalar la herramienta (una vez)
+dotnet tool install --global dotnet-ef --version 8.0.8
+
+cd dotnet
+# Aplicar a una base SQL Server (VIP_DB = cadena de conexión)
+VIP_DB="Server=...;Database=VIP_Inventario;..." \
+  dotnet ef database update --project src/Anh.Vip.Infrastructure --startup-project src/Anh.Vip.Infrastructure
+
+# O generar el script idempotente para que la OTI lo aplique con SSMS/sqlcmd
+dotnet ef migrations script --idempotent \
+  --project src/Anh.Vip.Infrastructure --startup-project src/Anh.Vip.Infrastructure -o vip-schema.sql
+```
+
+> Las migraciones **no** se aplican automáticamente al iniciar la API (el
+> despliegue del esquema es una compuerta controlada por la OTI, conforme al
+> control de cambios del MA-02).
 
 ## Módulo portado: motor de validación
 
@@ -125,6 +154,10 @@ sin «LISTA»).
     `POST .../upload` del `.xlsx`, y verificación de la persistencia (upload,
     2 pozos con operadora forzada, hallazgos, UWI `50568RUBI…`, versión activa,
     eventos), segunda versión, y 404 para cuaderno inexistente.
+- ✅ **Migración `InitialCreate`:** compila y genera **T-SQL válido** (10 tablas
+  en `[vip]`, 9 índices, columnas dimensionadas e indexables). ⛔ **Aplicación a
+  una instancia SQL Server real:** pendiente (no hay instancia en este entorno);
+  ejecutar `dotnet ef database update` contra una base 2019/2022 de la OTI.
 
 Reproducir:
 
