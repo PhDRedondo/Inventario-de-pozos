@@ -62,13 +62,18 @@ paridad se verifica contra los 8 casos de referencia del instructivo
 
 ## Estado de verificación
 
-- ✅ **Paridad de valores esperados** con el algoritmo canónico: los 8 UWI
-  esperados provienen de `src/lib/uwi.ts` y se confirman con `npm run test:uwi`
-  en el piloto. El port a C# se trazó a mano contra estos casos.
-- ⛔ **Compilación y `dotnet test`:** *pendiente*. Este entorno no tiene el
-  .NET SDK instalado, por lo que el código **no se compiló ni se ejecutó aquí**.
-  Debe correrse `dotnet build` + `dotnet test` en una máquina con .NET 8
-  (equipo de desarrollo u OTI) para cerrar la compuerta de esta fase.
+- ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
+  Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
+  (SDK .NET 8.0.424).
+- ✅ **`dotnet test`:** **10/10 pruebas superadas** — los 8 casos del instructivo
+  (`INSTRUCTIVO_EXAMPLES`) más 2 de datos faltantes. El port a C# produce UWI
+  idénticos al piloto (`src/lib/uwi.ts`), confirmado también con `npm run test:uwi`.
+
+Reproducir:
+
+```bash
+cd dotnet && dotnet build -c Release && dotnet test
+```
 
 ## Siguiente en Fase 2
 
