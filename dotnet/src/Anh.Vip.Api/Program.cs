@@ -312,6 +312,15 @@ app.MapGet("/api/wells/map", async (ClaimsPrincipal user, Anh.Vip.Infrastructure
 .RequireAuthorization(Roles.ReadInventory)
 .WithName("GetWellsMap");
 
+// Conteo de pozos por municipio (DANE) para el coropleto municipal (alcance por rol).
+app.MapGet("/api/wells/by-municipio", async (ClaimsPrincipal user, Anh.Vip.Infrastructure.Stats.StatsService stats, CancellationToken ct) =>
+{
+    var role = user.IsInRole(Roles.Admin) ? Roles.Admin : user.IsInRole(Roles.Anh) ? Roles.Anh : Roles.Operadora;
+    return Results.Ok(await stats.GetMunicipioCountsAsync(role, user.GetOperadora(), ct));
+})
+.RequireAuthorization(Roles.ReadInventory)
+.WithName("GetWellsByMunicipio");
+
 // Analítica comparativa (radar) — anh | admin. theme: perfil | produccion | inyeccion.
 app.MapGet("/api/analytics", async (string? theme, string? entityType, string? entity, Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
 {

@@ -113,6 +113,13 @@ describe('VipApiService', () => {
     req.flush([{ id: 1, nombre: 'A', operadora: 'X', departamento: 'META', estado: 'Activo', validationStatus: 'valid', lat: 3.3, lng: -73.0 }]);
   });
 
+  it('gets well counts by municipio for the choropleth', () => {
+    service.getMunicipioCounts().subscribe((m) => expect(m.length).toBe(1));
+    const req = httpMock.expectOne('/api/wells/by-municipio');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ codigoDane: '50150', municipio: 'CASTILLA LA NUEVA', departamento: 'META', total: 2, valid: 2, warning: 0, invalid: 0 }]);
+  });
+
   it('builds the template URL with rows and operadora', () => {
     const url = service.templateUrl(5, 'HOCOL S.A.');
     expect(url).toContain('/api/notebooks/template?');

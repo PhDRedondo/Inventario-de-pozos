@@ -141,6 +141,17 @@ export interface AnalyticsResult {
   departamentos: string[];
 }
 
+/** Conteo de pozos por municipio DANE (GET /api/wells/by-municipio). */
+export interface MunicipioCount {
+  codigoDane: string;
+  municipio: string | null;
+  departamento: string | null;
+  total: number;
+  valid: number;
+  warning: number;
+  invalid: number;
+}
+
 /** Punto georreferenciado de un pozo (GET /api/wells/map). */
 export interface WellMapPoint {
   id: number;

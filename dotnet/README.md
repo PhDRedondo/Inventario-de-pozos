@@ -184,7 +184,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **47/47 pruebas superadas**:
+- ✅ **`dotnet test`:** **49/49 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -198,8 +198,10 @@ sin «LISTA»).
     (`Fixtures/ingestion-parity.json`).
   - **Panel (3):** `/api/stats` con alcance por rol — admin ve los 12 pozos del
     inventario demo, operadora solo los suyos (3), y sin token → 401.
-  - **Mapa (2):** `/api/wells/map` — 12 pozos georreferenciados con lat/lng
-    válidas; sin token → 401.
+  - **Mapa (4):** `/api/wells/map` — 12 pozos georreferenciados con lat/lng
+    válidas; y `/api/wells/by-municipio` — conteo por municipio (código DANE)
+    para el coropleto: 9 municipios que suman 12 pozos, ordenados por total con
+    desglose válido/advertencia/inválido; ambos sin token → 401.
   - **Analítica (5):** `/api/analytics` — tema `perfil` nacional con índice 100 en
     cada métrica, entidad (operadora) con índices relativos, rol operadora → 403;
     tema `produccion` con métricas numéricas (petróleo/gas/agua/días) promediadas

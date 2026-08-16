@@ -4,7 +4,7 @@ import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@ang
 import * as L from 'leaflet';
 import { forkJoin } from 'rxjs';
 import { VipApiService } from '../services/vip-api.service';
-import { WellMapPoint } from '../models/notebook.models';
+import { MunicipioCount, WellMapPoint } from '../models/notebook.models';
 
 const STATUS_COLOR: Record<string, string> = {
   valid: '#1b7f4a',
@@ -13,9 +13,17 @@ const STATUS_COLOR: Record<string, string> = {
   pending: '#5a6b7d',
 };
 
+/** Escala secuencial (teal) por número de pozos en el municipio. */
+function choroplethColor(total: number): string {
+  if (total >= 3) return '#0b525b';
+  if (total === 2) return '#1a7f8e';
+  return '#7fc3cc';
+}
+
 /**
- * Mapa territorial (Leaflet): polígonos de departamentos (GeoJSON) y un punto
- * por pozo aplicado, coloreado por su estado de validación.
+ * Mapa territorial (Leaflet): coropleto municipal (GeoJSON DANE) sombreado por
+ * número de pozos, contorno de departamentos como contexto y un punto por pozo
+ * aplicado coloreado por su estado de validación.
  */
 @Component({
   selector: 'app-mapa',
@@ -29,6 +37,7 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
 
   error: string | null = null;
   count = 0;
+  municipioCount = 0;
   private map?: L.Map;
 
   constructor(private readonly api: VipApiService, private readonly http: HttpClient) {}
@@ -41,21 +50,59 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
 
     forkJoin({
-      geo: this.http.get<GeoJSON.FeatureCollection>('/geo/colombia-departamentos.geojson'),
+      deptos: this.http.get<GeoJSON.FeatureCollection>('/geo/colombia-departamentos.geojson'),
+      munis: this.http.get<GeoJSON.FeatureCollection>('/geo/colombia-municipios.geojson'),
+      counts: this.api.getMunicipioCounts(),
       wells: this.api.getWellsMap(),
     }).subscribe({
-      next: ({ geo, wells }) => {
-        this.addDepartments(geo);
+      next: ({ deptos, munis, counts, wells }) => {
+        this.addDepartments(deptos);
+        this.addMunicipios(munis, counts);
         this.addWells(wells);
       },
       error: () => (this.error = 'No fue posible cargar el mapa.'),
     });
   }
 
+  /** Contorno de departamentos como contexto (sin relleno). */
   private addDepartments(geo: GeoJSON.FeatureCollection): void {
     if (!this.map) return;
     L.geoJSON(geo, {
-      style: () => ({ color: '#1e3a4a', weight: 1, fillColor: '#1e3a4a', fillOpacity: 0.04 }),
+      style: () => ({ color: '#1e3a4a', weight: 1, fill: false, opacity: 0.35 }),
+    }).addTo(this.map);
+  }
+
+  /** Coropleto municipal: solo los municipios con pozos, sombreados por conteo. */
+  private addMunicipios(geo: GeoJSON.FeatureCollection, counts: MunicipioCount[]): void {
+    if (!this.map) return;
+    const byDane = new Map(counts.map((c) => [c.codigoDane, c]));
+    this.municipioCount = counts.length;
+
+    const withWells = {
+      ...geo,
+      features: geo.features.filter((f) => byDane.has(String(f.properties?.['MPIO_CCNCT']))),
+    } as GeoJSON.FeatureCollection;
+
+    L.geoJSON(withWells, {
+      style: (feature) => {
+        const c = byDane.get(String(feature?.properties?.['MPIO_CCNCT']));
+        return {
+          color: '#0b525b',
+          weight: 1,
+          fillColor: choroplethColor(c?.total ?? 0),
+          fillOpacity: 0.55,
+        };
+      },
+      onEachFeature: (feature, layer) => {
+        const c = byDane.get(String(feature.properties?.['MPIO_CCNCT']));
+        if (!c) return;
+        layer.bindPopup(
+          `<strong>${c.municipio ?? feature.properties?.['MPIO_CNMBR']}</strong> ` +
+          `<small>(${c.codigoDane})</small><br/>${c.departamento ?? '—'}<br/>` +
+          `Pozos: <strong>${c.total}</strong><br/>` +
+          `Válidos ${c.valid} · Advertencia ${c.warning} · Inválidos ${c.invalid}`,
+        );
+      },
     }).addTo(this.map);
   }
 

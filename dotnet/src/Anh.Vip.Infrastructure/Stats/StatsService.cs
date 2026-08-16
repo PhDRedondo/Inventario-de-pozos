@@ -13,6 +13,14 @@ public sealed record WellMapPoint(
     int Id, string? Nombre, string? Operadora, string? Departamento,
     string? Estado, string? ValidationStatus, double Lat, double Lng);
 
+/// <summary>
+/// Conteo de pozos por municipio (código DANE de 5 dígitos) para el coropleto
+/// municipal del mapa. <c>CodigoDane</c> corresponde a <c>MPIO_CCNCT</c> del GeoJSON.
+/// </summary>
+public sealed record MunicipioCount(
+    string CodigoDane, string? Municipio, string? Departamento,
+    int Total, int Valid, int Warning, int Invalid);
+
 /// <summary>KPIs y desgloses del panel — subconjunto de <c>DashboardStats</c> del piloto.</summary>
 public sealed record DashboardStats
 {
@@ -74,6 +82,30 @@ public sealed class StatsService(VipDbContext db)
             }
         }
         return points;
+    }
+
+    /// <summary>Conteo de pozos por municipio (DANE) para el coropleto, con alcance por rol.</summary>
+    public async Task<IReadOnlyList<MunicipioCount>> GetMunicipioCountsAsync(string role, string? operadora, CancellationToken ct = default)
+    {
+        var grouped = await ScopedWells(role, operadora)
+            .Where(w => w.CodigoDaneMuni != null && w.CodigoDaneMuni != "")
+            .GroupBy(w => w.CodigoDaneMuni!)
+            .Select(g => new
+            {
+                CodigoDane = g.Key,
+                Municipio = g.Max(w => w.Municipio),
+                Departamento = g.Max(w => w.Departamento),
+                Total = g.Count(),
+                Valid = g.Count(w => w.ValidationStatus == "valid"),
+                Warning = g.Count(w => w.ValidationStatus == "warning"),
+                Invalid = g.Count(w => w.ValidationStatus == "invalid"),
+            })
+            .ToListAsync(ct);
+
+        return grouped
+            .Select(x => new MunicipioCount(x.CodigoDane, x.Municipio, x.Departamento, x.Total, x.Valid, x.Warning, x.Invalid))
+            .OrderByDescending(x => x.Total)
+            .ToList();
     }
 
     private static bool TryCoord(string? s, out double value)

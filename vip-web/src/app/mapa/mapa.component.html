@@ -1,13 +1,19 @@
 <h2 class="page-title">Mapa territorial</h2>
-<p class="hint">Un punto por pozo aplicado, coloreado por validación, sobre los departamentos de Colombia.</p>
+<p class="hint">Coropleto municipal (código DANE) sombreado por número de pozos, con un punto por pozo aplicado coloreado por validación.</p>
 
 <div class="alert error" *ngIf="error">{{ error }}</div>
 
 <div #map class="map"></div>
 
 <div class="legend">
+  <span class="group">Pozos por municipio:</span>
+  <span><i class="sw sq" style="background:#7fc3cc"></i> 1</span>
+  <span><i class="sw sq" style="background:#1a7f8e"></i> 2</span>
+  <span><i class="sw sq" style="background:#0b525b"></i> 3+</span>
+  <span class="sep">|</span>
+  <span class="group">Validación:</span>
   <span><i class="sw" style="background:#1b7f4a"></i> Válido</span>
   <span><i class="sw" style="background:#ff8c00"></i> Advertencia</span>
   <span><i class="sw" style="background:#b42318"></i> Inválido</span>
-  <span class="count">{{ count }} pozo(s) georreferenciado(s)</span>
+  <span class="count">{{ municipioCount }} municipio(s) · {{ count }} pozo(s)</span>
 </div>

@@ -24,42 +24,35 @@ public static class DemoDataSeeder
             CreatedAt = now,
         };
 
-        // (operadora, departamento, estado, objetivo, validación)
+        // (operadora, depto, municipio, daneMuni, lat, lng, estado, objetivo, validación).
+        // Municipios y códigos DANE (MPIO_CCNCT) reales, con centroide del polígono,
+        // para el coropleto municipal del mapa.
         var rows = new[]
         {
-            ("HOCOL S.A.", "META", "Activo", "P (Productor)", "valid"),
-            ("HOCOL S.A.", "META", "Activo", "P (Productor)", "warning"),
-            ("HOCOL S.A.", "CASANARE", "Inactivo", "I (Inyector)", "valid"),
-            ("ECOPETROL S.A.", "META", "Activo", "P (Productor)", "valid"),
-            ("ECOPETROL S.A.", "CASANARE", "Activo", "P (Productor)", "valid"),
-            ("ECOPETROL S.A.", "ARAUCA", "Suspendido Temporalmente", "I (Inyector)", "warning"),
-            ("GEOPARK COLOMBIA S.A.S.", "META", "Activo", "P (Productor)", "valid"),
-            ("GEOPARK COLOMBIA S.A.S.", "CASANARE", "Inactivo", "P (Productor)", "warning"),
-            ("PAREX RESOURCES COLOMBIA LTD", "ARAUCA", "Activo", "P (Productor)", "valid"),
-            ("PAREX RESOURCES COLOMBIA LTD", "CASANARE", "Activo", "I (Inyector)", "valid"),
-            ("CANACOL ENERGY COLOMBIA SAS", "META", "Abandonado Temporalmente", "P (Productor)", "valid"),
-            ("CANACOL ENERGY COLOMBIA SAS", "META", "Activo", "P (Productor)", "warning"),
-        };
-
-        // Centroides aproximados para georreferenciar los pozos demo.
-        var centroids = new Dictionary<string, (double Lat, double Lng)>
-        {
-            ["META"] = (3.35, -73.05),
-            ["CASANARE"] = (5.35, -71.60),
-            ["ARAUCA"] = (6.55, -71.00),
+            ("HOCOL S.A.", "META", "CASTILLA LA NUEVA", "50150", 3.8331, -73.5388, "Activo", "P (Productor)", "valid"),
+            ("HOCOL S.A.", "META", "ACACÍAS", "50006", 4.0381, -73.7467, "Activo", "P (Productor)", "warning"),
+            ("HOCOL S.A.", "CASANARE", "AGUAZUL", "85010", 5.0981, -72.5376, "Inactivo", "I (Inyector)", "valid"),
+            ("ECOPETROL S.A.", "META", "CASTILLA LA NUEVA", "50150", 3.8331, -73.5388, "Activo", "P (Productor)", "valid"),
+            ("ECOPETROL S.A.", "CASANARE", "YOPAL", "85001", 5.2861, -72.2871, "Activo", "P (Productor)", "valid"),
+            ("ECOPETROL S.A.", "ARAUCA", "ARAUQUITA", "81065", 6.8171, -71.2495, "Suspendido Temporalmente", "I (Inyector)", "warning"),
+            ("GEOPARK COLOMBIA S.A.S.", "META", "CABUYARO", "50124", 4.3141, -72.9332, "Activo", "P (Productor)", "valid"),
+            ("GEOPARK COLOMBIA S.A.S.", "CASANARE", "MANÍ", "85139", 4.7125, -72.1725, "Inactivo", "P (Productor)", "warning"),
+            ("PAREX RESOURCES COLOMBIA LTD", "ARAUCA", "ARAUCA", "81001", 6.7925, -70.5164, "Activo", "P (Productor)", "valid"),
+            ("PAREX RESOURCES COLOMBIA LTD", "CASANARE", "AGUAZUL", "85010", 5.0981, -72.5376, "Activo", "I (Inyector)", "valid"),
+            ("CANACOL ENERGY COLOMBIA SAS", "META", "ACACÍAS", "50006", 4.0381, -73.7467, "Abandonado Temporalmente", "P (Productor)", "valid"),
+            ("CANACOL ENERGY COLOMBIA SAS", "META", "VILLAVICENCIO", "50001", 4.1036, -73.4937, "Activo", "P (Productor)", "warning"),
         };
 
         var n = 100;
-        var perDept = new Dictionary<string, int>();
-        foreach (var (operadora, depto, estado, objetivo, status) in rows)
+        var perMuni = new Dictionary<string, int>();
+        foreach (var (operadora, depto, municipio, daneMuni, baseLat, baseLng, estado, objetivo, status) in rows)
         {
             n++;
-            var (baseLat, baseLng) = centroids.TryGetValue(depto, out var c) ? c : (4.6, -73.8);
-            var k = perDept.TryGetValue(depto, out var kk) ? kk : 0;
-            perDept[depto] = k + 1;
-            // Dispersión determinista alrededor del centroide.
-            var lat = baseLat + (k % 3) * 0.18 - 0.18;
-            var lng = baseLng + (k / 3) * 0.18 - 0.18;
+            // Pequeña dispersión determinista para no superponer pozos del mismo municipio.
+            var k = perMuni.TryGetValue(daneMuni, out var kk) ? kk : 0;
+            perMuni[daneMuni] = k + 1;
+            var lat = baseLat + k * 0.03;
+            var lng = baseLng + k * 0.03;
 
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             var esInyector = objetivo.StartsWith("I");
@@ -67,6 +60,9 @@ public static class DemoDataSeeder
             {
                 Operadora = operadora,
                 Departamento = depto,
+                Municipio = municipio,
+                CodigoDaneDepto = daneMuni[..2],
+                CodigoDaneMuni = daneMuni,
                 EstadoPozo = estado,
                 TipoObjetivo = objetivo,
                 NombrePozoSgc = $"POZO DEMO {n}",

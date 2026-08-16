@@ -31,9 +31,12 @@ con el sufijo `%` solo en el tema perfil.
 **Flujo** (`/flujo`): diagrama Sankey (SVG) Departamento → Estado → Operadora,
 desde `GET /api/analytics/sankey`.
 
-**Mapa** (`/mapa`): mapa territorial (Leaflet) con los **polígonos de los
-departamentos** (GeoJSON, `public/geo/`) y **un punto por pozo** coloreado por
-validación, desde `GET /api/wells/map`.
+**Mapa** (`/mapa`): mapa territorial (Leaflet) con **coropleto municipal**
+(GeoJSON DANE `colombia-municipios.geojson`, unido por `MPIO_CCNCT`) sombreado
+por número de pozos desde `GET /api/wells/by-municipio`, el **contorno de los
+departamentos** como contexto y **un punto por pozo** coloreado por validación
+desde `GET /api/wells/map`. El popup de cada municipio muestra el total y el
+desglose válido/advertencia/inválido.
 
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
 de la API), `notebooks/` (listado), `cuaderno/` (workspace), `panel/`,

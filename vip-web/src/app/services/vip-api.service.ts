@@ -6,6 +6,7 @@ import {
   AnalyticsResult,
   CreateNotebookRequest,
   DashboardStats,
+  MunicipioCount,
   NotebookCreated,
   NotebookDetail,
   NotebookSummary,
@@ -74,6 +75,10 @@ export class VipApiService {
 
   getWellsMap(): Observable<WellMapPoint[]> {
     return this.http.get<WellMapPoint[]>(`${this.base}/api/wells/map`);
+  }
+
+  getMunicipioCounts(): Observable<MunicipioCount[]> {
+    return this.http.get<MunicipioCount[]>(`${this.base}/api/wells/by-municipio`);
   }
 
   /** URL de descarga de la plantilla (enlace directo, no XHR). */
