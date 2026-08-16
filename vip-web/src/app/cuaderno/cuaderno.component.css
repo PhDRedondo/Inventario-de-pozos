@@ -109,3 +109,17 @@ table.findings { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
 .badge.error { background: #fdecea; color: #b42318; }
 .badge.warning { background: #fff6db; color: #9a6700; }
 .badge.info { background: #eaf2fb; color: #1e5fa8; }
+.badge.active { background: #fff6db; color: #9a6700; }
+.badge.submitted { background: #e8f7ef; color: #1b7f4a; }
+.badge.archived { background: #eef2f6; color: #5a6b7d; }
+
+.back { display: inline-block; margin-bottom: 0.75rem; color: #1e3a4a; font-weight: 700; font-size: 0.85rem; text-decoration: none; }
+.card.head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.card.head h2 { margin: 0; font-size: 1.2rem; color: #1e3a4a; }
+.tpl { display: flex; align-items: flex-end; gap: 0.75rem; margin-bottom: 0.75rem; }
+.tpl label { flex-direction: column; }
+.input, .tpl input { width: 7rem; }
+
+table.versions { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.versions th, .versions td { border: 1px solid #e2e8f0; padding: 0.4rem 0.55rem; text-align: left; }
+.versions th { background: #eef2f6; }

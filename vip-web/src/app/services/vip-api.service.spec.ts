@@ -28,6 +28,20 @@ describe('VipApiService', () => {
     req.flush({ id: 7, operadora: 'HOCOL S.A.', title: 't', status: 'active' });
   });
 
+  it('lists notebooks', () => {
+    service.listNotebooks().subscribe((r) => expect(r.notebooks.length).toBe(1));
+    const req = httpMock.expectOne('/api/notebooks');
+    expect(req.request.method).toBe('GET');
+    req.flush({ notebooks: [{ id: 1, operadora: 'X', title: 't', status: 'active', activeVersionId: null, submittedAt: null, updatedAt: '', versionCount: 0, lastUploadAt: null, lastFilename: null }] });
+  });
+
+  it('gets a notebook detail', () => {
+    service.getNotebook(5).subscribe((d) => expect(d.notebook.id).toBe(5));
+    const req = httpMock.expectOne('/api/notebooks/5');
+    expect(req.request.method).toBe('GET');
+    req.flush({ notebook: { id: 5, operadora: 'X', title: 't', status: 'active', activeVersionId: null }, versions: [], events: [] });
+  });
+
   it('uploads a version as multipart form-data', () => {
     const file = new File(['x'], 'inv.xlsx');
     const expected: UploadResult = {

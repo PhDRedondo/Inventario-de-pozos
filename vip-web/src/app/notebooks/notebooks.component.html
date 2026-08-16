@@ -1,0 +1,43 @@
+<h2 class="page-title">Inventario de cuadernos</h2>
+
+<section class="card">
+  <h3>Crear cuaderno</h3>
+  <div class="grid">
+    <label>Operadora<input type="text" [(ngModel)]="operadora" /></label>
+    <label>Nombre (opcional)<input type="text" [(ngModel)]="title" placeholder="Ej. Inventario Q3 2026" /></label>
+    <label>¿Cuántos pozos?<input type="number" min="1" max="500" [(ngModel)]="wellCount" /></label>
+  </div>
+  <div class="actions">
+    <button class="btn primary" (click)="create()" [disabled]="creating">
+      {{ creating ? 'Creando…' : 'Crear y abrir' }}
+    </button>
+    <a class="btn secondary" [href]="templateHref()" target="_blank" rel="noopener">Descargar plantilla ({{ safeRows }} pozos)</a>
+  </div>
+  <div class="alert error" *ngIf="error">{{ error }}</div>
+</section>
+
+<section class="card">
+  <h3>Cuadernos</h3>
+  <p class="hint" *ngIf="loading">Cargando…</p>
+  <table class="list" *ngIf="!loading && notebooks.length > 0; else empty">
+    <thead>
+      <tr><th>Cuaderno</th><th>Operadora</th><th>Estado</th><th>Versiones</th><th>Último cargue</th><th></th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let n of notebooks">
+        <td>{{ n.title || '#' + n.id }}</td>
+        <td>{{ n.operadora }}</td>
+        <td><span class="badge" [class]="n.status">{{ n.status }}</span></td>
+        <td>{{ n.versionCount }}</td>
+        <td>
+          <span *ngIf="n.lastUploadAt; else none">{{ n.lastUploadAt | date: 'short' }}</span>
+          <ng-template #none>—</ng-template>
+        </td>
+        <td><button class="btn small" (click)="open(n.id)">Abrir</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #empty>
+    <p class="hint" *ngIf="!loading">Aún no hay cuadernos. Cree uno para cargar y validar su inventario.</p>
+  </ng-template>
+</section>

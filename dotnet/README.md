@@ -41,6 +41,7 @@ cd dotnet
 dotnet run --project src/Anh.Vip.Api
 # GET  /health
 # POST /api/uwi/preview          (JSON; no requiere base de datos)
+# GET  /api/notebooks?operadora=  (listar cuadernos, alcance por rol)
 # POST /api/notebooks            (crear cuaderno: { operadora, title })
 # POST /api/notebooks/{id}/upload (multipart 'file' = .xlsx; crea una versión)
 # POST /api/notebooks/{id}/submit (aplica el inventario a la ANH)
@@ -181,7 +182,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **41/41 pruebas superadas**:
+- ✅ **`dotnet test`:** **43/43 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -202,6 +203,8 @@ sin «LISTA»).
     esquema de autenticación de prueba — `/health` anónimo, 401 sin token, 403
     con rol insuficiente (anh crea cuaderno / rol desconocido consulta), 200 con
     rol válido, y operadora forzada + actor tomado de los claims.
+  - **Listado (2):** `GET /api/notebooks` — devuelve los cuadernos creados con su
+    conteo de versiones; la operadora solo ve los suyos.
   - **API (6):** integración con `WebApplicationFactory` + EF Core InMemory
     (catálogos sembrados desde `seed.json`): **carga** (persistencia de upload,
     2 pozos con operadora forzada, hallazgos, UWI `50568RUBI…`, versión activa,

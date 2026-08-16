@@ -114,6 +114,49 @@ app.MapPost("/api/uwi/preview", (UwiWellInput input) =>
 .RequireAuthorization()
 .WithName("UwiPreview");
 
+// Listar cuadernos (operadora ve los suyos; admin filtra por operadora o ve todos).
+app.MapGet("/api/notebooks", async (string? operadora, ClaimsPrincipal user, VipDbContext db, CancellationToken ct) =>
+{
+    var scopeOperadora = user.IsAdmin() ? operadora : user.GetOperadora();
+
+    var query = db.Notebooks.AsNoTracking().AsQueryable();
+    if (!string.IsNullOrEmpty(scopeOperadora))
+        query = query.Where(n => n.Operadora == scopeOperadora);
+    else if (!user.IsAdmin())
+        return Results.Ok(new { notebooks = Array.Empty<object>() }); // operadora sin claim -> vacío
+
+    var notebooks = await query.OrderByDescending(n => n.UpdatedAt).ToListAsync(ct);
+    var ids = notebooks.Select(n => n.Id).ToList();
+    var uploads = await db.Uploads.AsNoTracking()
+        .Where(u => u.NotebookId != null && ids.Contains(u.NotebookId.Value))
+        .ToListAsync(ct);
+    var byNotebook = uploads.GroupBy(u => u.NotebookId!.Value)
+        .ToDictionary(g => g.Key, g => g.OrderByDescending(u => u.VersionNumber).ToList());
+
+    var result = notebooks.Select(n =>
+    {
+        byNotebook.TryGetValue(n.Id, out var ups);
+        var last = ups?.FirstOrDefault();
+        return new
+        {
+            id = n.Id,
+            operadora = n.Operadora,
+            title = n.Title,
+            status = n.Status,
+            activeVersionId = n.ActiveVersionId,
+            submittedAt = n.SubmittedAt,
+            updatedAt = n.UpdatedAt,
+            versionCount = ups?.Count ?? 0,
+            lastUploadAt = last?.CreatedAt,
+            lastFilename = last?.Filename,
+        };
+    });
+
+    return Results.Ok(new { notebooks = result });
+})
+.RequireAuthorization(Roles.OperatorOrAdmin)
+.WithName("ListNotebooks");
+
 // Crear cuaderno (operadora | admin). La operadora se fuerza al alcance del usuario.
 app.MapPost("/api/notebooks", async (CreateNotebookRequest body, ClaimsPrincipal user, VipDbContext db, CancellationToken ct) =>
 {

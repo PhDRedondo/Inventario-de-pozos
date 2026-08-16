@@ -7,6 +7,8 @@ import {
   CreateNotebookRequest,
   DashboardStats,
   NotebookCreated,
+  NotebookDetail,
+  NotebookSummary,
   SubmitResponse,
   UploadResult,
   ValidationResult,
@@ -21,6 +23,16 @@ export class VipApiService {
 
   createNotebook(req: CreateNotebookRequest): Observable<NotebookCreated> {
     return this.http.post<NotebookCreated>(`${this.base}/api/notebooks`, req);
+  }
+
+  listNotebooks(operadora?: string): Observable<{ notebooks: NotebookSummary[] }> {
+    const params: Record<string, string> = {};
+    if (operadora) params['operadora'] = operadora;
+    return this.http.get<{ notebooks: NotebookSummary[] }>(`${this.base}/api/notebooks`, { params });
+  }
+
+  getNotebook(id: number): Observable<NotebookDetail> {
+    return this.http.get<NotebookDetail>(`${this.base}/api/notebooks/${id}`);
   }
 
   uploadVersion(notebookId: number, file: File): Observable<UploadResult> {

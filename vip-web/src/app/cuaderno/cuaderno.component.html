@@ -1,74 +1,74 @@
-<section class="card">
-  <h2>1. Crear cuaderno</h2>
-  <div class="grid">
-    <label>
-      Operadora
-      <input type="text" [(ngModel)]="operadora" placeholder="Operadora" />
-    </label>
-    <label>
-      Nombre del cuaderno (opcional)
-      <input type="text" [(ngModel)]="title" placeholder="Ej. Inventario Q3 2026" />
-    </label>
-    <label>
-      ¿Cuántos pozos va a registrar?
-      <input type="number" min="1" max="500" [(ngModel)]="wellCount" />
-    </label>
-  </div>
-  <div class="actions">
-    <button class="btn primary" (click)="createNotebook()" [disabled]="creating">
-      {{ creating ? 'Creando…' : 'Crear cuaderno' }}
-    </button>
-    <a class="btn secondary" [href]="templateHref()" target="_blank" rel="noopener">
-      Descargar plantilla ({{ safeRows }} pozos)
-    </a>
-  </div>
-  <p class="hint" *ngIf="notebookId !== null">Cuaderno activo: <strong>#{{ notebookId }}</strong></p>
-</section>
+<a class="back" routerLink="/">← Volver al inventario de cuadernos</a>
 
-<section class="card" *ngIf="notebookId !== null">
-  <h2>2. Cargar inventario</h2>
-  <p class="hint">Diligencie la plantilla y cárguela aquí. Cada carga crea una versión.</p>
-  <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" [disabled]="uploading" />
-  <p class="hint" *ngIf="uploading">Procesando archivo…</p>
-</section>
-
+<p class="hint" *ngIf="loading">Cargando cuaderno…</p>
 <div class="alert error" *ngIf="error">{{ error }}</div>
 <div class="alert ok" *ngIf="message">{{ message }}</div>
 
-<section class="card" *ngIf="upload as u">
-  <h2>3. Resultado de la versión {{ u.version_number }}</h2>
-  <div class="stats">
-    <div class="stat"><span>Total</span><strong>{{ u.summary.total }}</strong></div>
-    <div class="stat ok"><span>Válidos</span><strong>{{ u.summary.valid }}</strong></div>
-    <div class="stat warn"><span>Con advertencias</span><strong>{{ u.summary.withWarnings }}</strong></div>
-    <div class="stat bad"><span>Inválidos</span><strong>{{ u.summary.invalid }}</strong></div>
-  </div>
-
-  <div class="filters">
-    <button class="chip" [class.active]="filter === 'all'" (click)="filter = 'all'">Todos</button>
-    <button class="chip" [class.active]="filter === 'errors'" (click)="filter = 'errors'">Errores</button>
-    <button class="chip" [class.active]="filter === 'warnings'" (click)="filter = 'warnings'">Advertencias</button>
-  </div>
-
-  <table class="findings" *ngIf="findingRows.length > 0; else noFindings">
-    <thead>
-      <tr><th>Pozo</th><th>Atributo</th><th>Severidad</th><th>Mensaje</th></tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let row of findingRows">
-        <td>{{ row.well }}</td>
-        <td class="mono">{{ row.field }}</td>
-        <td><span class="badge" [class]="row.severity">{{ row.severity }}</span></td>
-        <td>{{ row.message }}</td>
-      </tr>
-    </tbody>
-  </table>
-  <ng-template #noFindings><p class="hint">Sin hallazgos para el filtro seleccionado.</p></ng-template>
-
-  <div class="actions">
+<ng-container *ngIf="detail as d">
+  <section class="card head">
+    <div>
+      <h2>{{ d.notebook.title || 'Cuaderno #' + d.notebook.id }}</h2>
+      <p class="hint">{{ d.notebook.operadora }} · <span class="badge" [class]="d.notebook.status">{{ d.notebook.status }}</span></p>
+    </div>
     <button class="btn primary" (click)="submit()" [disabled]="!canSubmit || submitting"
-            [title]="canSubmit ? '' : 'Corrija todos los errores antes de aplicar'">
+            [title]="canSubmit ? '' : 'Solo la versión activa sin pozos inválidos puede aplicarse'">
       {{ submitting ? 'Aplicando…' : 'Aplicar inventario a la ANH' }}
     </button>
-  </div>
-</section>
+  </section>
+
+  <section class="card" *ngIf="isActive">
+    <h3>Cargar versión</h3>
+    <div class="tpl">
+      <label>¿Cuántos pozos?<input type="number" min="1" max="500" [(ngModel)]="wellCount" /></label>
+      <a class="btn secondary" [href]="templateHref()" target="_blank" rel="noopener">Descargar plantilla ({{ safeRows }} pozos)</a>
+    </div>
+    <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" [disabled]="uploading" />
+    <p class="hint" *ngIf="uploading">Procesando archivo…</p>
+  </section>
+
+  <section class="card" *ngIf="d.versions.length > 0">
+    <h3>Versiones</h3>
+    <table class="versions">
+      <thead><tr><th>#</th><th>Archivo</th><th>Estado</th><th>Total</th><th>Válidos</th><th>Inválidos</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let v of d.versions">
+          <td>{{ v.versionNumber }}</td>
+          <td>{{ v.filename }}</td>
+          <td>{{ v.status }}</td>
+          <td>{{ v.totalRecords }}</td>
+          <td>{{ v.validRecords }}</td>
+          <td>{{ v.invalidRecords }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card" *ngIf="summary as s">
+    <h3>Resultado</h3>
+    <div class="stats">
+      <div class="stat"><span>Total</span><strong>{{ s.total }}</strong></div>
+      <div class="stat ok"><span>Válidos</span><strong>{{ s.valid }}</strong></div>
+      <div class="stat warn"><span>Advertencias</span><strong>{{ s.withWarnings }}</strong></div>
+      <div class="stat bad"><span>Inválidos</span><strong>{{ s.invalid }}</strong></div>
+    </div>
+
+    <div class="filters">
+      <button class="chip" [class.active]="filter === 'all'" (click)="filter = 'all'">Todos</button>
+      <button class="chip" [class.active]="filter === 'errors'" (click)="filter = 'errors'">Errores</button>
+      <button class="chip" [class.active]="filter === 'warnings'" (click)="filter = 'warnings'">Advertencias</button>
+    </div>
+
+    <table class="findings" *ngIf="findingRows.length > 0; else noFindings">
+      <thead><tr><th>Pozo</th><th>Atributo</th><th>Severidad</th><th>Mensaje</th></tr></thead>
+      <tbody>
+        <tr *ngFor="let row of findingRows">
+          <td>{{ row.well }}</td>
+          <td class="mono">{{ row.field }}</td>
+          <td><span class="badge" [class]="row.severity">{{ row.severity }}</span></td>
+          <td>{{ row.message }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noFindings><p class="hint">Sin hallazgos para el filtro seleccionado.</p></ng-template>
+  </section>
+</ng-container>

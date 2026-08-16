@@ -56,6 +56,57 @@ export interface SubmitResponse {
   message: string;
 }
 
+/** Resumen de un cuaderno en el listado (GET /api/notebooks). */
+export interface NotebookSummary {
+  id: number;
+  operadora: string;
+  title: string;
+  status: string;
+  activeVersionId: number | null;
+  submittedAt: string | null;
+  updatedAt: string;
+  versionCount: number;
+  lastUploadAt: string | null;
+  lastFilename: string | null;
+}
+
+export interface NotebookInfo {
+  id: number;
+  operadora: string;
+  title: string;
+  status: string;
+  activeVersionId: number | null;
+}
+
+export interface NotebookVersion {
+  id: number;
+  versionNumber: number;
+  filename: string;
+  status: string;
+  totalRecords: number;
+  validRecords: number;
+  invalidRecords: number;
+  warningRecords: number;
+  errorIssues: number;
+  warningIssues: number;
+  infoIssues: number;
+}
+
+export interface NotebookEvent {
+  eventType: string;
+  uploadId: number | null;
+  actorEmail: string | null;
+  message: string | null;
+  createdAt: string;
+}
+
+/** Detalle del cuaderno (GET /api/notebooks/{id}). */
+export interface NotebookDetail {
+  notebook: NotebookInfo;
+  versions: NotebookVersion[];
+  events: NotebookEvent[];
+}
+
 /** Par clave/conteo (KeyValuePair serializado por la API). */
 export interface KeyCount {
   key: string;

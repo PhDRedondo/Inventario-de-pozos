@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { VipApiService } from '../services/vip-api.service';
-import { UploadResult, ValidationResult } from '../models/notebook.models';
+import { NotebookDetail, ValidationResult } from '../models/notebook.models';
 
 type FindingFilter = 'all' | 'errors' | 'warnings';
 
@@ -13,38 +14,82 @@ interface FindingRow {
   message: string;
 }
 
+interface Summary {
+  total: number;
+  valid: number;
+  withWarnings: number;
+  invalid: number;
+}
+
 /**
- * Espacio de trabajo del cuaderno (perfil operadora): crear cuaderno, descargar
- * la plantilla, cargar el Excel, revisar hallazgos y aplicar a la ANH. Consume
- * la Web API .NET vía {@link VipApiService}.
+ * Workspace de un cuaderno existente (perfil operadora): carga sus versiones,
+ * descarga la plantilla, carga el Excel, revisa hallazgos y aplica a la ANH.
  */
 @Component({
   selector: 'app-cuaderno',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './cuaderno.component.html',
   styleUrl: './cuaderno.component.css',
 })
-export class CuadernoComponent {
-  operadora = 'HOCOL S.A.';
-  title = '';
-  wellCount = 10;
-
-  notebookId: number | null = null;
-  upload: UploadResult | null = null;
+export class CuadernoComponent implements OnInit {
+  notebookId = 0;
+  detail: NotebookDetail | null = null;
+  summary: Summary | null = null;
   validations: ValidationResult[] = [];
   filter: FindingFilter = 'all';
+  wellCount = 10;
 
-  creating = false;
+  loading = true;
   uploading = false;
   submitting = false;
   error: string | null = null;
   message: string | null = null;
 
-  constructor(private readonly api: VipApiService) {}
+  constructor(private readonly api: VipApiService, private readonly route: ActivatedRoute) {}
+
+  ngOnInit(): void {
+    this.notebookId = Number(this.route.snapshot.paramMap.get('id'));
+    this.loadDetail();
+  }
+
+  private loadDetail(): void {
+    this.loading = true;
+    this.api.getNotebook(this.notebookId).subscribe({
+      next: (d) => {
+        this.detail = d;
+        this.loading = false;
+        const active = d.versions.find((v) => v.id === d.notebook.activeVersionId);
+        if (active) {
+          this.summary = {
+            total: active.totalRecords,
+            valid: active.validRecords,
+            withWarnings: active.warningRecords,
+            invalid: active.invalidRecords,
+          };
+          this.loadValidations(active.id);
+        } else {
+          this.summary = null;
+          this.validations = [];
+        }
+      },
+      error: () => {
+        this.error = 'No fue posible cargar el cuaderno.';
+        this.loading = false;
+      },
+    });
+  }
+
+  get operadora(): string {
+    return this.detail?.notebook.operadora ?? '';
+  }
+
+  get isActive(): boolean {
+    return this.detail?.notebook.status === 'active';
+  }
 
   get canSubmit(): boolean {
-    return !!this.upload && this.upload.summary.invalid === 0 && this.upload.summary.total > 0;
+    return this.isActive && !!this.summary && this.summary.invalid === 0 && this.summary.total > 0;
   }
 
   get safeRows(): number {
@@ -55,54 +100,35 @@ export class CuadernoComponent {
     return this.api.templateUrl(this.safeRows, this.operadora);
   }
 
-  createNotebook(): void {
-    if (!this.operadora.trim()) {
-      this.error = 'Indique la operadora.';
-      return;
-    }
-    this.creating = true;
-    this.error = null;
-    this.message = null;
-    this.api.createNotebook({ operadora: this.operadora.trim(), title: this.title.trim() }).subscribe({
-      next: (n) => {
-        this.notebookId = n.id;
-        this.upload = null;
-        this.validations = [];
-        this.message = `Cuaderno #${n.id} creado para ${n.operadora}.`;
-        this.creating = false;
-      },
-      error: (e) => {
-        this.error = this.readError(e, 'No fue posible crear el cuaderno.');
-        this.creating = false;
-      },
-    });
-  }
-
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file || this.notebookId == null) return;
-
+    if (!file) return;
     this.uploading = true;
     this.error = null;
     this.message = null;
     this.api.uploadVersion(this.notebookId, file).subscribe({
       next: (res) => {
-        this.upload = res;
+        this.summary = res.summary;
         this.message = `Versión ${res.version_number} cargada: ${res.summary.total} pozos (${res.summary.invalid} inválidos).`;
         this.uploading = false;
-        this.loadValidations(res.upload_id);
         input.value = '';
+        this.loadValidations(res.upload_id);
+        this.refreshVersions();
       },
       error: (e) => {
-        this.error = this.readError(e, 'No fue posible procesar el archivo.');
+        this.error = (e?.error?.error as string) ?? 'No fue posible procesar el archivo.';
         this.uploading = false;
         input.value = '';
       },
     });
   }
 
-  loadValidations(uploadId: number): void {
+  private refreshVersions(): void {
+    this.api.getNotebook(this.notebookId).subscribe({ next: (d) => (this.detail = d) });
+  }
+
+  private loadValidations(uploadId: number): void {
     this.api.getValidations(uploadId).subscribe({
       next: (rows) => (this.validations = rows),
       error: () => (this.validations = []),
@@ -110,16 +136,17 @@ export class CuadernoComponent {
   }
 
   submit(): void {
-    if (this.notebookId == null || !this.canSubmit) return;
+    if (!this.canSubmit) return;
     this.submitting = true;
     this.error = null;
     this.api.submit(this.notebookId).subscribe({
       next: (res) => {
         this.message = res.message;
         this.submitting = false;
+        this.loadDetail();
       },
       error: (e) => {
-        this.error = this.readError(e, 'No fue posible aplicar el inventario.');
+        this.error = (e?.error?.error as string) ?? 'No fue posible aplicar el inventario.';
         this.submitting = false;
       },
     });
@@ -140,10 +167,5 @@ export class CuadernoComponent {
       }
     }
     return rows;
-  }
-
-  private readError(e: unknown, fallback: string): string {
-    const err = e as { error?: { error?: string } };
-    return err?.error?.error ?? fallback;
   }
 }

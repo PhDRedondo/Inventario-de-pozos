@@ -10,10 +10,13 @@ Reemplaza la UI del piloto (Next.js/React) y consume la **Web API .NET**
 
 ## Alcance
 
-**Cuaderno** (perfil operadora): crear cuaderno (`POST /api/notebooks`),
-descargar plantilla (`GET /api/notebooks/template`), cargar el Excel
-(`POST .../upload`), revisar hallazgos filtrables (`GET /api/validations`) y
-aplicar a la ANH (`POST .../submit`).
+**Cuadernos** (`/`): listado del inventario de cuadernos (`GET /api/notebooks`)
+y creación; cada fila abre el workspace.
+
+**Workspace del cuaderno** (`/cuadernos/:id`): carga el detalle
+(`GET /api/notebooks/{id}`), descarga plantilla, carga el Excel (`POST .../upload`),
+revisa versiones y hallazgos filtrables (`GET /api/validations`) y aplica a la
+ANH (`POST .../submit`).
 
 **Panel** (`/panel`): KPIs y desgloses del inventario aplicado (por operadora,
 departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
@@ -24,8 +27,8 @@ departamento frente al promedio nacional (base 100) más barras de índice, desd
 `GET /api/analytics`.
 
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
-de la API), `cuaderno/`, `panel/` y `analitica/` (componentes), `auth/`
-(token + interceptor).
+de la API), `notebooks/` (listado), `cuaderno/` (workspace), `panel/` y
+`analitica/` (componentes), `auth/` (token + interceptor).
 
 ## Requisitos
 
@@ -54,10 +57,10 @@ La URL base de la API se configura en `src/environments/environment.ts`
 ## Estado de verificación
 
 - ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **13/13** — cliente de API con
-  `HttpTestingController` (crear cuaderno, carga multipart, validaciones, submit,
-  plantilla, stats del panel, analítica), interceptor de token (adjunta Bearer
-  solo a `/api/`) y render del shell.
+- ✅ **`ng test` (ChromeHeadless):** **15/15** — cliente de API con
+  `HttpTestingController` (crear/listar/detalle de cuaderno, carga multipart,
+  validaciones, submit, plantilla, stats del panel, analítica), interceptor de
+  token (adjunta Bearer solo a `/api/`) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 
