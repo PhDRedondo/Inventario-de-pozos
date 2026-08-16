@@ -8,18 +8,19 @@ Reemplaza la UI del piloto (Next.js/React) y consume la **Web API .NET**
 
 > Estándar aplicado: **ANH-GTIC-MA-02 §10.2** — Angular para interfaces web.
 
-## Alcance de este incremento
+## Alcance
 
-Flujo del cuaderno (perfil operadora), consumiendo la API real:
+**Cuaderno** (perfil operadora): crear cuaderno (`POST /api/notebooks`),
+descargar plantilla (`GET /api/notebooks/template`), cargar el Excel
+(`POST .../upload`), revisar hallazgos filtrables (`GET /api/validations`) y
+aplicar a la ANH (`POST .../submit`).
 
-- **Crear cuaderno** (`POST /api/notebooks`).
-- **Descargar plantilla** con el nº de pozos (`GET /api/notebooks/template`).
-- **Cargar el Excel** (`POST /api/notebooks/{id}/upload`), con resumen y versión.
-- **Hallazgos de validación** por pozo, filtrables (`GET /api/validations`).
-- **Aplicar a la ANH** cuando no hay pozos inválidos (`POST .../submit`).
+**Panel** (`/panel`): KPIs y desgloses del inventario aplicado (por operadora,
+departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
+(alcance por rol).
 
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
-de la API), `cuaderno/` (componente del flujo).
+de la API), `cuaderno/` y `panel/` (componentes), `auth/` (token + interceptor).
 
 ## Requisitos
 
@@ -48,10 +49,10 @@ La URL base de la API se configura en `src/environments/environment.ts`
 ## Estado de verificación
 
 - ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **10/10** — cliente de API con
+- ✅ **`ng test` (ChromeHeadless):** **11/11** — cliente de API con
   `HttpTestingController` (crear cuaderno, carga multipart, validaciones con
-  query, submit, URL de plantilla), interceptor de token (adjunta Bearer solo a
-  `/api/`) y render del shell.
+  query, submit, plantilla, stats del panel), interceptor de token (adjunta
+  Bearer solo a `/api/`) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 

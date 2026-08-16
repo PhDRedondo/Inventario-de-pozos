@@ -1,0 +1,72 @@
+<h2 class="page-title">Panel del inventario</h2>
+
+<p class="hint" *ngIf="loading">Cargando panel…</p>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<ng-container *ngIf="stats as s">
+  <section class="kpis">
+    <div class="kpi"><span>Pozos</span><strong>{{ s.totalWells }}</strong></div>
+    <div class="kpi ok"><span>Válidos</span><strong>{{ s.validWells }}</strong></div>
+    <div class="kpi warn"><span>Con advertencias</span><strong>{{ s.warningWells }}</strong></div>
+    <div class="kpi bad"><span>Inválidos</span><strong>{{ s.invalidWells }}</strong></div>
+    <div class="kpi"><span>Cargas</span><strong>{{ s.totalUploads }}</strong></div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h3>Por operadora</h3>
+      <div class="bar" *ngFor="let it of s.byOperadora">
+        <span class="bar-label" [title]="it.key">{{ it.key }}</span>
+        <span class="bar-track"><span class="bar-fill" [style.width.%]="barWidth(it, s.byOperadora)"></span></span>
+        <span class="bar-value">{{ it.value }}</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Por departamento</h3>
+      <div class="bar" *ngFor="let it of s.byDepartamento">
+        <span class="bar-label" [title]="it.key">{{ it.key }}</span>
+        <span class="bar-track"><span class="bar-fill" [style.width.%]="barWidth(it, s.byDepartamento)"></span></span>
+        <span class="bar-value">{{ it.value }}</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Por estado</h3>
+      <div class="bar" *ngFor="let it of s.byEstado">
+        <span class="bar-label" [title]="it.key">{{ it.key }}</span>
+        <span class="bar-track"><span class="bar-fill" [style.width.%]="barWidth(it, s.byEstado)"></span></span>
+        <span class="bar-value">{{ it.value }}</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Por objetivo</h3>
+      <div class="bar" *ngFor="let it of s.byTipoObjetivo">
+        <span class="bar-label" [title]="it.key">{{ it.key }}</span>
+        <span class="bar-track"><span class="bar-fill" [style.width.%]="barWidth(it, s.byTipoObjetivo)"></span></span>
+        <span class="bar-value">{{ it.value }}</span>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h3>Pozos ({{ s.wells.length }})</h3>
+    <table class="wells" *ngIf="s.wells.length > 0; else noWells">
+      <thead>
+        <tr><th>Pozo</th><th>Operadora</th><th>Departamento</th><th>Estado</th><th>Validación</th><th>UWI fiscalizado</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let w of s.wells">
+          <td>{{ w.nombrePozoSgc || '—' }}</td>
+          <td>{{ w.operadora || '—' }}</td>
+          <td>{{ w.departamento || '—' }}</td>
+          <td>{{ w.estadoPozo || '—' }}</td>
+          <td><span class="badge" [class]="w.validationStatus || 'pending'">{{ w.validationStatus || '—' }}</span></td>
+          <td class="mono">{{ w.uwiFiscalizado || '—' }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #noWells><p class="hint">No hay inventario aplicado visible para su perfil.</p></ng-template>
+  </section>
+</ng-container>

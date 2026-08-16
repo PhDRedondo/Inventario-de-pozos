@@ -24,6 +24,7 @@ else
 builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddScoped<NotebookUploadService>();
 builder.Services.AddScoped<NotebookSubmitService>();
+builder.Services.AddScoped<Anh.Vip.Infrastructure.Stats.StatsService>();
 
 // --- Autenticación / autorización (GU-18 Anexo 2) ---------------------------
 // Producción: JWT Bearer contra el proveedor OIDC/AD institucional.
@@ -94,6 +95,7 @@ if (useInMemory)
     var seedPath = Path.Combine(AppContext.BaseDirectory, "seed.json");
     if (File.Exists(seedPath))
         CatalogSeeder.SeedFromFile(db, seedPath);
+    DemoDataSeeder.Seed(db); // inventario aplicado de ejemplo para el panel
 }
 
 // Salud básica (anónima).
@@ -242,6 +244,19 @@ app.MapGet("/api/notebooks/template", async (int? rows, string? operadora, VipDb
 })
 .RequireAuthorization(Roles.OperatorOrAdmin)
 .WithName("DownloadTemplate");
+
+// Panel: KPIs y desgloses del inventario, con alcance por rol.
+app.MapGet("/api/stats", async (int? limit, ClaimsPrincipal user, Anh.Vip.Infrastructure.Stats.StatsService stats, CancellationToken ct) =>
+{
+    var role = user.IsInRole(Roles.Admin) ? Roles.Admin
+        : user.IsInRole(Roles.Anh) ? Roles.Anh
+        : Roles.Operadora;
+    var tableLimit = limit is 25 or 50 ? limit.Value : 10;
+    var result = await stats.GetAsync(role, user.GetOperadora(), tableLimit, ct);
+    return Results.Ok(result);
+})
+.RequireAuthorization(Roles.ReadInventory)
+.WithName("GetStats");
 
 app.Run();
 

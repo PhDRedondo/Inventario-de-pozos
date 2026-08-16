@@ -59,6 +59,16 @@ describe('VipApiService', () => {
     req.flush({ upload_id: 3, version_number: 1, message: 'ok' });
   });
 
+  it('gets panel stats with an optional limit', () => {
+    service.getStats(25).subscribe((s) => expect(s.totalWells).toBe(12));
+    const req = httpMock.expectOne((r) => r.url === '/api/stats' && r.params.get('limit') === '25');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      totalWells: 12, totalUploads: 1, validWells: 8, warningWells: 4, invalidWells: 0,
+      byEstado: [], byOperadora: [], byDepartamento: [], byTipoObjetivo: [], wells: [],
+    });
+  });
+
   it('builds the template URL with rows and operadora', () => {
     const url = service.templateUrl(5, 'HOCOL S.A.');
     expect(url).toContain('/api/notebooks/template?');

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   CreateNotebookRequest,
+  DashboardStats,
   NotebookCreated,
   SubmitResponse,
   UploadResult,
@@ -35,6 +36,12 @@ export class VipApiService {
     return this.http.get<ValidationResult[]>(`${this.base}/api/validations`, {
       params: { uploadId: String(uploadId) },
     });
+  }
+
+  getStats(limit?: number): Observable<DashboardStats> {
+    const params: Record<string, string> = {};
+    if (limit) params['limit'] = String(limit);
+    return this.http.get<DashboardStats>(`${this.base}/api/stats`, { params });
   }
 
   /** URL de descarga de la plantilla (enlace directo, no XHR). */

@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  color: #1a2b3c;
+}
+.page-title {
+  font-size: 1.3rem;
+  color: #1e3a4a;
+  border-bottom: 2px solid #ff8c00;
+  padding-bottom: 0.4rem;
+}
+.hint { color: #5a6b7d; font-size: 0.85rem; }
+.alert.error { background: #fdecea; color: #b42318; border: 1px solid #f3c2bd; border-radius: 10px; padding: 0.75rem 1rem; }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+.kpi {
+  flex: 1 1 120px;
+  background: #fff;
+  border: 1px solid #d8e2ec;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+.kpi span { font-size: 0.72rem; color: #5a6b7d; text-transform: uppercase; font-weight: 700; }
+.kpi strong { font-size: 1.6rem; }
+.kpi.ok strong { color: #1b7f4a; }
+.kpi.warn strong { color: #9a6700; }
+.kpi.bad strong { color: #b42318; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.card { background: #fff; border: 1px solid #d8e2ec; border-radius: 12px; padding: 1rem 1.15rem; }
+.card h3 { margin: 0 0 0.75rem; font-size: 1rem; color: #1e3a4a; }
+
+.bar { display: grid; grid-template-columns: 40% 1fr auto; align-items: center; gap: 0.5rem; margin: 0.3rem 0; font-size: 0.82rem; }
+.bar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #1a2b3c; }
+.bar-track { background: #eef2f6; border-radius: 999px; height: 12px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: linear-gradient(90deg, #ffc107, #ff8c00); }
+.bar-value { font-weight: 700; color: #5a6b7d; min-width: 1.5rem; text-align: right; }
+
+table.wells { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+.wells th, .wells td { border: 1px solid #e2e8f0; padding: 0.45rem 0.55rem; text-align: left; }
+.wells th { background: #eef2f6; }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.78rem; }
+
+.badge { font-size: 0.72rem; font-weight: 800; padding: 0.1rem 0.45rem; border-radius: 999px; }
+.badge.valid { background: #e8f7ef; color: #1b7f4a; }
+.badge.warning { background: #fff6db; color: #9a6700; }
+.badge.invalid { background: #fdecea; color: #b42318; }
+.badge.pending { background: #eef2f6; color: #5a6b7d; }

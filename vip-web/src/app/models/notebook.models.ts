@@ -55,3 +55,33 @@ export interface SubmitResponse {
   version_number: number;
   message: string;
 }
+
+/** Par clave/conteo (KeyValuePair serializado por la API). */
+export interface KeyCount {
+  key: string;
+  value: number;
+}
+
+export interface WellRow {
+  id: number;
+  nombrePozoSgc: string | null;
+  operadora: string | null;
+  departamento: string | null;
+  estadoPozo: string | null;
+  validationStatus: string | null;
+  uwiFiscalizado: string | null;
+}
+
+/** KPIs y desgloses del panel (GET /api/stats). */
+export interface DashboardStats {
+  totalWells: number;
+  totalUploads: number;
+  validWells: number;
+  warningWells: number;
+  invalidWells: number;
+  byEstado: KeyCount[];
+  byOperadora: KeyCount[];
+  byDepartamento: KeyCount[];
+  byTipoObjetivo: KeyCount[];
+  wells: WellRow[];
+}
