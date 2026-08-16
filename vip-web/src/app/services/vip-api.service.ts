@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
+  AnalyticsResult,
   CreateNotebookRequest,
   DashboardStats,
   NotebookCreated,
@@ -42,6 +43,15 @@ export class VipApiService {
     const params: Record<string, string> = {};
     if (limit) params['limit'] = String(limit);
     return this.http.get<DashboardStats>(`${this.base}/api/stats`, { params });
+  }
+
+  getAnalytics(entityType?: string, entity?: string): Observable<AnalyticsResult> {
+    const params: Record<string, string> = {};
+    if (entityType && entity) {
+      params['entityType'] = entityType;
+      params['entity'] = entity;
+    }
+    return this.http.get<AnalyticsResult>(`${this.base}/api/analytics`, { params });
   }
 
   /** URL de descarga de la plantilla (enlace directo, no XHR). */

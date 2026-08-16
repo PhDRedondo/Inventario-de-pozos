@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+  color: #1a2b3c;
+}
+.page-title {
+  font-size: 1.3rem;
+  color: #1e3a4a;
+  border-bottom: 2px solid #ff8c00;
+  padding-bottom: 0.4rem;
+}
+.hint { color: #5a6b7d; font-size: 0.85rem; margin: 0.3rem 0; }
+.alert.error { background: #fdecea; color: #b42318; border: 1px solid #f3c2bd; border-radius: 10px; padding: 0.75rem 1rem; }
+
+.card { background: #fff; border: 1px solid #d8e2ec; border-radius: 12px; padding: 1rem 1.15rem; margin-bottom: 1rem; }
+.card h3 { margin: 0 0 0.5rem; font-size: 1rem; color: #1e3a4a; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 1rem; }
+.controls label { display: flex; flex-direction: column; font-size: 0.8rem; font-weight: 700; color: #5a6b7d; gap: 0.3rem; }
+.controls select { padding: 0.45rem 0.6rem; border: 1px solid #d8e2ec; border-radius: 8px; font-size: 0.9rem; min-width: 220px; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
+
+.radar { width: 100%; max-width: 360px; display: block; margin: 0 auto; }
+.radar .ring { fill: none; stroke: #e2e8f0; stroke-width: 1; }
+.radar .axis { stroke: #e2e8f0; stroke-width: 1; }
+.radar .poly-national { fill: rgba(30, 58, 74, 0.08); stroke: #1e3a4a; stroke-width: 1.5; stroke-dasharray: 4 3; }
+.radar .poly-entity { fill: rgba(255, 140, 0, 0.28); stroke: #ff8c00; stroke-width: 2; }
+.radar .axis-label { font-size: 10px; fill: #5a6b7d; font-weight: 600; }
+
+.legend { display: flex; justify-content: center; gap: 1.25rem; font-size: 0.78rem; color: #5a6b7d; margin-top: 0.5rem; }
+.legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 0.3rem; vertical-align: middle; }
+.legend .sw.national { background: #1e3a4a; }
+.legend .sw.entity { background: #ff8c00; }
+
+.metric { margin-bottom: 0.85rem; }
+.metric-head { display: flex; justify-content: space-between; font-size: 0.85rem; }
+.metric-head strong.up { color: #1b7f4a; }
+.metric-head strong.down { color: #b42318; }
+.metric-bar { position: relative; height: 12px; background: #eef2f6; border-radius: 999px; overflow: hidden; margin: 0.3rem 0; }
+.metric-bar .fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #ffc107, #ff8c00); }
+.metric-bar .base { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: #1e3a4a; }
+.metric-foot { display: flex; justify-content: space-between; font-size: 0.72rem; color: #5a6b7d; }

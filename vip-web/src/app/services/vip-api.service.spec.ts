@@ -69,6 +69,21 @@ describe('VipApiService', () => {
     });
   });
 
+  it('gets analytics for an entity with query params', () => {
+    service.getAnalytics('operadora', 'HOCOL S.A.').subscribe((r) => expect(r.entityLabel).toBe('HOCOL S.A.'));
+    const req = httpMock.expectOne(
+      (r) => r.url === '/api/analytics' && r.params.get('entityType') === 'operadora' && r.params.get('entity') === 'HOCOL S.A.',
+    );
+    expect(req.request.method).toBe('GET');
+    req.flush({ entityType: 'operadora', entityLabel: 'HOCOL S.A.', metrics: [], operadoras: [], departamentos: [] });
+  });
+
+  it('gets national analytics without params', () => {
+    service.getAnalytics().subscribe();
+    const req = httpMock.expectOne((r) => r.url === '/api/analytics' && r.params.keys().length === 0);
+    req.flush({ entityType: 'nacional', entityLabel: 'Promedio nacional', metrics: [], operadoras: [], departamentos: [] });
+  });
+
   it('builds the template URL with rows and operadora', () => {
     const url = service.templateUrl(5, 'HOCOL S.A.');
     expect(url).toContain('/api/notebooks/template?');

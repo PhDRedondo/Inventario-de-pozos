@@ -14,6 +14,9 @@ public static class Roles
 
     /// <summary>Consulta del inventario validado: operadora, anh o admin.</summary>
     public const string ReadInventory = "ReadInventory";
+
+    /// <summary>Analítica comparativa: anh o admin.</summary>
+    public const string AnhOrAdmin = "AnhOrAdmin";
 }
 
 /// <summary>Lectura de identidad desde los claims del token (OIDC/AD).</summary>

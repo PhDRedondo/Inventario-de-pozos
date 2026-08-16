@@ -25,6 +25,7 @@ builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddScoped<NotebookUploadService>();
 builder.Services.AddScoped<NotebookSubmitService>();
 builder.Services.AddScoped<Anh.Vip.Infrastructure.Stats.StatsService>();
+builder.Services.AddScoped<Anh.Vip.Infrastructure.Stats.AnalyticsService>();
 
 // --- Autenticación / autorización (GU-18 Anexo 2) ---------------------------
 // Producción: JWT Bearer contra el proveedor OIDC/AD institucional.
@@ -51,6 +52,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(Roles.OperatorOrAdmin, p => p.RequireRole(Roles.Operadora, Roles.Admin));
     options.AddPolicy(Roles.ReadInventory, p => p.RequireRole(Roles.Operadora, Roles.Anh, Roles.Admin));
+    options.AddPolicy(Roles.AnhOrAdmin, p => p.RequireRole(Roles.Anh, Roles.Admin));
 });
 
 if (isDev)
@@ -257,6 +259,15 @@ app.MapGet("/api/stats", async (int? limit, ClaimsPrincipal user, Anh.Vip.Infras
 })
 .RequireAuthorization(Roles.ReadInventory)
 .WithName("GetStats");
+
+// Analítica comparativa (radar) — anh | admin.
+app.MapGet("/api/analytics", async (string? entityType, string? entity, Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
+{
+    var result = await analytics.GetAsync(entityType, entity, ct);
+    return Results.Ok(result);
+})
+.RequireAuthorization(Roles.AnhOrAdmin)
+.WithName("GetAnalytics");
 
 app.Run();
 

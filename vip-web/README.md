@@ -19,8 +19,13 @@ aplicar a la ANH (`POST .../submit`).
 departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
 (alcance por rol).
 
+**Analítica** (`/analitica`): radar comparativo (SVG) de una operadora o
+departamento frente al promedio nacional (base 100) más barras de índice, desde
+`GET /api/analytics`.
+
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
-de la API), `cuaderno/` y `panel/` (componentes), `auth/` (token + interceptor).
+de la API), `cuaderno/`, `panel/` y `analitica/` (componentes), `auth/`
+(token + interceptor).
 
 ## Requisitos
 
@@ -49,10 +54,10 @@ La URL base de la API se configura en `src/environments/environment.ts`
 ## Estado de verificación
 
 - ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **11/11** — cliente de API con
-  `HttpTestingController` (crear cuaderno, carga multipart, validaciones con
-  query, submit, plantilla, stats del panel), interceptor de token (adjunta
-  Bearer solo a `/api/`) y render del shell.
+- ✅ **`ng test` (ChromeHeadless):** **13/13** — cliente de API con
+  `HttpTestingController` (crear cuaderno, carga multipart, validaciones, submit,
+  plantilla, stats del panel, analítica), interceptor de token (adjunta Bearer
+  solo a `/api/`) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 

@@ -1,0 +1,64 @@
+<h2 class="page-title">Analítica comparativa</h2>
+
+<section class="card controls">
+  <label>
+    Comparar por
+    <select [(ngModel)]="entityType" (ngModelChange)="onTypeChange()">
+      <option value="operadora">Operadora</option>
+      <option value="departamento">Departamento</option>
+    </select>
+  </label>
+  <label>
+    Entidad
+    <select [(ngModel)]="entity" (ngModelChange)="load()">
+      <option value="">Promedio nacional</option>
+      <option *ngFor="let o of entityOptions" [value]="o">{{ o }}</option>
+    </select>
+  </label>
+</section>
+
+<p class="hint" *ngIf="loading">Cargando analítica…</p>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<ng-container *ngIf="result as res">
+  <div class="grid">
+    <section class="card">
+      <h3>Perfil vs promedio nacional (base 100)</h3>
+      <p class="hint">{{ res.entityLabel }}</p>
+      <svg viewBox="0 0 320 320" class="radar" role="img" aria-label="Radar comparativo">
+        <!-- anillos -->
+        <circle *ngFor="let rr of rings" [attr.cx]="cx" [attr.cy]="cy" [attr.r]="rr" class="ring"></circle>
+        <!-- ejes -->
+        <line *ngFor="let ax of axes" [attr.x1]="cx" [attr.y1]="cy" [attr.x2]="ax.lineX" [attr.y2]="ax.lineY" class="axis"></line>
+        <!-- base nacional -->
+        <polygon [attr.points]="nationalPolygon" class="poly-national"></polygon>
+        <!-- entidad -->
+        <polygon [attr.points]="entityPolygon" class="poly-entity"></polygon>
+        <!-- etiquetas -->
+        <text *ngFor="let ax of axes" [attr.x]="ax.labelX" [attr.y]="ax.labelY" [attr.text-anchor]="ax.anchor" class="axis-label">{{ ax.label }}</text>
+      </svg>
+      <div class="legend">
+        <span><i class="sw national"></i> Promedio nacional (100)</span>
+        <span><i class="sw entity"></i> {{ res.entityLabel }}</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Indicadores</h3>
+      <div class="metric" *ngFor="let m of res.metrics">
+        <div class="metric-head">
+          <span>{{ m.label }}</span>
+          <strong [class.up]="m.index >= 100" [class.down]="m.index < 100">índice {{ m.index }}</strong>
+        </div>
+        <div class="metric-bar">
+          <span class="fill" [style.width.%]="(m.index > 200 ? 200 : m.index) / 2"></span>
+          <span class="base"></span>
+        </div>
+        <div class="metric-foot">
+          <span>{{ res.entityLabel }}: {{ m.entityValue }}%</span>
+          <span>Nacional: {{ m.nationalValue }}%</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</ng-container>

@@ -16,7 +16,7 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 |---|---|
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
 | `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) + **migraciones** (`Migrations/`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y `NotebookUploadService` (ingesta + persistencia). |
-| `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, **cuadernos** (crear, cargar Excel, consultar, aplicar, validaciones y **plantilla** con ClosedXML) y **panel** (`/api/stats`). Autenticación JWT/OIDC + roles. |
+| `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, **cuadernos** (crear, cargar, consultar, aplicar, validaciones, **plantilla**), **panel** (`/api/stats`) y **analítica comparativa** (`/api/analytics`). Autenticación JWT/OIDC + roles. |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
 ## Requisitos
@@ -48,6 +48,7 @@ dotnet run --project src/Anh.Vip.Api
 # GET  /api/validations?uploadId= (hallazgos de una versión)
 # GET  /api/notebooks/template?rows=N&operadora= (descarga la plantilla .xlsx)
 # GET  /api/stats?limit=            (KPIs y desgloses del panel, alcance por rol)
+# GET  /api/analytics?entityType=&entity=  (radar comparativo vs nacional; anh|admin)
 # Swagger UI en desarrollo: /swagger
 ```
 
@@ -180,7 +181,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **38/38 pruebas superadas**:
+- ✅ **`dotnet test`:** **41/41 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -194,6 +195,9 @@ sin «LISTA»).
     (`Fixtures/ingestion-parity.json`).
   - **Panel (3):** `/api/stats` con alcance por rol — admin ve los 12 pozos del
     inventario demo, operadora solo los suyos (3), y sin token → 401.
+  - **Analítica (3):** `/api/analytics` — nacional con índice 100 en cada métrica,
+    entidad (operadora) con índices relativos al promedio nacional, y rol
+    operadora → 403.
   - **Seguridad (6):** autorización por rol con `WebApplicationFactory` y un
     esquema de autenticación de prueba — `/health` anónimo, 401 sin token, 403
     con rol insuficiente (anh crea cuaderno / rol desconocido consulta), 200 con

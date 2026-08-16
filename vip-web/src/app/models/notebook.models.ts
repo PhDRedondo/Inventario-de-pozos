@@ -72,6 +72,23 @@ export interface WellRow {
   uwiFiscalizado: string | null;
 }
 
+export interface AnalyticsMetric {
+  key: string;
+  label: string;
+  entityValue: number;
+  nationalValue: number;
+  index: number;
+}
+
+/** Analítica comparativa (GET /api/analytics). */
+export interface AnalyticsResult {
+  entityType: string;
+  entityLabel: string;
+  metrics: AnalyticsMetric[];
+  operadoras: string[];
+  departamentos: string[];
+}
+
 /** KPIs y desgloses del panel (GET /api/stats). */
 export interface DashboardStats {
   totalWells: number;
