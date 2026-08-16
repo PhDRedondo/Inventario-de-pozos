@@ -14,8 +14,8 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 
 | Proyecto | Rol |
 |---|---|
-| `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/UwiGenerator.cs`) y **motor de validación** (`Validation/WellValidator.cs`). Sin dependencias. |
-| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core) mapeado al esquema `[vip]` y `DbCatalogProvider` (catálogos desde SQL Server). |
+| `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/UwiGenerator.cs`), **validación** (`Validation/WellValidator.cs`) y **ETL geográfico** (`Etl/WellEtl.cs`, `Geo/GeographyResolver.cs`). Sin dependencias. |
+| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core) mapeado al esquema `[vip]`, `DbCatalogProvider` y `DbGeographyResolver` (catálogos/DANE desde SQL Server). |
 | `src/Anh.Vip.Api` | Web API mínima: `/health` y `POST /api/uwi/preview`. |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
@@ -70,17 +70,32 @@ se portan en `Text/SpanishText.cs`. En pruebas usa un `InMemoryCatalogProvider`
 alimentado por el mismo `data/seed.json`; en producción, `DbCatalogProvider`
 carga los catálogos `cat_*` de SQL Server.
 
+## Módulo portado: ETL geográfico + códigos DANE
+
+`Geo/GeographyResolver.cs` (port de `etl.ts` + `resolveDaneCodes` de db.ts)
+canoniza departamentos y municipios contra el catálogo DANE y asigna sus
+códigos. `Etl/WellEtl.cs` (port de `normalizeWellRecordForIngest`) normaliza el
+pozo antes de persistir, rellena el código DANE de departamento desde el
+municipio y repara la codificación de los atributos de texto, emitiendo
+hallazgos `etl_geography` / `etl_encoding` / `catalog_geography`.
+
+> ⚠️ **Nota de correctitud:** no usar `InvariantGlobalization` — deshabilita ICU
+> y rompe `String.Normalize(FormD)`, del que depende quitar tildes en la
+> canonización. Detectado por la paridad del ETL (nombres con tildes).
+
 ## Estado de verificación
 
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **15/15 pruebas superadas**:
+- ✅ **`dotnet test`:** **21/21 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
-    piloto para 3 registros de referencia (`Fixtures/validation-parity.json`,
-    generado con la implementación TS), el conteo de 59 reglas activas y el
-    resumen agregado.
+    piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
+    el conteo de 59 reglas activas y el resumen agregado.
+  - **ETL (6):** paridad de `normalizeWellRecordForIngest` + `resolveDaneCodes`
+    contra el piloto para 5 registros (limpio, minúsculas, desconocido,
+    mojibake, vacío) (`Fixtures/etl-parity.json`) y `isCanonicalDepartamento`.
 
 Reproducir:
 

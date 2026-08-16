@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- NO usar InvariantGlobalization: deshabilita ICU y rompe String.Normalize(FormD),
+         del que depende la normalización geográfica (quita tildes) en SpanishText/UWI. -->
   </PropertyGroup>
 </Project>

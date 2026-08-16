@@ -104,6 +104,9 @@ public class Well
     public Upload? Upload { get; set; }
     public ICollection<ValidationIssue> Issues { get; set; } = new List<ValidationIssue>();
 
+    /// <summary>Copia superficial del pozo (el ETL no muta la entrada).</summary>
+    public Well Clone() => (Well)MemberwiseClone();
+
     /// <summary>Proyecta el pozo al input que consume el generador de UWI.</summary>
     public Uwi.UwiWellInput ToUwiInput() => new()
     {

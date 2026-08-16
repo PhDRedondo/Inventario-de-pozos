@@ -1,0 +1,80 @@
+{
+  "clean": {
+    "departamento": "META",
+    "municipio": "PUERTO GAITÁN",
+    "codigo_dane_depto_normalize": "50",
+    "operadora": null,
+    "dane_depto": "50",
+    "dane_muni": "50568",
+    "etlIssues": []
+  },
+  "lower": {
+    "departamento": "META",
+    "municipio": "PUERTO GAITÁN",
+    "codigo_dane_depto_normalize": "50",
+    "operadora": null,
+    "dane_depto": "50",
+    "dane_muni": "50568",
+    "etlIssues": [
+      {
+        "field": "departamento",
+        "severity": "warning",
+        "rule": "etl_geography",
+        "message": "El departamento \"meta\" fue normalizado a \"META\" durante la carga (codificación o formato)."
+      },
+      {
+        "field": "municipio",
+        "severity": "warning",
+        "rule": "etl_geography",
+        "message": "El municipio \"puerto gaitan\" fue normalizado a \"PUERTO GAITÁN\" durante la carga (codificación o formato)."
+      }
+    ]
+  },
+  "unknown": {
+    "departamento": "NARNIA",
+    "municipio": "CIUDAD PERDIDA",
+    "codigo_dane_depto_normalize": null,
+    "operadora": null,
+    "dane_depto": null,
+    "dane_muni": null,
+    "etlIssues": [
+      {
+        "field": "departamento",
+        "severity": "error",
+        "rule": "catalog_geography",
+        "message": "El valor \"NARNIA\" no corresponde al catálogo oficial de Departamento. La operadora debe corregirlo en el inventario."
+      },
+      {
+        "field": "municipio",
+        "severity": "error",
+        "rule": "catalog_geography",
+        "message": "El valor \"CIUDAD PERDIDA\" no corresponde al catálogo oficial de Municipio. La operadora debe corregirlo en el inventario."
+      }
+    ]
+  },
+  "mojibake": {
+    "departamento": "META",
+    "municipio": "PUERTO GAITÁN",
+    "codigo_dane_depto_normalize": "50",
+    "operadora": "ECOPETROL ñ",
+    "dane_depto": "50",
+    "dane_muni": "50568",
+    "etlIssues": [
+      {
+        "field": "operadora",
+        "severity": "warning",
+        "rule": "etl_encoding",
+        "message": "El atributo \"Operadora\" fue corregido por codificación de caracteres durante la carga."
+      }
+    ]
+  },
+  "empty": {
+    "departamento": null,
+    "municipio": null,
+    "codigo_dane_depto_normalize": null,
+    "operadora": null,
+    "dane_depto": null,
+    "dane_muni": null,
+    "etlIssues": []
+  }
+}

@@ -18,5 +18,6 @@
     <!-- Catálogos oficiales (mismos datos que el piloto) y verdad de referencia de validación. -->
     <None Include="..\..\..\data\seed.json" Link="seed.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Fixtures\validation-parity.json" Link="validation-parity.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\etl-parity.json" Link="etl-parity.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
