@@ -16,7 +16,7 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 |---|---|
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
 | `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) + **migraciones** (`Migrations/`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y `NotebookUploadService` (ingesta + persistencia). |
-| `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, y **cuadernos** (crear, cargar Excel, consultar). |
+| `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, y **cuadernos** (crear, cargar Excel, consultar, aplicar, validaciones y **plantilla** con ClosedXML). |
 | `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
 ## Requisitos
@@ -43,7 +43,10 @@ dotnet run --project src/Anh.Vip.Api
 # POST /api/uwi/preview          (JSON; no requiere base de datos)
 # POST /api/notebooks            (crear cuaderno: { operadora, title })
 # POST /api/notebooks/{id}/upload (multipart 'file' = .xlsx; crea una versión)
+# POST /api/notebooks/{id}/submit (aplica el inventario a la ANH)
 # GET  /api/notebooks/{id}       (versiones y eventos)
+# GET  /api/validations?uploadId= (hallazgos de una versión)
+# GET  /api/notebooks/template?rows=N&operadora= (descarga la plantilla .xlsx)
 # Swagger UI en desarrollo: /swagger
 ```
 
@@ -137,7 +140,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **25/25 pruebas superadas**:
+- ✅ **`dotnet test`:** **29/29 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -149,11 +152,13 @@ sin «LISTA»).
     (`Fixtures/inventario-sample.xlsx`) — parseo, ETL, DANE, UWI, estado y
     hallazgos de cada pozo, más el filtro de la fila «LISTA»
     (`Fixtures/ingestion-parity.json`).
-  - **API (2):** integración del endpoint de carga con `WebApplicationFactory`
-    + EF Core InMemory (catálogos sembrados desde `seed.json`): crear cuaderno,
-    `POST .../upload` del `.xlsx`, y verificación de la persistencia (upload,
+  - **API (6):** integración con `WebApplicationFactory` + EF Core InMemory
+    (catálogos sembrados desde `seed.json`): **carga** (persistencia de upload,
     2 pozos con operadora forzada, hallazgos, UWI `50568RUBI…`, versión activa,
-    eventos), segunda versión, y 404 para cuaderno inexistente.
+    eventos; segunda versión; 404); **submit** (400 con errores / 200 aplicado y
+    marcado `submitted`); **validaciones** (hallazgos por versión); y **plantilla**
+    (37 encabezados, N filas, operadora prellenada, hojas Listas/Instrucciones y
+    selectores).
 - ✅ **Migración `InitialCreate`:** compila y genera **T-SQL válido** (10 tablas
   en `[vip]`, 9 índices, columnas dimensionadas e indexables). ⛔ **Aplicación a
   una instancia SQL Server real:** pendiente (no hay instancia en este entorno);

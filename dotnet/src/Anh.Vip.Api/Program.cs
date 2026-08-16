@@ -1,6 +1,8 @@
 using Anh.Vip.Domain.Entities;
+using Anh.Vip.Domain.Excel;
 using Anh.Vip.Domain.Uwi;
 using Anh.Vip.Infrastructure;
+using Anh.Vip.Infrastructure.Excel;
 using Anh.Vip.Infrastructure.Ingestion;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +14,7 @@ builder.Services.AddDbContext<VipDbContext>(options =>
 
 builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddScoped<NotebookUploadService>();
+builder.Services.AddScoped<NotebookSubmitService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -125,6 +128,62 @@ app.MapGet("/api/notebooks/{id:int}", async (int id, VipDbContext db, Cancellati
     });
 })
 .WithName("GetNotebook");
+
+// Aplicar (submit) el inventario a la ANH.
+app.MapPost("/api/notebooks/{id:int}/submit", async (int id, NotebookSubmitService service, CancellationToken ct) =>
+{
+    try
+    {
+        var result = await service.SubmitAsync(id, submittedBy: "api", ct);
+        return Results.Ok(new
+        {
+            upload_id = result.UploadId,
+            version_number = result.VersionNumber,
+            message = "Inventario aplicado. La versión queda visible como enviada.",
+        });
+    }
+    catch (NotebookNotFoundException ex) { return Results.NotFound(new { error = ex.Message }); }
+    catch (InvalidUploadException ex) { return Results.BadRequest(new { error = ex.Message }); }
+})
+.WithName("SubmitNotebook");
+
+// Hallazgos de validación de una versión (upload).
+app.MapGet("/api/validations", async (int uploadId, VipDbContext db, CancellationToken ct) =>
+{
+    var wells = await db.Wells.AsNoTracking()
+        .Where(w => w.UploadId == uploadId)
+        .Include(w => w.Issues)
+        .OrderByDescending(w => w.Id)
+        .ToListAsync(ct);
+
+    var report = wells.Select(w => new
+    {
+        well_id = w.Id,
+        operadora = w.Operadora,
+        nombre_pozo_sgc = w.NombrePozoSgc,
+        is_valid = w.ValidationStatus != "invalid",
+        error_count = w.Issues.Count(i => i.Severity == "error"),
+        warning_count = w.Issues.Count(i => i.Severity == "warning"),
+        uwi_fiscalizado = w.UwiFiscalizado,
+        issues = w.Issues.Select(i => new { i.Field, i.Severity, i.Message, i.Rule }),
+    });
+
+    return Results.Ok(report);
+})
+.WithName("GetValidations");
+
+// Descargar la plantilla del cuaderno (con selectores).
+app.MapGet("/api/notebooks/template", async (int? rows, string? operadora, VipDbContext db, CancellationToken ct) =>
+{
+    var n = TemplateColumns.ClampRows(rows ?? TemplateColumns.DefaultRows);
+    var options = await TemplateCatalogOptions.LoadAsync(db, ct);
+    var bytes = NotebookTemplateBuilder.Build(n, operadora, options);
+    return Results.File(
+        bytes,
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        $"plantilla-inventario-pozos-{n}-registros.xlsx");
+})
+.WithName("DownloadTemplate");
 
 app.Run();
 
