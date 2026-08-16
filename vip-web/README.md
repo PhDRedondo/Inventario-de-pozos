@@ -29,8 +29,9 @@ departamento frente al promedio nacional (base 100) más barras de índice, desd
 **Flujo** (`/flujo`): diagrama Sankey (SVG) Departamento → Estado → Operadora,
 desde `GET /api/analytics/sankey`.
 
-**Mapa** (`/mapa`): mapa territorial (Leaflet) con pozos aplicados agregados por
-departamento (marcadores en centroides, tamaño por conteo), desde `GET /api/stats`.
+**Mapa** (`/mapa`): mapa territorial (Leaflet) con los **polígonos de los
+departamentos** (GeoJSON, `public/geo/`) y **un punto por pozo** coloreado por
+validación, desde `GET /api/wells/map`.
 
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
 de la API), `notebooks/` (listado), `cuaderno/` (workspace), `panel/`,
@@ -64,10 +65,10 @@ La URL base de la API se configura en `src/environments/environment.ts`
 ## Estado de verificación
 
 - ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **16/16** — cliente de API con
+- ✅ **`ng test` (ChromeHeadless):** **17/17** — cliente de API con
   `HttpTestingController` (crear/listar/detalle de cuaderno, carga multipart,
-  validaciones, submit, plantilla, stats, analítica, Sankey), interceptor de
-  token (adjunta Bearer solo a `/api/`) y render del shell.
+  validaciones, submit, plantilla, stats, analítica, Sankey, mapa), interceptor
+  de token (adjunta Bearer solo a `/api/`) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 

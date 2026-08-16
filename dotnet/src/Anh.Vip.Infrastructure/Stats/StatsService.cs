@@ -1,3 +1,4 @@
+using System.Globalization;
 using Anh.Vip.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,6 +7,11 @@ namespace Anh.Vip.Infrastructure.Stats;
 public sealed record WellRow(
     int Id, string? NombrePozoSgc, string? Operadora, string? Departamento,
     string? EstadoPozo, string? ValidationStatus, string? UwiFiscalizado);
+
+/// <summary>Punto georreferenciado de un pozo para el mapa territorial.</summary>
+public sealed record WellMapPoint(
+    int Id, string? Nombre, string? Operadora, string? Departamento,
+    string? Estado, string? ValidationStatus, double Lat, double Lng);
 
 /// <summary>KPIs y desgloses del panel — subconjunto de <c>DashboardStats</c> del piloto.</summary>
 public sealed record DashboardStats
@@ -30,7 +36,8 @@ public sealed record DashboardStats
 /// </summary>
 public sealed class StatsService(VipDbContext db)
 {
-    public async Task<DashboardStats> GetAsync(string role, string? operadora, int limit, CancellationToken ct = default)
+    /// <summary>Pozos visibles según el rol (mismo alcance que el panel).</summary>
+    private IQueryable<Well> ScopedWells(string role, string? operadora)
     {
         var query = from w in db.Wells.AsNoTracking()
                     join u in db.Uploads.AsNoTracking() on w.UploadId equals u.Id
@@ -46,7 +53,39 @@ public sealed class StatsService(VipDbContext db)
                 x.w.Operadora == operadora && (x.Status == "submitted" || x.Status == "seed")),
         };
 
-        var wellsQ = query.Select(x => x.w);
+        return query.Select(x => x.w);
+    }
+
+    /// <summary>Puntos georreferenciados de los pozos visibles (mapa territorial).</summary>
+    public async Task<IReadOnlyList<WellMapPoint>> GetMapPointsAsync(string role, string? operadora, CancellationToken ct = default)
+    {
+        var rows = await ScopedWells(role, operadora)
+            .Where(w => w.Longitud != null && w.Latitud != null)
+            .Select(w => new { w.Id, w.NombrePozoSgc, w.Operadora, w.Departamento, w.EstadoPozo, w.ValidationStatus, w.Longitud, w.Latitud })
+            .ToListAsync(ct);
+
+        var points = new List<WellMapPoint>();
+        foreach (var r in rows)
+        {
+            if (TryCoord(r.Latitud, out var lat) && TryCoord(r.Longitud, out var lng) &&
+                Math.Abs(lat) <= 90 && Math.Abs(lng) <= 180)
+            {
+                points.Add(new WellMapPoint(r.Id, r.NombrePozoSgc, r.Operadora, r.Departamento, r.EstadoPozo, r.ValidationStatus, lat, lng));
+            }
+        }
+        return points;
+    }
+
+    private static bool TryCoord(string? s, out double value)
+    {
+        value = 0;
+        if (string.IsNullOrWhiteSpace(s)) return false;
+        return double.TryParse(s.Replace(",", "."), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+    }
+
+    public async Task<DashboardStats> GetAsync(string role, string? operadora, int limit, CancellationToken ct = default)
+    {
+        var wellsQ = ScopedWells(role, operadora);
 
         var total = await wellsQ.CountAsync(ct);
         var valid = await wellsQ.CountAsync(w => w.ValidationStatus == "valid", ct);

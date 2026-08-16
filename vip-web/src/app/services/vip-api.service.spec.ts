@@ -105,6 +105,13 @@ describe('VipApiService', () => {
     req.flush({ nodes: [{ id: 'd:META', label: 'META', col: 0, value: 6 }, { id: 'e:Activo', label: 'Activo', col: 1, value: 6 }], links: [{ source: 'd:META', target: 'e:Activo', value: 6 }] });
   });
 
+  it('gets georeferenced wells for the map', () => {
+    service.getWellsMap().subscribe((p) => expect(p.length).toBe(1));
+    const req = httpMock.expectOne('/api/wells/map');
+    expect(req.request.method).toBe('GET');
+    req.flush([{ id: 1, nombre: 'A', operadora: 'X', departamento: 'META', estado: 'Activo', validationStatus: 'valid', lat: 3.3, lng: -73.0 }]);
+  });
+
   it('builds the template URL with rows and operadora', () => {
     const url = service.templateUrl(5, 'HOCOL S.A.');
     expect(url).toContain('/api/notebooks/template?');

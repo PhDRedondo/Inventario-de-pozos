@@ -41,10 +41,26 @@ public static class DemoDataSeeder
             ("CANACOL ENERGY COLOMBIA SAS", "META", "Activo", "P (Productor)", "warning"),
         };
 
+        // Centroides aproximados para georreferenciar los pozos demo.
+        var centroids = new Dictionary<string, (double Lat, double Lng)>
+        {
+            ["META"] = (3.35, -73.05),
+            ["CASANARE"] = (5.35, -71.60),
+            ["ARAUCA"] = (6.55, -71.00),
+        };
+
         var n = 100;
+        var perDept = new Dictionary<string, int>();
         foreach (var (operadora, depto, estado, objetivo, status) in rows)
         {
             n++;
+            var (baseLat, baseLng) = centroids.TryGetValue(depto, out var c) ? c : (4.6, -73.8);
+            var k = perDept.TryGetValue(depto, out var kk) ? kk : 0;
+            perDept[depto] = k + 1;
+            // Dispersión determinista alrededor del centroide.
+            var lat = baseLat + (k % 3) * 0.18 - 0.18;
+            var lng = baseLng + (k / 3) * 0.18 - 0.18;
+
             upload.Wells.Add(new Well
             {
                 Operadora = operadora,
@@ -54,6 +70,8 @@ public static class DemoDataSeeder
                 NombrePozoSgc = $"POZO DEMO {n}",
                 UwiFiscalizado = $"50568DEMO{n:0000}CP-CC",
                 ValidationStatus = status,
+                Latitud = lat.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Longitud = lng.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 CreatedAt = now,
             });
         }

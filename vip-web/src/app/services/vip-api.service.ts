@@ -13,6 +13,7 @@ import {
   SubmitResponse,
   UploadResult,
   ValidationResult,
+  WellMapPoint,
 } from '../models/notebook.models';
 
 /** Cliente tipado de la Web API .NET (Anh.Vip.Api). */
@@ -69,6 +70,10 @@ export class VipApiService {
 
   getSankey(): Observable<SankeyData> {
     return this.http.get<SankeyData>(`${this.base}/api/analytics/sankey`);
+  }
+
+  getWellsMap(): Observable<WellMapPoint[]> {
+    return this.http.get<WellMapPoint[]>(`${this.base}/api/wells/map`);
   }
 
   /** URL de descarga de la plantilla (enlace directo, no XHR). */

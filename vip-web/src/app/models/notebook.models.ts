@@ -140,6 +140,18 @@ export interface AnalyticsResult {
   departamentos: string[];
 }
 
+/** Punto georreferenciado de un pozo (GET /api/wells/map). */
+export interface WellMapPoint {
+  id: number;
+  nombre: string | null;
+  operadora: string | null;
+  departamento: string | null;
+  estado: string | null;
+  validationStatus: string | null;
+  lat: number;
+  lng: number;
+}
+
 export interface SankeyNode {
   id: string;
   label: string;

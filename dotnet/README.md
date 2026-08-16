@@ -49,6 +49,7 @@ dotnet run --project src/Anh.Vip.Api
 # GET  /api/validations?uploadId= (hallazgos de una versión)
 # GET  /api/notebooks/template?rows=N&operadora= (descarga la plantilla .xlsx)
 # GET  /api/stats?limit=            (KPIs y desgloses del panel, alcance por rol)
+# GET  /api/wells/map               (pozos georreferenciados para el mapa)
 # GET  /api/analytics?entityType=&entity=  (radar comparativo vs nacional; anh|admin)
 # GET  /api/analytics/sankey        (flujo Departamento->Estado->Operadora; anh|admin)
 # Swagger UI en desarrollo: /swagger
@@ -183,7 +184,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **44/44 pruebas superadas**:
+- ✅ **`dotnet test`:** **46/46 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -197,6 +198,8 @@ sin «LISTA»).
     (`Fixtures/ingestion-parity.json`).
   - **Panel (3):** `/api/stats` con alcance por rol — admin ve los 12 pozos del
     inventario demo, operadora solo los suyos (3), y sin token → 401.
+  - **Mapa (2):** `/api/wells/map` — 12 pozos georreferenciados con lat/lng
+    válidas; sin token → 401.
   - **Analítica (4):** `/api/analytics` — nacional con índice 100 en cada métrica,
     entidad (operadora) con índices relativos, rol operadora → 403; y
     `/api/analytics/sankey` con las tres columnas y los enlaces del flujo.

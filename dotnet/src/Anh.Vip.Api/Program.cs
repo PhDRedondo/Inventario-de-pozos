@@ -303,6 +303,15 @@ app.MapGet("/api/stats", async (int? limit, ClaimsPrincipal user, Anh.Vip.Infras
 .RequireAuthorization(Roles.ReadInventory)
 .WithName("GetStats");
 
+// Puntos georreferenciados de pozos para el mapa territorial (alcance por rol).
+app.MapGet("/api/wells/map", async (ClaimsPrincipal user, Anh.Vip.Infrastructure.Stats.StatsService stats, CancellationToken ct) =>
+{
+    var role = user.IsInRole(Roles.Admin) ? Roles.Admin : user.IsInRole(Roles.Anh) ? Roles.Anh : Roles.Operadora;
+    return Results.Ok(await stats.GetMapPointsAsync(role, user.GetOperadora(), ct));
+})
+.RequireAuthorization(Roles.ReadInventory)
+.WithName("GetWellsMap");
+
 // Analítica comparativa (radar) — anh | admin.
 app.MapGet("/api/analytics", async (string? entityType, string? entity, Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
 {

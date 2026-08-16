@@ -10,3 +10,6 @@
   overflow: hidden;
   z-index: 0;
 }
+.legend { display: flex; flex-wrap: wrap; gap: 1rem; font-size: 0.78rem; color: #5a6b7d; margin-top: 0.6rem; align-items: center; }
+.legend .sw { display: inline-block; width: 12px; height: 12px; border-radius: 999px; margin-right: 0.3rem; vertical-align: middle; }
+.legend .count { margin-left: auto; font-weight: 700; }
