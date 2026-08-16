@@ -8,13 +8,23 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// EF Core + SQL Server (esquema [vip]). La cadena vive en appsettings/entorno.
-builder.Services.AddDbContext<VipDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("VipDb")));
+// Persistencia: SQL Server (esquema [vip]) o EF Core InMemory para el perfil de
+// desarrollo/demo (UseInMemoryDatabase=true), sin necesidad de una instancia SQL.
+var useInMemory = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+if (useInMemory)
+    builder.Services.AddDbContext<VipDbContext>(options => options.UseInMemoryDatabase("vip-dev"));
+else
+    builder.Services.AddDbContext<VipDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("VipDb")));
 
 builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddScoped<NotebookUploadService>();
 builder.Services.AddScoped<NotebookSubmitService>();
+
+// CORS para el frontend Angular en desarrollo (además del proxy).
+if (builder.Environment.IsDevelopment())
+    builder.Services.AddCors(o => o.AddPolicy("dev", p =>
+        p.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -25,6 +35,17 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors("dev");
+}
+
+// Perfil de desarrollo (InMemory): sembrar los catálogos oficiales al iniciar.
+if (useInMemory)
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<VipDbContext>();
+    var seedPath = Path.Combine(AppContext.BaseDirectory, "seed.json");
+    if (File.Exists(seedPath))
+        Anh.Vip.Infrastructure.Ingestion.CatalogSeeder.SeedFromFile(db, seedPath);
 }
 
 // Salud básica.

@@ -50,6 +50,23 @@ dotnet run --project src/Anh.Vip.Api
 # Swagger UI en desarrollo: /swagger
 ```
 
+### Perfil de desarrollo (InMemory + catálogos sembrados)
+
+Para probar el stack completo **sin SQL Server**, el perfil de desarrollo usa
+EF Core InMemory y siembra los catálogos oficiales desde `seed.json` al iniciar
+(configurado en `appsettings.Development.json` → `UseInMemoryDatabase: true`;
+`launchSettings.json` lo expone en `http://localhost:5199`).
+
+```bash
+cd dotnet
+dotnet run --project src/Anh.Vip.Api          # perfil dev: InMemory + seed en :5199
+# En otra terminal, el frontend Angular (proxy /api -> :5199):
+cd ../vip-web && npm start                     # http://localhost:4200
+```
+
+Así se ejecuta **Angular → API .NET → almacén en memoria** de extremo a extremo.
+En producción, sin `UseInMemoryDatabase`, la API usa SQL Server (esquema `[vip]`).
+
 `POST /api/notebooks/{id}/upload` compone toda la ingesta: lee la hoja
 INVENTARIO con `ExcelSheetReader`, ingiere con `WellIngestor` (catálogos/DANE
 desde SQL Server vía `CatalogCache`) y persiste el lote (upload, wells, issues,
