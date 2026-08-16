@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Dominio puro: entidades y lógica de negocio (UWI). Sin dependencias externas. -->
+</Project>

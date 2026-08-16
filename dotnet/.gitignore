@@ -1,0 +1,5 @@
+# Artefactos de compilación .NET
+bin/
+obj/
+*.user
+.vs/
