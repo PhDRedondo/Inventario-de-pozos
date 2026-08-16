@@ -61,6 +61,8 @@ public static class DemoDataSeeder
             var lat = baseLat + (k % 3) * 0.18 - 0.18;
             var lng = baseLng + (k / 3) * 0.18 - 0.18;
 
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            var esInyector = objetivo.StartsWith("I");
             upload.Wells.Add(new Well
             {
                 Operadora = operadora,
@@ -70,8 +72,17 @@ public static class DemoDataSeeder
                 NombrePozoSgc = $"POZO DEMO {n}",
                 UwiFiscalizado = $"50568DEMO{n:0000}CP-CC",
                 ValidationStatus = status,
-                Latitud = lat.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                Longitud = lng.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Latitud = lat.ToString(inv),
+                Longitud = lng.ToString(inv),
+                // Producción (mayor en productores) e inyección (mayor en inyectores).
+                ProdDias = (300 + n % 5 * 30).ToString(inv),
+                ProdPetroleo = (esInyector ? 0 : 5000 + n % 7 * 1500).ToString(inv),
+                ProdAgua = (2000 + n % 4 * 800).ToString(inv),
+                ProdGas = (esInyector ? 0 : 1200 + n % 6 * 400).ToString(inv),
+                InyDias = (esInyector ? 200 + n % 5 * 25 : 0).ToString(inv),
+                InyAgua = (esInyector ? 3000 + n % 5 * 900 : 0).ToString(inv),
+                InyGas = (esInyector ? 800 + n % 4 * 300 : 0).ToString(inv),
+                InyOtros = (esInyector ? 100 + n % 3 * 50 : 0).ToString(inv),
                 CreatedAt = now,
             });
         }

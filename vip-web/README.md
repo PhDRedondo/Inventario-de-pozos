@@ -24,7 +24,9 @@ departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
 
 **Analítica** (`/analitica`): radar comparativo (SVG) de una operadora o
 departamento frente al promedio nacional (base 100) más barras de índice, desde
-`GET /api/analytics`.
+`GET /api/analytics`. Selector de **tema**: `perfil` (porcentajes operativos),
+`produccion` (petróleo/gas/agua/días acumulados) e `inyeccion` (agua/gas/otros),
+con el sufijo `%` solo en el tema perfil.
 
 **Flujo** (`/flujo`): diagrama Sankey (SVG) Departamento → Estado → Operadora,
 desde `GET /api/analytics/sankey`.

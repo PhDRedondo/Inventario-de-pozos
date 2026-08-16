@@ -83,19 +83,20 @@ describe('VipApiService', () => {
     });
   });
 
-  it('gets analytics for an entity with query params', () => {
-    service.getAnalytics('operadora', 'HOCOL S.A.').subscribe((r) => expect(r.entityLabel).toBe('HOCOL S.A.'));
+  it('gets analytics for an entity and theme with query params', () => {
+    service.getAnalytics('produccion', 'operadora', 'HOCOL S.A.').subscribe((r) => expect(r.entityLabel).toBe('HOCOL S.A.'));
     const req = httpMock.expectOne(
-      (r) => r.url === '/api/analytics' && r.params.get('entityType') === 'operadora' && r.params.get('entity') === 'HOCOL S.A.',
+      (r) => r.url === '/api/analytics' && r.params.get('theme') === 'produccion' &&
+        r.params.get('entityType') === 'operadora' && r.params.get('entity') === 'HOCOL S.A.',
     );
     expect(req.request.method).toBe('GET');
-    req.flush({ entityType: 'operadora', entityLabel: 'HOCOL S.A.', metrics: [], operadoras: [], departamentos: [] });
+    req.flush({ theme: 'produccion', entityType: 'operadora', entityLabel: 'HOCOL S.A.', metrics: [], operadoras: [], departamentos: [] });
   });
 
-  it('gets national analytics without params', () => {
+  it('gets national analytics with the default theme', () => {
     service.getAnalytics().subscribe();
-    const req = httpMock.expectOne((r) => r.url === '/api/analytics' && r.params.keys().length === 0);
-    req.flush({ entityType: 'nacional', entityLabel: 'Promedio nacional', metrics: [], operadoras: [], departamentos: [] });
+    const req = httpMock.expectOne((r) => r.url === '/api/analytics' && r.params.get('theme') === 'perfil');
+    req.flush({ theme: 'perfil', entityType: 'nacional', entityLabel: 'Promedio nacional', metrics: [], operadoras: [], departamentos: [] });
   });
 
   it('gets the sankey flow', () => {

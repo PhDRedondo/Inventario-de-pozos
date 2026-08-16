@@ -312,10 +312,10 @@ app.MapGet("/api/wells/map", async (ClaimsPrincipal user, Anh.Vip.Infrastructure
 .RequireAuthorization(Roles.ReadInventory)
 .WithName("GetWellsMap");
 
-// Analítica comparativa (radar) — anh | admin.
-app.MapGet("/api/analytics", async (string? entityType, string? entity, Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
+// Analítica comparativa (radar) — anh | admin. theme: perfil | produccion | inyeccion.
+app.MapGet("/api/analytics", async (string? theme, string? entityType, string? entity, Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
 {
-    var result = await analytics.GetAsync(entityType, entity, ct);
+    var result = await analytics.GetAsync(theme, entityType, entity, ct);
     return Results.Ok(result);
 })
 .RequireAuthorization(Roles.AnhOrAdmin)

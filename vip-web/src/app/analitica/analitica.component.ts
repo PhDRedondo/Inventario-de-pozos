@@ -30,6 +30,7 @@ export class AnaliticaComponent implements OnInit {
   readonly r = 120;
   readonly maxIndex = 200; // el anillo base 100 queda a media escala
 
+  theme: 'perfil' | 'produccion' | 'inyeccion' = 'perfil';
   entityType: 'operadora' | 'departamento' = 'operadora';
   entity = '';
   result: AnalyticsResult | null = null;
@@ -45,7 +46,7 @@ export class AnaliticaComponent implements OnInit {
   load(): void {
     this.loading = true;
     this.error = null;
-    this.api.getAnalytics(this.entity ? this.entityType : undefined, this.entity || undefined).subscribe({
+    this.api.getAnalytics(this.theme, this.entity ? this.entityType : undefined, this.entity || undefined).subscribe({
       next: (r) => {
         this.result = r;
         this.loading = false;
@@ -65,6 +66,11 @@ export class AnaliticaComponent implements OnInit {
   onTypeChange(): void {
     this.entity = '';
     this.load();
+  }
+
+  /** Sufijo de unidad: porcentaje en el tema perfil, sin sufijo en los numéricos. */
+  get unit(): string {
+    return this.theme === 'perfil' ? '%' : '';
   }
 
   // ---- Geometría del radar -------------------------------------------------

@@ -2,6 +2,14 @@
 
 <section class="card controls">
   <label>
+    Tema
+    <select [(ngModel)]="theme" (ngModelChange)="load()">
+      <option value="perfil">Perfil operativo</option>
+      <option value="produccion">Producción</option>
+      <option value="inyeccion">Inyección</option>
+    </select>
+  </label>
+  <label>
     Comparar por
     <select [(ngModel)]="entityType" (ngModelChange)="onTypeChange()">
       <option value="operadora">Operadora</option>
@@ -55,8 +63,8 @@
           <span class="base"></span>
         </div>
         <div class="metric-foot">
-          <span>{{ res.entityLabel }}: {{ m.entityValue }}%</span>
-          <span>Nacional: {{ m.nationalValue }}%</span>
+          <span>{{ res.entityLabel }}: {{ m.entityValue }}{{ unit }}</span>
+          <span>Nacional: {{ m.nationalValue }}{{ unit }}</span>
         </div>
       </div>
     </section>

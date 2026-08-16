@@ -55,6 +55,22 @@ public class AnalyticsEndpointTests : IClassFixture<VipApiFactory>
     }
 
     [Fact]
+    public async Task Analytics_ProductionTheme_ReturnsNumericMetrics()
+    {
+        var client = _factory.CreateAuthedClient(roles: "admin");
+        var res = await (await client.GetAsync("/api/analytics?theme=produccion")).Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal("produccion", res.GetProperty("theme").GetString());
+        var keys = res.GetProperty("metrics").EnumerateArray().Select(m => m.GetProperty("key").GetString()).ToList();
+        Assert.Contains("prod_petroleo", keys);
+        Assert.Contains("prod_gas", keys);
+
+        var oil = res.GetProperty("metrics").EnumerateArray().First(m => m.GetProperty("key").GetString() == "prod_petroleo");
+        Assert.True(oil.GetProperty("nationalValue").GetDouble() > 0);       // hay producción en el demo
+        Assert.Equal(100, oil.GetProperty("index").GetDouble());            // nacional vs nacional = 100
+    }
+
+    [Fact]
     public async Task Sankey_ReturnsThreeColumnsAndLinks()
     {
         var client = _factory.CreateAuthedClient(roles: "admin");

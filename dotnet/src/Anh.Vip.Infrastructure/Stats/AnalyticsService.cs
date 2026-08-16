@@ -18,6 +18,7 @@ public sealed record SankeyData(IReadOnlyList<SankeyNode> Nodes, IReadOnlyList<S
 /// <summary>Resultado de la analítica comparativa (radar).</summary>
 public sealed record AnalyticsResult
 {
+    public string Theme { get; init; } = "perfil";
     public string EntityType { get; init; } = "nacional";
     public string EntityLabel { get; init; } = "Promedio nacional";
     public IReadOnlyList<AnalyticsMetric> Metrics { get; init; } = [];
@@ -26,19 +27,39 @@ public sealed record AnalyticsResult
 }
 
 /// <summary>
-/// Analítica comparativa del inventario aplicado — subconjunto del tema «perfil
-/// operativo» del piloto (analytics.ts): compara una operadora o departamento
-/// frente al promedio nacional (base 100) en indicadores porcentuales.
+/// Analítica comparativa del inventario aplicado (analytics.ts): compara una
+/// operadora o departamento frente al promedio nacional (base 100). Temas:
+/// «perfil» (porcentajes), «produccion» e «inyeccion» (promedios numéricos).
 /// </summary>
 public sealed class AnalyticsService(VipDbContext db)
 {
-    private static readonly (string Key, string Label)[] MetricDefs =
+    private static readonly Dictionary<string, (string Key, string Label)[]> Themes = new(StringComparer.Ordinal)
     {
-        ("pct_activo", "% activos"),
-        ("pct_productor", "% productores"),
-        ("pct_inyector", "% inyectores"),
-        ("pct_con_uwi", "% con UWI"),
+        ["perfil"] = new[]
+        {
+            ("pct_activo", "% activos"),
+            ("pct_productor", "% productores"),
+            ("pct_inyector", "% inyectores"),
+            ("pct_con_uwi", "% con UWI"),
+        },
+        ["produccion"] = new[]
+        {
+            ("prod_dias", "Días acum. (prod)"),
+            ("prod_petroleo", "Petróleo (BBL)"),
+            ("prod_agua", "Agua (BBL)"),
+            ("prod_gas", "Gas (KPC)"),
+        },
+        ["inyeccion"] = new[]
+        {
+            ("iny_dias", "Días acum. (iny)"),
+            ("iny_agua", "Agua (BBL)"),
+            ("iny_gas", "Gas (KPC)"),
+            ("iny_otros", "Otros"),
+        },
     };
+
+    private static string ResolveTheme(string? theme) =>
+        theme is not null && Themes.ContainsKey(theme) ? theme : "perfil";
 
     /// <summary>Inventario aplicado (base de la analítica nacional).</summary>
     private IQueryable<Well> AppliedWells() =>
@@ -47,8 +68,10 @@ public sealed class AnalyticsService(VipDbContext db)
         where u.Status == "submitted" || u.Status == "seed" || u.Status == "processed"
         select w;
 
-    public async Task<AnalyticsResult> GetAsync(string? entityType, string? entity, CancellationToken ct = default)
+    public async Task<AnalyticsResult> GetAsync(string? theme, string? entityType, string? entity, CancellationToken ct = default)
     {
+        var themeKey = ResolveTheme(theme);
+        var defs = Themes[themeKey];
         var national = AppliedWells();
         var entitySet = national;
         var label = "Promedio nacional";
@@ -60,10 +83,10 @@ public sealed class AnalyticsService(VipDbContext db)
             else if (entityType == "departamento") { entitySet = national.Where(w => w.Departamento == entity); type = "departamento"; label = entity; }
         }
 
-        var nat = await ComputeAsync(national, ct);
-        var ent = string.Equals(type, "nacional", StringComparison.Ordinal) ? nat : await ComputeAsync(entitySet, ct);
+        var nat = await ComputeAsync(national, themeKey, ct);
+        var ent = string.Equals(type, "nacional", StringComparison.Ordinal) ? nat : await ComputeAsync(entitySet, themeKey, ct);
 
-        var metrics = MetricDefs.Select(m =>
+        var metrics = defs.Select(m =>
         {
             var e = ent[m.Key];
             var n = nat[m.Key];
@@ -78,6 +101,7 @@ public sealed class AnalyticsService(VipDbContext db)
 
         return new AnalyticsResult
         {
+            Theme = themeKey,
             EntityType = type,
             EntityLabel = label,
             Metrics = metrics,
@@ -119,11 +143,18 @@ public sealed class AnalyticsService(VipDbContext db)
         return new SankeyData(nodes, links);
     }
 
-    private static async Task<Dictionary<string, double>> ComputeAsync(IQueryable<Well> set, CancellationToken ct)
+    private static async Task<Dictionary<string, double>> ComputeAsync(IQueryable<Well> set, string theme, CancellationToken ct)
+    {
+        if (theme == "perfil")
+            return await ComputePerfilAsync(set, ct);
+        return await ComputeNumericAsync(set, theme, ct);
+    }
+
+    private static async Task<Dictionary<string, double>> ComputePerfilAsync(IQueryable<Well> set, CancellationToken ct)
     {
         var total = await set.CountAsync(ct);
         if (total == 0)
-            return MetricDefs.ToDictionary(m => m.Key, _ => 0.0);
+            return Themes["perfil"].ToDictionary(m => m.Key, _ => 0.0);
 
         var activos = await set.CountAsync(w => w.EstadoPozo != null && w.EstadoPozo.StartsWith("Activo"), ct);
         var productores = await set.CountAsync(w => w.TipoObjetivo != null && w.TipoObjetivo.StartsWith("P"), ct);
@@ -138,5 +169,43 @@ public sealed class AnalyticsService(VipDbContext db)
             ["pct_inyector"] = pct(inyectores),
             ["pct_con_uwi"] = pct(conUwi),
         };
+    }
+
+    /// <summary>Promedio de las columnas numéricas del tema (ignorando vacíos/no numéricos).</summary>
+    private static async Task<Dictionary<string, double>> ComputeNumericAsync(IQueryable<Well> set, string theme, CancellationToken ct)
+    {
+        var rows = await set.Select(w => new
+        {
+            w.ProdDias, w.ProdPetroleo, w.ProdAgua, w.ProdGas,
+            w.InyDias, w.InyAgua, w.InyGas, w.InyOtros,
+        }).ToListAsync(ct);
+
+        static double? Parse(string? s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return null;
+            return double.TryParse(s.Replace(",", "."), System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : null;
+        }
+
+        string? Col(dynamic r, string key) => key switch
+        {
+            "prod_dias" => r.ProdDias,
+            "prod_petroleo" => r.ProdPetroleo,
+            "prod_agua" => r.ProdAgua,
+            "prod_gas" => r.ProdGas,
+            "iny_dias" => r.InyDias,
+            "iny_agua" => r.InyAgua,
+            "iny_gas" => r.InyGas,
+            "iny_otros" => r.InyOtros,
+            _ => null,
+        };
+
+        var dict = new Dictionary<string, double>();
+        foreach (var (key, _) in Themes[theme])
+        {
+            var values = rows.Select(r => Parse(Col(r, key))).Where(v => v.HasValue).Select(v => v!.Value).ToList();
+            dict[key] = values.Count > 0 ? Math.Round(values.Average(), 1) : 0;
+        }
+        return dict;
     }
 }

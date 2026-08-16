@@ -59,8 +59,8 @@ export class VipApiService {
     return this.http.get<DashboardStats>(`${this.base}/api/stats`, { params });
   }
 
-  getAnalytics(entityType?: string, entity?: string): Observable<AnalyticsResult> {
-    const params: Record<string, string> = {};
+  getAnalytics(theme = 'perfil', entityType?: string, entity?: string): Observable<AnalyticsResult> {
+    const params: Record<string, string> = { theme };
     if (entityType && entity) {
       params['entityType'] = entityType;
       params['entity'] = entity;

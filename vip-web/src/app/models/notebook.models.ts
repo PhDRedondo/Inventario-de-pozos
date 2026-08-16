@@ -133,6 +133,7 @@ export interface AnalyticsMetric {
 
 /** Analítica comparativa (GET /api/analytics). */
 export interface AnalyticsResult {
+  theme: string;
   entityType: string;
   entityLabel: string;
   metrics: AnalyticsMetric[];
