@@ -119,7 +119,8 @@
     <p class="eyebrow">ANH · GOP / VORP · OTI</p>
     <h1>Guía de puesta en producción — VIP Inventario de Pozos</h1>
     <p class="subtitle">
-      Cómo operar el piloto actual y qué debe proveer la plataforma institucional para pasar a producción.
+      Cómo operar el piloto actual, la evaluación de cumplimiento frente a los estándares ANH-GTIC
+      y el plan de migración al stack institucional (Angular + .NET + SQL Server) para pasar a producción.
       Documento de trabajo conjunto entre el equipo funcional/técnico del proyecto y OTI.
     </p>
     <div class="meta-row">
@@ -134,6 +135,8 @@
 <nav class="toc">
   <a href="#proposito">Propósito</a>
   <a href="#arquitectura">Arquitectura</a>
+  <a href="#cumplimiento">Cumplimiento ANH-GTIC</a>
+  <a href="#migracion">Plan de migración</a>
   <a href="#roles">Roles</a>
   <a href="#vercel">Operación piloto</a>
   <a href="#vars">Variables</a>
@@ -153,7 +156,7 @@
     <div class="callout warn">
       <strong>Alcance del piloto:</strong> demo funcional, revisiones técnicas y mesa OTI.
       <strong>Fuera de alcance del piloto solo:</strong> continuidad de datos, IdP institucional, backups y cumplimiento formal de privacidad.
-      Esos puntos son prerequisitos de producción (véase §7).
+      Esos puntos son prerequisitos de producción (véanse §3 cumplimiento, §4 plan de migración y §9 entregables OTI).
     </div>
   </section>
 
@@ -178,8 +181,118 @@
     </ul>
   </section>
 
+  <section id="cumplimiento">
+    <h2>3. Evaluación de cumplimiento ANH-GTIC</h2>
+    <p>
+      Contraste del piloto frente a los instrumentos institucionales entregados por OTI:
+      <strong>ANH-GTIC-GU-18</strong> (Guía de Desarrollo Seguro de Software, v1 · 2025),
+      <strong>ANH-GTIC-MA-02</strong> (Manual del Ciclo de Vida de las Herramientas Informáticas, v2 · 2025),
+      <strong>Políticas de Seguridad y Privacidad de la Información</strong> (2022) y la
+      <strong>Circular 23 de 2015</strong> (acompañamiento de la Oficina de Tecnología en proyectos de TI).
+    </p>
+
+    <div class="verdict">
+      <strong>Veredicto:</strong> el piloto es <strong>funcional</strong> (flujo de cuadernos, validación determinista,
+      UWI fiscalizado, plantilla y panel operan correctamente), pero <strong>no cumple los estándares para salida a
+      producción</strong>. En particular, el stack actual <strong>no es Angular ni .NET</strong> y <strong>no usa SQL Server</strong>,
+      que son las tecnologías estandarizadas por el MA-02.
+    </div>
+
+    <table>
+      <thead><tr><th>Requisito</th><th>Fuente</th><th>Exigido</th><th>Estado hoy</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Frontend en Angular</td><td>MA-02 §10.2</td><td>Angular para interfaces web</td><td>Next.js 16 / React 19</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Backend en .NET (C#)</td><td>MA-02 §10.2</td><td>Microsoft .NET (C#)</td><td>Node.js (API Routes)</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Motor de base de datos</td><td>MA-02 §9.1.1.3.1</td><td>Microsoft SQL Server 2019/2022</td><td>SQLite (efímera en <code>/tmp</code>)</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Identidad institucional</td><td>GU-18 Anexo 2</td><td>Directorio Activo + MFA (doble factor)</td><td>Usuarios locales, cookie HMAC, sin MFA</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Ambientes separados dev/QA/prod</td><td>GU-18 Anexo 2 · MA-02</td><td>Infra ANH con segregación de accesos</td><td>Solo Vercel (demo)</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Alta disponibilidad y DRP</td><td>GU-18 Anexo 2</td><td>Redundancia, failover, RTO/RPO</td><td>SQLite efímera, sin redundancia</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Pruebas de seguridad</td><td>MA-02 §11.3 · GU-18 §6.5</td><td>SAST, DAST, análisis de vulnerabilidades, Ethical Hacking</td><td>No ejecutadas</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Handover y control de cambios</td><td>MA-02 §12</td><td>FR-09 Acta Handover, FR-07 Lista de Chequeo, FR-26 Entrega de credenciales, checklist BD (OTI); línea base, backup, ventana, rollback</td><td>No formalizado</td><td><span class="badge fail">No cumple</span></td></tr>
+        <tr><td>Cifrado en reposo y tránsito</td><td>GU-18 Anexo 2</td><td>Cifrado de datos, tablas críticas y contraseñas</td><td>Hash de contraseñas (scrypt); TLS por Vercel; sin cifrado de datos en reposo</td><td><span class="badge partial">Parcial</span></td></tr>
+        <tr><td>Trazas y logs de auditoría</td><td>GU-18 Anexo 2</td><td>Registro de eventos de seguridad</td><td><code>audit_log</code> de acciones administrativas</td><td><span class="badge partial">Parcial</span></td></tr>
+        <tr><td>Sanitización de entradas y control de sesión</td><td>GU-18 Anexo 2</td><td>Validación, timeout de sesión, sin sesiones simultáneas, límite de intentos</td><td>Validación + <code>rate-limit</code> + <code>upload-security</code>; falta anti-simultánea/timeout configurable</td><td><span class="badge partial">Parcial</span></td></tr>
+        <tr><td>Acompañamiento Oficina de Tecnología</td><td>Circular 23/2015</td><td>Aval y acompañamiento OTI en el proyecto</td><td>Mesa técnica VORP–OTI en curso</td><td><span class="badge partial">En curso</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Neutralidad tecnológica:</strong> la GU-18 (§4) invoca el principio de neutralidad tecnológica, y el MA-02
+      admite <em>excepción</em> de tecnología si se identifica desde la fase de requerimientos y la <strong>OTI la avala</strong>
+      formalmente (documentada en el Handover). Hoy no existe ni la migración al stack estándar ni un aval de excepción:
+      cualquiera de las dos vías debe formalizarse antes de producción.
+    </div>
+  </section>
+
+  <section id="migracion">
+    <h2>4. Plan de migración al stack institucional</h2>
+    <p>
+      Ruta acordada: llevar la herramienta al stack estándar del MA-02 —
+      <strong>Angular</strong> (frontend), <strong>ASP.NET Core / .NET (C#)</strong> (backend) y
+      <strong>Microsoft SQL Server</strong> (datos). La <strong>lógica de negocio</strong> (reglas de validación, UWI
+      fiscalizado y ETL) es el activo de mayor valor y se porta con alta fidelidad; el esfuerzo principal es
+      re-plataformar UI, API, datos, identidad e infraestructura, no volver a derivar las reglas.
+    </p>
+
+    <h3>4.1 Arquitectura objetivo</h3>
+    <table>
+      <thead><tr><th>Capa</th><th>Tecnología objetivo</th><th>Reemplaza a</th></tr></thead>
+      <tbody>
+        <tr><td>Frontend</td><td>Angular (versión LTS vigente) · TypeScript</td><td>Next.js / React (App Router)</td></tr>
+        <tr><td>Backend / API</td><td>ASP.NET Core Web API — .NET 8 LTS (C#)</td><td>API Routes de Node.js</td></tr>
+        <tr><td>Acceso a datos</td><td>Entity Framework Core</td><td><code>better-sqlite3</code> (SQL directo)</td></tr>
+        <tr><td>Base de datos</td><td>SQL Server 2019/2022 Enterprise</td><td>SQLite</td></tr>
+        <tr><td>Excel (lectura/generación)</td><td>ClosedXML o EPPlus (.NET)</td><td><code>xlsx</code> / <code>ExcelJS</code></td></tr>
+        <tr><td>Identidad</td><td>Directorio Activo vía OIDC/SAML + MFA</td><td>Cookie HMAC + usuarios locales</td></tr>
+        <tr><td>Repositorio y CI</td><td>Azure DevOps (<code>anh-otiprojects.visualstudio.com</code>)</td><td>GitHub + Vercel</td></tr>
+        <tr><td>Hosting</td><td>Infra virtualizada ANH (VMware / Oracle VM / Simplivity)</td><td>Vercel serverless</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.2 Mapeo de componentes (qué se porta)</h3>
+    <table>
+      <thead><tr><th>Hoy (Next.js / lib)</th><th>Objetivo (.NET / Angular)</th><th>Fidelidad</th></tr></thead>
+      <tbody>
+        <tr><td><code>validation.ts</code> (reglas por pozo)</td><td>Servicio de validación en C#</td><td><span class="badge ok">Alta — reglas 1:1</span></td></tr>
+        <tr><td><code>uwi.ts</code> (UWI fiscalizado)</td><td>Generador UWI en C# (algoritmo determinista)</td><td><span class="badge ok">Alta — portable</span></td></tr>
+        <tr><td><code>etl.ts</code> (normalización geo/codificación)</td><td>Servicio ETL en C#</td><td><span class="badge ok">Alta</span></td></tr>
+        <tr><td><code>notebook-template.ts</code> + <code>template-columns.ts</code></td><td>Generación de plantilla con ClosedXML/EPPlus</td><td><span class="badge partial">Media — reimplementar E/S Excel</span></td></tr>
+        <tr><td>Parser de carga (<code>xlsx</code>)</td><td>Lectura con ClosedXML/EPPlus</td><td><span class="badge partial">Media</span></td></tr>
+        <tr><td><code>catalogs.ts</code> · <code>seed.json</code></td><td>Tablas de catálogo en SQL Server</td><td><span class="badge ok">Alta — datos</span></td></tr>
+        <tr><td><code>db.ts</code> · <code>notebook-db.ts</code></td><td>EF Core + esquema SQL Server (mismo modelo relacional)</td><td><span class="badge partial">Media — re-mapear a ORM</span></td></tr>
+        <tr><td>Componentes React (panel, cuaderno, analítica, admin)</td><td>Componentes Angular equivalentes</td><td><span class="badge fail">Baja — reescritura de UI</span></td></tr>
+        <tr><td>Auth cookie HMAC (<code>auth*.ts</code>)</td><td>Autenticación AD (OIDC/SAML) + MFA</td><td><span class="badge fail">Baja — cambia el modelo</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 Hoja de ruta por fases (con compuertas MA-02)</h3>
+    <table>
+      <thead><tr><th>Fase</th><th>Objetivo</th><th>Entregables / compuerta</th><th>Esfuerzo*</th></tr></thead>
+      <tbody>
+        <tr><td><strong>0. Gobernanza</strong></td><td>Aprobación de requerimientos y del stack objetivo con OTI; acompañamiento Circular 23; alta en Azure DevOps</td><td>FR-25 Requerimientos; acta de inicio; (si aplica) aval de excepción tecnológica</td><td><span class="badge partial">S</span></td></tr>
+        <tr><td><strong>1. Datos</strong></td><td>Modelar el esquema en SQL Server; migrar catálogos y semillas; EF Core</td><td>Script de esquema; carga de catálogos DANE; checklist BD (OTI)</td><td><span class="badge partial">M</span></td></tr>
+        <tr><td><strong>2. Backend .NET</strong></td><td>Portar dominio (validación, UWI, ETL, plantilla, cuadernos) a ASP.NET Core Web API</td><td>API con pruebas unitarias; paridad con <code>test:uwi</code></td><td><span class="badge fail">L</span></td></tr>
+        <tr><td><strong>3. Frontend Angular</strong></td><td>Reconstruir UI (panel, cuaderno, analítica, admin) sobre la Web API; i18n ES/EN y tema</td><td>App Angular; UAT funcional por rol</td><td><span class="badge fail">L</span></td></tr>
+        <tr><td><strong>4. Seguridad e identidad</strong></td><td>AD (OIDC/SAML) + MFA; control de sesión; cifrado; headers; endurecimiento</td><td>Integración IdP; configuración conforme GU-18 Anexo 2/3</td><td><span class="badge partial">M</span></td></tr>
+        <tr><td><strong>5. Ambientes y pruebas</strong></td><td>Dev/QA/Prod en infra ANH; pruebas de seguridad</td><td>SAST + DAST + Ethical Hacking aprobados (MA-02 §11.3); UAT firmada</td><td><span class="badge partial">M</span></td></tr>
+        <tr><td><strong>6. Handover y producción</strong></td><td>Entrega formal y salida a producción con control de cambios</td><td>FR-09, FR-07, FR-26; ventana, rollback y estabilización</td><td><span class="badge partial">S</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:0.82rem;color:var(--muted)">
+      * Esfuerzo relativo indicativo (S/M/L), no un compromiso de cronograma; depende de la disponibilidad de infraestructura,
+      identidad y ambientes que provea OTI (véase §9).
+    </p>
+
+    <div class="callout ok">
+      <strong>Estrategia recomendada:</strong> empezar por la <strong>capa de datos en SQL Server</strong> (Fase 1) y el
+      <strong>backend .NET</strong> (Fase 2), porque la lógica de negocio se porta con alta fidelidad y desbloquea el resto;
+      el frontend Angular (Fase 3) puede avanzar en paralelo una vez estabilizada la API. Conservar el piloto Next.js como
+      referencia funcional viva hasta completar la paridad.
+    </div>
+  </section>
+
   <section id="roles">
-    <h2>3. Roles y accesos</h2>
+    <h2>5. Roles y accesos</h2>
     <table>
       <thead><tr><th>Rol</th><th>Navegación</th><th>Permisos clave</th></tr></thead>
       <tbody>
@@ -204,7 +317,7 @@
   </section>
 
   <section id="vercel">
-    <h2>4. Operación del piloto en Vercel</h2>
+    <h2>6. Operación del piloto en Vercel</h2>
     <ol class="checklist">
       <li>Proyecto: <strong>inventario-pozos-anh</strong> (asociado al repo GitHub <code>PhDRedondo/Inventario-de-pozos</code>, rama <code>main</code>).</li>
       <li>Framework: Next.js (detección automática).</li>
@@ -220,7 +333,7 @@
   </section>
 
   <section id="vars">
-    <h2>5. Variables de entorno</h2>
+    <h2>7. Variables de entorno</h2>
     <table>
       <thead><tr><th>Variable</th><th>Obligatoria</th><th>Descripción</th></tr></thead>
       <tbody>
@@ -252,7 +365,7 @@ DEMO_LOGIN_ENABLED=false</pre>
   </section>
 
   <section id="checklist">
-    <h2>6. Checklist antes de considerar producción</h2>
+    <h2>8. Checklist antes de considerar producción</h2>
     <h3>Ya cubierto por la aplicación (piloto)</h3>
     <ul class="checklist">
       <li>Secretos por entorno; sin credenciales embebidas de producción.</li>
@@ -274,7 +387,7 @@ DEMO_LOGIN_ENABLED=false</pre>
   </section>
 
   <section id="oti">
-    <h2>7. Entregables esperados de OTI</h2>
+    <h2>9. Entregables esperados de OTI</h2>
     <table>
       <thead><tr><th>Entregable</th><th>Para qué</th><th>Impacto si falta</th></tr></thead>
       <tbody>
@@ -311,13 +424,14 @@ DEMO_LOGIN_ENABLED=false</pre>
       </tbody>
     </table>
     <div class="callout ok">
-      <strong>Punto de partida acordable:</strong> conservar el código y la lógica de negocio actuales;
-      sustituir el backend de datos y el proveedor de identidad; formalizar gobierno con OTI.
+      <strong>Punto de partida acordable:</strong> preservar la <strong>lógica de negocio</strong> (validación, UWI, ETL)
+      como activo portable y migrarla al stack institucional (§4); sustituir datos por SQL Server e identidad por AD+MFA;
+      formalizar el gobierno y las compuertas con OTI.
     </div>
   </section>
 
   <section id="operacion">
-    <h2>8. Operación cotidiana del piloto</h2>
+    <h2>10. Operación cotidiana del piloto</h2>
     <ul>
       <li><strong>Altas de usuario:</strong> rol admin → Usuarios.</li>
       <li><strong>Carga operadora:</strong> Cuaderno → Excel → validación → envío.</li>
@@ -328,7 +442,7 @@ DEMO_LOGIN_ENABLED=false</pre>
   </section>
 
   <section id="riesgos">
-    <h2>9. Riesgos residuales (declaración abierta)</h2>
+    <h2>11. Riesgos residuales (declaración abierta)</h2>
     <table>
       <thead><tr><th>Riesgo</th><th>Nivel</th><th>Mitigación prevista</th></tr></thead>
       <tbody>
