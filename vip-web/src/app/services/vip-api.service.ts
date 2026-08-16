@@ -9,6 +9,7 @@ import {
   NotebookCreated,
   NotebookDetail,
   NotebookSummary,
+  SankeyData,
   SubmitResponse,
   UploadResult,
   ValidationResult,
@@ -64,6 +65,10 @@ export class VipApiService {
       params['entity'] = entity;
     }
     return this.http.get<AnalyticsResult>(`${this.base}/api/analytics`, { params });
+  }
+
+  getSankey(): Observable<SankeyData> {
+    return this.http.get<SankeyData>(`${this.base}/api/analytics/sankey`);
   }
 
   /** URL de descarga de la plantilla (enlace directo, no XHR). */

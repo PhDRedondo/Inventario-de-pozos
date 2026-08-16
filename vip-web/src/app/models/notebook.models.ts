@@ -140,6 +140,23 @@ export interface AnalyticsResult {
   departamentos: string[];
 }
 
+export interface SankeyNode {
+  id: string;
+  label: string;
+  col: number;
+  value: number;
+}
+export interface SankeyLink {
+  source: string;
+  target: string;
+  value: number;
+}
+/** Flujo Departamento → Estado → Operadora (GET /api/analytics/sankey). */
+export interface SankeyData {
+  nodes: SankeyNode[];
+  links: SankeyLink[];
+}
+
 /** KPIs y desgloses del panel (GET /api/stats). */
 export interface DashboardStats {
   totalWells: number;

@@ -98,6 +98,13 @@ describe('VipApiService', () => {
     req.flush({ entityType: 'nacional', entityLabel: 'Promedio nacional', metrics: [], operadoras: [], departamentos: [] });
   });
 
+  it('gets the sankey flow', () => {
+    service.getSankey().subscribe((d) => expect(d.nodes.length).toBe(2));
+    const req = httpMock.expectOne('/api/analytics/sankey');
+    expect(req.request.method).toBe('GET');
+    req.flush({ nodes: [{ id: 'd:META', label: 'META', col: 0, value: 6 }, { id: 'e:Activo', label: 'Activo', col: 1, value: 6 }], links: [{ source: 'd:META', target: 'e:Activo', value: 6 }] });
+  });
+
   it('builds the template URL with rows and operadora', () => {
     const url = service.templateUrl(5, 'HOCOL S.A.');
     expect(url).toContain('/api/notebooks/template?');

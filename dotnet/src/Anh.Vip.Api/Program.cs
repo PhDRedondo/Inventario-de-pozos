@@ -312,6 +312,12 @@ app.MapGet("/api/analytics", async (string? entityType, string? entity, Anh.Vip.
 .RequireAuthorization(Roles.AnhOrAdmin)
 .WithName("GetAnalytics");
 
+// Sankey: flujo Departamento -> Estado -> Operadora — anh | admin.
+app.MapGet("/api/analytics/sankey", async (Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
+    Results.Ok(await analytics.GetSankeyAsync(ct)))
+.RequireAuthorization(Roles.AnhOrAdmin)
+.WithName("GetSankey");
+
 app.Run();
 
 /// <summary>Cuerpo para crear un cuaderno.</summary>

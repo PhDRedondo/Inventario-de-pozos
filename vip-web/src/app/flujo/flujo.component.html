@@ -1,0 +1,22 @@
+<h2 class="page-title">Flujo del inventario</h2>
+<p class="hint">Departamento → Estado → Operadora (pozos aplicados). El grosor de cada banda es el número de pozos.</p>
+
+<p class="hint" *ngIf="loading">Cargando flujo…</p>
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<section class="card" *ngIf="!loading && !error">
+  <svg [attr.viewBox]="'0 0 ' + width + ' ' + (height + 20)" class="sankey" role="img" aria-label="Diagrama Sankey">
+    <g transform="translate(0,10)">
+      <path *ngFor="let l of links" [attr.d]="l.path" class="link"></path>
+      <g *ngFor="let n of nodes">
+        <rect [attr.x]="n.x" [attr.y]="n.y" [attr.width]="nodeW" [attr.height]="n.h" [class]="'node ' + nodeClass(n.col)"></rect>
+        <text [attr.x]="labelX(n)" [attr.y]="n.y + n.h / 2" [attr.text-anchor]="labelAnchor(n)" class="node-label">{{ n.label }} ({{ n.value }})</text>
+      </g>
+    </g>
+  </svg>
+  <div class="legend">
+    <span><i class="sw dept"></i> Departamento</span>
+    <span><i class="sw estado"></i> Estado</span>
+    <span><i class="sw operadora"></i> Operadora</span>
+  </div>
+</section>

@@ -1,0 +1,10 @@
+<h2 class="page-title">Mapa territorial</h2>
+<p class="hint">Pozos aplicados agregados por departamento. El tamaño del círculo es proporcional al número de pozos.</p>
+
+<div class="alert error" *ngIf="error">{{ error }}</div>
+
+<div #map class="map"></div>
+
+<p class="hint" *ngIf="unmapped.length > 0">
+  Sin centroide en el mapa: {{ unmapped.length }} departamento(s).
+</p>

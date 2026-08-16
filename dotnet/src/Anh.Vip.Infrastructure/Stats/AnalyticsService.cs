@@ -6,6 +6,15 @@ namespace Anh.Vip.Infrastructure.Stats;
 /// <summary>Métrica comparada de una entidad frente al promedio nacional (índice base 100).</summary>
 public sealed record AnalyticsMetric(string Key, string Label, double EntityValue, double NationalValue, double Index);
 
+/// <summary>Nodo del Sankey (col 0=departamento, 1=estado, 2=operadora).</summary>
+public sealed record SankeyNode(string Id, string Label, int Col, int Value);
+
+/// <summary>Enlace del Sankey entre dos nodos, con el número de pozos.</summary>
+public sealed record SankeyLink(string Source, string Target, int Value);
+
+/// <summary>Flujo Departamento → Estado → Operadora del inventario aplicado.</summary>
+public sealed record SankeyData(IReadOnlyList<SankeyNode> Nodes, IReadOnlyList<SankeyLink> Links);
+
 /// <summary>Resultado de la analítica comparativa (radar).</summary>
 public sealed record AnalyticsResult
 {
@@ -75,6 +84,39 @@ public sealed class AnalyticsService(VipDbContext db)
             Operadoras = operadoras,
             Departamentos = departamentos,
         };
+    }
+
+    /// <summary>Flujo Departamento → Estado → Operadora (port del Sankey del panel).</summary>
+    public async Task<SankeyData> GetSankeyAsync(CancellationToken ct = default)
+    {
+        var wells = await AppliedWells()
+            .Select(w => new
+            {
+                Dept = w.Departamento ?? "—",
+                Estado = w.EstadoPozo ?? "—",
+                Op = w.Operadora ?? "—",
+            })
+            .ToListAsync(ct);
+
+        static string DeptId(string s) => "d:" + s;
+        static string EstadoId(string s) => "e:" + s;
+        static string OpId(string s) => "o:" + s;
+
+        var nodes = new List<SankeyNode>();
+        nodes.AddRange(wells.GroupBy(w => w.Dept).OrderByDescending(g => g.Count())
+            .Select(g => new SankeyNode(DeptId(g.Key), g.Key, 0, g.Count())));
+        nodes.AddRange(wells.GroupBy(w => w.Estado).OrderByDescending(g => g.Count())
+            .Select(g => new SankeyNode(EstadoId(g.Key), g.Key, 1, g.Count())));
+        nodes.AddRange(wells.GroupBy(w => w.Op).OrderByDescending(g => g.Count())
+            .Select(g => new SankeyNode(OpId(g.Key), g.Key, 2, g.Count())));
+
+        var links = new List<SankeyLink>();
+        links.AddRange(wells.GroupBy(w => (w.Dept, w.Estado)).OrderByDescending(g => g.Count())
+            .Select(g => new SankeyLink(DeptId(g.Key.Dept), EstadoId(g.Key.Estado), g.Count())));
+        links.AddRange(wells.GroupBy(w => (w.Estado, w.Op)).OrderByDescending(g => g.Count())
+            .Select(g => new SankeyLink(EstadoId(g.Key.Estado), OpId(g.Key.Op), g.Count())));
+
+        return new SankeyData(nodes, links);
     }
 
     private static async Task<Dictionary<string, double>> ComputeAsync(IQueryable<Well> set, CancellationToken ct)

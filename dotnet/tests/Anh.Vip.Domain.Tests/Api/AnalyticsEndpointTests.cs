@@ -55,6 +55,25 @@ public class AnalyticsEndpointTests : IClassFixture<VipApiFactory>
     }
 
     [Fact]
+    public async Task Sankey_ReturnsThreeColumnsAndLinks()
+    {
+        var client = _factory.CreateAuthedClient(roles: "admin");
+        var res = await (await client.GetAsync("/api/analytics/sankey")).Content.ReadFromJsonAsync<JsonElement>();
+
+        var nodes = res.GetProperty("nodes").EnumerateArray().ToList();
+        var links = res.GetProperty("links").EnumerateArray().ToList();
+
+        Assert.Contains(nodes, n => n.GetProperty("col").GetInt32() == 0); // departamento
+        Assert.Contains(nodes, n => n.GetProperty("col").GetInt32() == 1); // estado
+        Assert.Contains(nodes, n => n.GetProperty("col").GetInt32() == 2); // operadora
+        Assert.NotEmpty(links);
+
+        // Los 12 pozos del inventario demo se distribuyen por columna.
+        var deptTotal = nodes.Where(n => n.GetProperty("col").GetInt32() == 0).Sum(n => n.GetProperty("value").GetInt32());
+        Assert.Equal(12, deptTotal);
+    }
+
+    [Fact]
     public async Task Analytics_OperadoraRole_Forbidden()
     {
         var client = _factory.CreateAuthedClient(roles: "operadora", operadora: "HOCOL S.A.");
