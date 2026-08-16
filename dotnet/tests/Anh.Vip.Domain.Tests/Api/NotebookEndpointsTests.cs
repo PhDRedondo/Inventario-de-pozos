@@ -41,7 +41,7 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Submit_WithInvalidRecords_Returns400()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
         var id = await CreateNotebook(client, "HOCOL S.A.");
         (await client.PostAsync($"/api/notebooks/{id}/upload", await SampleForm())).EnsureSuccessStatusCode();
 
@@ -54,7 +54,7 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Submit_CleanVersion_MarksSubmitted()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
         var id = await CreateNotebook(client, "HOCOL S.A.");
 
         // Sembrar una versión activa sin pozos inválidos.
@@ -93,7 +93,7 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Validations_ReturnsFindingsForVersion()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
         var id = await CreateNotebook(client, "HOCOL S.A.");
         var up = await client.PostAsync($"/api/notebooks/{id}/upload", await SampleForm());
         up.EnsureSuccessStatusCode();
@@ -114,7 +114,7 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Template_Download_HasHeadersRowsDropdownsAndSheets()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
         var res = await client.GetAsync($"/api/notebooks/template?rows=3&operadora={Uri.EscapeDataString("HOCOL S.A.")}");
         res.EnsureSuccessStatusCode();
         var bytes = await res.Content.ReadAsByteArrayAsync();

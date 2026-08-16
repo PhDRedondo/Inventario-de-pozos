@@ -1,9 +1,13 @@
+using System.Security.Claims;
+using Anh.Vip.Api.Security;
 using Anh.Vip.Domain.Entities;
 using Anh.Vip.Domain.Excel;
 using Anh.Vip.Domain.Uwi;
 using Anh.Vip.Infrastructure;
 using Anh.Vip.Infrastructure.Excel;
 using Anh.Vip.Infrastructure.Ingestion;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +25,34 @@ builder.Services.AddSingleton<CatalogCache>();
 builder.Services.AddScoped<NotebookUploadService>();
 builder.Services.AddScoped<NotebookSubmitService>();
 
-// CORS para el frontend Angular en desarrollo (además del proxy).
-if (builder.Environment.IsDevelopment())
+// --- Autenticación / autorización (GU-18 Anexo 2) ---------------------------
+// Producción: JWT Bearer contra el proveedor OIDC/AD institucional.
+// Desarrollo: esquema Dev que auto-autentica un usuario demo (nunca en prod).
+var isDev = builder.Environment.IsDevelopment();
+var auth = builder.Services.AddAuthentication(options =>
+{
+    var scheme = isDev ? DevAuthHandler.SchemeName : JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = scheme;
+    options.DefaultChallengeScheme = scheme;
+});
+auth.AddJwtBearer(options =>
+{
+    options.Authority = builder.Configuration["Oidc:Authority"];
+    options.Audience = builder.Configuration["Oidc:Audience"];
+    options.RequireHttpsMetadata = !isDev;
+    options.TokenValidationParameters.RoleClaimType = "roles";
+    options.TokenValidationParameters.NameClaimType = "preferred_username";
+});
+if (isDev)
+    auth.AddScheme<AuthenticationSchemeOptions, DevAuthHandler>(DevAuthHandler.SchemeName, null);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(Roles.OperatorOrAdmin, p => p.RequireRole(Roles.Operadora, Roles.Admin));
+    options.AddPolicy(Roles.ReadInventory, p => p.RequireRole(Roles.Operadora, Roles.Anh, Roles.Admin));
+});
+
+if (isDev)
     builder.Services.AddCors(o => o.AddPolicy("dev", p =>
         p.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod()));
 
@@ -31,12 +61,30 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Endurecimiento: cabeceras de seguridad en todas las respuestas.
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    headers["X-XSS-Protection"] = "0";
+    await next();
+});
+
+if (isDev)
 {
     app.UseSwagger();
     app.UseSwaggerUI();
     app.UseCors("dev");
 }
+else
+{
+    app.UseHsts();
+}
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Perfil de desarrollo (InMemory): sembrar los catálogos oficiales al iniciar.
 if (useInMemory)
@@ -45,45 +93,47 @@ if (useInMemory)
     var db = scope.ServiceProvider.GetRequiredService<VipDbContext>();
     var seedPath = Path.Combine(AppContext.BaseDirectory, "seed.json");
     if (File.Exists(seedPath))
-        Anh.Vip.Infrastructure.Ingestion.CatalogSeeder.SeedFromFile(db, seedPath);
+        CatalogSeeder.SeedFromFile(db, seedPath);
 }
 
-// Salud básica.
+// Salud básica (anónima).
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "Anh.Vip.Api" }))
    .WithName("Health");
 
-// Vista previa del UWI fiscalizado — no requiere base de datos.
+// Vista previa del UWI fiscalizado — cualquier usuario autenticado.
 app.MapPost("/api/uwi/preview", (UwiWellInput input) =>
 {
     var components = UwiGenerator.BuildComponents(input);
     var uwi = UwiGenerator.Generate(input);
     return Results.Ok(new { uwi, valido = UwiGenerator.ValidateFormat(uwi), componentes = components });
 })
+.RequireAuthorization()
 .WithName("UwiPreview");
 
-// Crear cuaderno.
-app.MapPost("/api/notebooks", async (CreateNotebookRequest body, VipDbContext db, CancellationToken ct) =>
+// Crear cuaderno (operadora | admin). La operadora se fuerza al alcance del usuario.
+app.MapPost("/api/notebooks", async (CreateNotebookRequest body, ClaimsPrincipal user, VipDbContext db, CancellationToken ct) =>
 {
-    if (string.IsNullOrWhiteSpace(body.Operadora))
+    var operadora = user.IsAdmin() ? body.Operadora : (user.GetOperadora() ?? body.Operadora);
+    if (string.IsNullOrWhiteSpace(operadora))
         return Results.BadRequest(new { error = "Seleccione una operadora" });
 
     var now = DateTime.UtcNow;
+    var actor = user.GetEmail();
     var notebook = new Notebook
     {
-        Operadora = body.Operadora.Trim(),
+        Operadora = operadora.Trim(),
         Title = body.Title?.Trim() ?? "",
         Status = "active",
-        CreatedBy = body.ActorEmail,
+        CreatedBy = actor,
         CreatedAt = now,
         UpdatedAt = now,
     };
     db.Notebooks.Add(notebook);
-
     db.NotebookEvents.Add(new NotebookEvent
     {
         Notebook = notebook,
         EventType = "created",
-        ActorEmail = body.ActorEmail,
+        ActorEmail = actor,
         Message = "Cuaderno creado",
         CreatedAt = now,
     });
@@ -91,11 +141,12 @@ app.MapPost("/api/notebooks", async (CreateNotebookRequest body, VipDbContext db
 
     return Results.Created($"/api/notebooks/{notebook.Id}", new { notebook.Id, notebook.Operadora, notebook.Title, notebook.Status });
 })
+.RequireAuthorization(Roles.OperatorOrAdmin)
 .WithName("CreateNotebook");
 
-// Cargar Excel en un cuaderno (crea una versión).
+// Cargar Excel en un cuaderno (operadora | admin).
 app.MapPost("/api/notebooks/{id:int}/upload", async (
-    int id, IFormFile? file, NotebookUploadService service, CancellationToken ct) =>
+    int id, IFormFile? file, ClaimsPrincipal user, NotebookUploadService service, CancellationToken ct) =>
 {
     if (file is null || file.Length == 0)
         return Results.BadRequest(new { error = "Debe adjuntar un archivo Excel (.xlsx)" });
@@ -103,27 +154,17 @@ app.MapPost("/api/notebooks/{id:int}/upload", async (
     try
     {
         await using var stream = file.OpenReadStream();
-        var result = await service.ProcessAsync(id, file.FileName, stream, actorEmail: "api", ct);
-        return Results.Ok(new
-        {
-            upload_id = result.UploadId,
-            version_number = result.VersionNumber,
-            summary = result.Summary,
-        });
+        var result = await service.ProcessAsync(id, file.FileName, stream, actorEmail: user.GetEmail(), ct);
+        return Results.Ok(new { upload_id = result.UploadId, version_number = result.VersionNumber, summary = result.Summary });
     }
-    catch (NotebookNotFoundException ex)
-    {
-        return Results.NotFound(new { error = ex.Message });
-    }
-    catch (InvalidUploadException ex)
-    {
-        return Results.BadRequest(new { error = ex.Message });
-    }
+    catch (NotebookNotFoundException ex) { return Results.NotFound(new { error = ex.Message }); }
+    catch (InvalidUploadException ex) { return Results.BadRequest(new { error = ex.Message }); }
 })
-.WithName("UploadNotebookVersion")
-.DisableAntiforgery(); // TODO: reemplazar por CSRF/anti-forgery institucional al integrar auth.
+.RequireAuthorization(Roles.OperatorOrAdmin)
+.DisableAntiforgery() // Bearer (sin cookies) mitiga CSRF; reemplazar por CSRF institucional si se usan cookies.
+.WithName("UploadNotebookVersion");
 
-// Detalle del cuaderno (versiones y eventos).
+// Detalle del cuaderno (operadora | admin).
 app.MapGet("/api/notebooks/{id:int}", async (int id, VipDbContext db, CancellationToken ct) =>
 {
     var notebook = await db.Notebooks.AsNoTracking().FirstOrDefaultAsync(n => n.Id == id, ct);
@@ -148,27 +189,24 @@ app.MapGet("/api/notebooks/{id:int}", async (int id, VipDbContext db, Cancellati
         events,
     });
 })
+.RequireAuthorization(Roles.OperatorOrAdmin)
 .WithName("GetNotebook");
 
-// Aplicar (submit) el inventario a la ANH.
-app.MapPost("/api/notebooks/{id:int}/submit", async (int id, NotebookSubmitService service, CancellationToken ct) =>
+// Aplicar (submit) el inventario a la ANH (operadora | admin).
+app.MapPost("/api/notebooks/{id:int}/submit", async (int id, ClaimsPrincipal user, NotebookSubmitService service, CancellationToken ct) =>
 {
     try
     {
-        var result = await service.SubmitAsync(id, submittedBy: "api", ct);
-        return Results.Ok(new
-        {
-            upload_id = result.UploadId,
-            version_number = result.VersionNumber,
-            message = "Inventario aplicado. La versión queda visible como enviada.",
-        });
+        var result = await service.SubmitAsync(id, submittedBy: user.GetEmail(), ct);
+        return Results.Ok(new { upload_id = result.UploadId, version_number = result.VersionNumber, message = "Inventario aplicado. La versión queda visible como enviada." });
     }
     catch (NotebookNotFoundException ex) { return Results.NotFound(new { error = ex.Message }); }
     catch (InvalidUploadException ex) { return Results.BadRequest(new { error = ex.Message }); }
 })
+.RequireAuthorization(Roles.OperatorOrAdmin)
 .WithName("SubmitNotebook");
 
-// Hallazgos de validación de una versión (upload).
+// Hallazgos de validación de una versión (operadora | anh | admin).
 app.MapGet("/api/validations", async (int uploadId, VipDbContext db, CancellationToken ct) =>
 {
     var wells = await db.Wells.AsNoTracking()
@@ -191,19 +229,18 @@ app.MapGet("/api/validations", async (int uploadId, VipDbContext db, Cancellatio
 
     return Results.Ok(report);
 })
+.RequireAuthorization(Roles.ReadInventory)
 .WithName("GetValidations");
 
-// Descargar la plantilla del cuaderno (con selectores).
+// Descargar la plantilla del cuaderno (operadora | admin).
 app.MapGet("/api/notebooks/template", async (int? rows, string? operadora, VipDbContext db, CancellationToken ct) =>
 {
     var n = TemplateColumns.ClampRows(rows ?? TemplateColumns.DefaultRows);
     var options = await TemplateCatalogOptions.LoadAsync(db, ct);
     var bytes = NotebookTemplateBuilder.Build(n, operadora, options);
-    return Results.File(
-        bytes,
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        $"plantilla-inventario-pozos-{n}-registros.xlsx");
+    return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"plantilla-inventario-pozos-{n}-registros.xlsx");
 })
+.RequireAuthorization(Roles.OperatorOrAdmin)
 .WithName("DownloadTemplate");
 
 app.Run();

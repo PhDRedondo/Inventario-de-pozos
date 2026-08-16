@@ -34,7 +34,7 @@ public class UploadEndpointTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Upload_CreatesVersion_PersistsWellsAndFindings()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
 
         // 1) Crear cuaderno
         var create = await client.PostAsJsonAsync("/api/notebooks",
@@ -89,7 +89,7 @@ public class UploadEndpointTests : IClassFixture<VipApiFactory>
     [Fact]
     public async Task Upload_UnknownNotebook_Returns404()
     {
-        var client = _factory.CreateClient();
+        var client = _factory.CreateAuthedClient();
         var res = await client.PostAsync("/api/notebooks/999999/upload", await SampleForm());
         Assert.Equal(System.Net.HttpStatusCode.NotFound, res.StatusCode);
     }

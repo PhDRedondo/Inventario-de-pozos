@@ -48,14 +48,23 @@ La URL base de la API se configura en `src/environments/environment.ts`
 ## Estado de verificación
 
 - ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **7/7** — cliente de API con
+- ✅ **`ng test` (ChromeHeadless):** **10/10** — cliente de API con
   `HttpTestingController` (crear cuaderno, carga multipart, validaciones con
-  query, submit, URL de plantilla) y render del shell.
+  query, submit, URL de plantilla), interceptor de token (adjunta Bearer solo a
+  `/api/`) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 
+## Seguridad
+
+- `auth/auth.service.ts` guarda el token de acceso; `auth/auth.interceptor.ts`
+  lo adjunta como `Authorization: Bearer …` a las llamadas a `/api/`. Registrado
+  en `app.config.ts` con `withInterceptors`.
+- **Producción:** integrar `@azure/msal-angular` para el login OIDC contra
+  Microsoft Entra ID / AD FS (con MFA) y alimentar `AuthService` con el token.
+
 ## Siguiente
 
-- Autenticación (AD/OIDC + MFA) e interceptor de token — fase 4 de seguridad.
+- Login OIDC (MSAL) + guardas de ruta por rol.
 - Pantallas de panel/analítica y listado de cuadernos (requiere endpoints
   adicionales en la API).

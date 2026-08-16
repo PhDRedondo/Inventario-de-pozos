@@ -90,6 +90,28 @@ paridad se verifica contra los 8 casos de referencia del instructivo
 | MORICHE 56 / 1289 | `15572MORI00561289` |
 | AMBAR 157H ST1 / AMBAR 116 (H, ST, P, LR) | `50568AMBA0157AM0116HST1P-LR` |
 
+## Seguridad (Fase 4)
+
+Autenticación y autorización conforme a **GU-18 Anexo 2**:
+
+- **Autenticación:** JWT **Bearer** contra el proveedor **OIDC/AD** institucional
+  (Microsoft Entra ID / AD FS). Se configura con `Oidc:Authority` y
+  `Oidc:Audience` (appsettings/entorno). El **MFA (doble factor)** lo exige el
+  IdP en el login; la API solo valida el token resultante.
+- **Autorización por rol** (segregación de funciones): políticas
+  `OperatorOrAdmin` (crear/cargar/enviar cuadernos, plantilla) y `ReadInventory`
+  (validaciones: operadora, anh, admin). `/health` es anónimo.
+- **Identidad del actor** desde los claims del token (email, `operadora`); la
+  operadora se **fuerza al alcance del usuario** para el rol operadora.
+- **Endurecimiento:** cabeceras `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`; HSTS fuera de desarrollo. El upload usa Bearer (sin cookies),
+  lo que mitiga CSRF.
+- **Perfil de desarrollo:** un esquema `Dev` auto-autentica un usuario demo (todos
+  los roles) para el stack local; **nunca** se habilita en producción.
+
+> Pendiente institucional: registrar la app en Entra ID / AD FS (Authority,
+> Audience, roles) y validar MFA extremo a extremo con el tenant de la ANH.
+
 ## Migraciones EF Core (esquema SQL Server)
 
 El esquema `[vip]` se gestiona con **migraciones EF Core** (carpeta
@@ -157,7 +179,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **29/29 pruebas superadas**:
+- ✅ **`dotnet test`:** **35/35 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -169,6 +191,10 @@ sin «LISTA»).
     (`Fixtures/inventario-sample.xlsx`) — parseo, ETL, DANE, UWI, estado y
     hallazgos de cada pozo, más el filtro de la fila «LISTA»
     (`Fixtures/ingestion-parity.json`).
+  - **Seguridad (6):** autorización por rol con `WebApplicationFactory` y un
+    esquema de autenticación de prueba — `/health` anónimo, 401 sin token, 403
+    con rol insuficiente (anh crea cuaderno / rol desconocido consulta), 200 con
+    rol válido, y operadora forzada + actor tomado de los claims.
   - **API (6):** integración con `WebApplicationFactory` + EF Core InMemory
     (catálogos sembrados desde `seed.json`): **carga** (persistencia de upload,
     2 pozos con operadora forzada, hallazgos, UWI `50568RUBI…`, versión activa,

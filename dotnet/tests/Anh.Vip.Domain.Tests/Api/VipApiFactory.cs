@@ -1,5 +1,6 @@
 using Anh.Vip.Infrastructure;
 using Anh.Vip.Infrastructure.Ingestion;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,24 @@ public sealed class VipApiFactory : WebApplicationFactory<Program>
             foreach (var d in toRemove) services.Remove(d);
 
             services.AddDbContext<VipDbContext>(o => o.UseInMemoryDatabase(_dbName));
+
+            // Sustituir la autenticación por el esquema de prueba (controlable por cabeceras).
+            services.AddAuthentication(o =>
+            {
+                o.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
+                o.DefaultChallengeScheme = TestAuthHandler.SchemeName;
+            }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, null);
         });
+    }
+
+    /// <summary>Cliente HTTP autenticado con el rol/operadora indicados.</summary>
+    public HttpClient CreateAuthedClient(string roles = "admin", string email = "tester@anh.gov.co", string? operadora = null)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Add("X-Test-User", email);
+        client.DefaultRequestHeaders.Add("X-Test-Roles", roles);
+        if (operadora is not null) client.DefaultRequestHeaders.Add("X-Test-Operadora", operadora);
+        return client;
     }
 
     public void EnsureSeeded()
