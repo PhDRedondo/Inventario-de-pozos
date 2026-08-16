@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Subproyectos de la migración (Angular / .NET / SQL) — no son del app Next.js:
+    "vip-web/**",
+    "dotnet/**",
+    "migration/**",
   ]),
 ]);
 
