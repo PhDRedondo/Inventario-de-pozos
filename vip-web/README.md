@@ -35,8 +35,9 @@ desde `GET /api/analytics/sankey`.
 (GeoJSON DANE `colombia-municipios.geojson`, unido por `MPIO_CCNCT`) sombreado
 por número de pozos desde `GET /api/wells/by-municipio`, el **contorno de los
 departamentos** como contexto y **un punto por pozo** coloreado por validación
-desde `GET /api/wells/map`. El popup de cada municipio muestra el total y el
-desglose válido/advertencia/inválido.
+desde `GET /api/wells/map`. Cada municipio tiene un **tooltip** (hover) con la
+producción acumulada (petróleo BBL · gas KPC · agua BBL) y un **popup** (clic)
+con el total, el desglose válido/advertencia/inválido y la producción detallada.
 
 Estructura: `services/vip-api.service.ts` (cliente tipado), `models/` (contratos
 de la API), `notebooks/` (listado), `cuaderno/` (workspace), `panel/`,

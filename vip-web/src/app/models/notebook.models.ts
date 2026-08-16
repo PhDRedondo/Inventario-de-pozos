@@ -150,6 +150,9 @@ export interface MunicipioCount {
   valid: number;
   warning: number;
   invalid: number;
+  prodPetroleo: number;
+  prodGas: number;
+  prodAgua: number;
 }
 
 /** Punto georreferenciado de un pozo (GET /api/wells/map). */

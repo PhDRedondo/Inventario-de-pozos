@@ -201,7 +201,8 @@ sin «LISTA»).
   - **Mapa (4):** `/api/wells/map` — 12 pozos georreferenciados con lat/lng
     válidas; y `/api/wells/by-municipio` — conteo por municipio (código DANE)
     para el coropleto: 9 municipios que suman 12 pozos, ordenados por total con
-    desglose válido/advertencia/inválido; ambos sin token → 401.
+    desglose válido/advertencia/inválido y **producción acumulada**
+    (petróleo/gas/agua) para el tooltip; ambos sin token → 401.
   - **Analítica (5):** `/api/analytics` — tema `perfil` nacional con índice 100 en
     cada métrica, entidad (operadora) con índices relativos, rol operadora → 403;
     tema `produccion` con métricas numéricas (petróleo/gas/agua/días) promediadas

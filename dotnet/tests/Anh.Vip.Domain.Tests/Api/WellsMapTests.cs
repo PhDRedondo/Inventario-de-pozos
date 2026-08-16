@@ -58,6 +58,11 @@ public class WellsMapTests : IClassFixture<VipApiFactory>
         Assert.Equal(2, top.GetProperty("total").GetInt32());
         Assert.Equal(5, top.GetProperty("codigoDane").GetString()!.Length);
         Assert.False(string.IsNullOrEmpty(top.GetProperty("municipio").GetString()));
+
+        // Producción acumulada para el tooltip: el municipio líder (productores) tiene petróleo > 0.
+        Assert.True(top.GetProperty("prodPetroleo").GetDouble() > 0);
+        Assert.True(top.TryGetProperty("prodGas", out _));
+        Assert.True(top.TryGetProperty("prodAgua", out _));
     }
 
     [Fact]

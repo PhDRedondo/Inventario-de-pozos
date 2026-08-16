@@ -117,7 +117,7 @@ describe('VipApiService', () => {
     service.getMunicipioCounts().subscribe((m) => expect(m.length).toBe(1));
     const req = httpMock.expectOne('/api/wells/by-municipio');
     expect(req.request.method).toBe('GET');
-    req.flush([{ codigoDane: '50150', municipio: 'CASTILLA LA NUEVA', departamento: 'META', total: 2, valid: 2, warning: 0, invalid: 0 }]);
+    req.flush([{ codigoDane: '50150', municipio: 'CASTILLA LA NUEVA', departamento: 'META', total: 2, valid: 2, warning: 0, invalid: 0, prodPetroleo: 11000, prodGas: 2400, prodAgua: 4000 }]);
   });
 
   it('builds the template URL with rows and operadora', () => {

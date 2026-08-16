@@ -16,10 +16,12 @@ public sealed record WellMapPoint(
 /// <summary>
 /// Conteo de pozos por municipio (código DANE de 5 dígitos) para el coropleto
 /// municipal del mapa. <c>CodigoDane</c> corresponde a <c>MPIO_CCNCT</c> del GeoJSON.
+/// Incluye la producción acumulada del municipio (petróleo/gas/agua) para el tooltip.
 /// </summary>
 public sealed record MunicipioCount(
     string CodigoDane, string? Municipio, string? Departamento,
-    int Total, int Valid, int Warning, int Invalid);
+    int Total, int Valid, int Warning, int Invalid,
+    double ProdPetroleo, double ProdGas, double ProdAgua);
 
 /// <summary>KPIs y desgloses del panel — subconjunto de <c>DashboardStats</c> del piloto.</summary>
 public sealed record DashboardStats
@@ -84,27 +86,37 @@ public sealed class StatsService(VipDbContext db)
         return points;
     }
 
-    /// <summary>Conteo de pozos por municipio (DANE) para el coropleto, con alcance por rol.</summary>
+    /// <summary>Conteo y producción de pozos por municipio (DANE) para el coropleto, con alcance por rol.</summary>
     public async Task<IReadOnlyList<MunicipioCount>> GetMunicipioCountsAsync(string role, string? operadora, CancellationToken ct = default)
     {
-        var grouped = await ScopedWells(role, operadora)
+        // La producción se guarda como texto: cargamos las filas y agregamos en memoria.
+        var rows = await ScopedWells(role, operadora)
             .Where(w => w.CodigoDaneMuni != null && w.CodigoDaneMuni != "")
-            .GroupBy(w => w.CodigoDaneMuni!)
-            .Select(g => new
+            .Select(w => new
             {
-                CodigoDane = g.Key,
-                Municipio = g.Max(w => w.Municipio),
-                Departamento = g.Max(w => w.Departamento),
-                Total = g.Count(),
-                Valid = g.Count(w => w.ValidationStatus == "valid"),
-                Warning = g.Count(w => w.ValidationStatus == "warning"),
-                Invalid = g.Count(w => w.ValidationStatus == "invalid"),
+                w.CodigoDaneMuni, w.Municipio, w.Departamento, w.ValidationStatus,
+                w.ProdPetroleo, w.ProdGas, w.ProdAgua,
             })
             .ToListAsync(ct);
 
-        return grouped
-            .Select(x => new MunicipioCount(x.CodigoDane, x.Municipio, x.Departamento, x.Total, x.Valid, x.Warning, x.Invalid))
+        static double Sum(IEnumerable<string?> values)
+            => values.Sum(s => TryCoord(s, out var v) ? v : 0);
+
+        return rows
+            .GroupBy(w => w.CodigoDaneMuni!)
+            .Select(g => new MunicipioCount(
+                g.Key,
+                g.Max(w => w.Municipio),
+                g.Max(w => w.Departamento),
+                g.Count(),
+                g.Count(w => w.ValidationStatus == "valid"),
+                g.Count(w => w.ValidationStatus == "warning"),
+                g.Count(w => w.ValidationStatus == "invalid"),
+                Sum(g.Select(w => w.ProdPetroleo)),
+                Sum(g.Select(w => w.ProdGas)),
+                Sum(g.Select(w => w.ProdAgua))))
             .OrderByDescending(x => x.Total)
+            .ThenByDescending(x => x.ProdPetroleo)
             .ToList();
     }
 

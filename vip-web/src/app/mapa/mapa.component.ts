@@ -20,6 +20,11 @@ function choroplethColor(total: number): string {
   return '#7fc3cc';
 }
 
+/** Formatea un valor de producción con separador de miles (es-CO), sin decimales. */
+function fmt(n: number): string {
+  return Math.round(n).toLocaleString('es-CO');
+}
+
 /**
  * Mapa territorial (Leaflet): coropleto municipal (GeoJSON DANE) sombreado por
  * número de pozos, contorno de departamentos como contexto y un punto por pozo
@@ -96,11 +101,26 @@ export class MapaComponent implements AfterViewInit, OnDestroy {
       onEachFeature: (feature, layer) => {
         const c = byDane.get(String(feature.properties?.['MPIO_CCNCT']));
         if (!c) return;
+        const nombre = c.municipio ?? feature.properties?.['MPIO_CNMBR'];
+
+        // Tooltip (hover): resumen de producción acumulada del municipio.
+        layer.bindTooltip(
+          `<strong>${nombre}</strong><br/>` +
+          `${c.total} pozo(s)<br/>` +
+          `Petróleo ${fmt(c.prodPetroleo)} BBL<br/>` +
+          `Gas ${fmt(c.prodGas)} KPC · Agua ${fmt(c.prodAgua)} BBL`,
+          { sticky: true, direction: 'top', className: 'muni-tooltip' },
+        );
+
+        // Popup (clic): validación + producción detallada.
         layer.bindPopup(
-          `<strong>${c.municipio ?? feature.properties?.['MPIO_CNMBR']}</strong> ` +
-          `<small>(${c.codigoDane})</small><br/>${c.departamento ?? '—'}<br/>` +
+          `<strong>${nombre}</strong> <small>(${c.codigoDane})</small><br/>${c.departamento ?? '—'}<br/>` +
           `Pozos: <strong>${c.total}</strong><br/>` +
-          `Válidos ${c.valid} · Advertencia ${c.warning} · Inválidos ${c.invalid}`,
+          `Válidos ${c.valid} · Advertencia ${c.warning} · Inválidos ${c.invalid}<br/>` +
+          `<hr style="margin:4px 0;border:0;border-top:1px solid #d8e2ec"/>` +
+          `Petróleo <strong>${fmt(c.prodPetroleo)}</strong> BBL<br/>` +
+          `Gas <strong>${fmt(c.prodGas)}</strong> KPC<br/>` +
+          `Agua <strong>${fmt(c.prodAgua)}</strong> BBL`,
         );
       },
     }).addTo(this.map);
