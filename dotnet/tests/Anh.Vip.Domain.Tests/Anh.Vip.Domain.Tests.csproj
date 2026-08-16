@@ -14,4 +14,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Anh.Vip.Domain\Anh.Vip.Domain.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- Catálogos oficiales (mismos datos que el piloto) y verdad de referencia de validación. -->
+    <None Include="..\..\..\data\seed.json" Link="seed.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\validation-parity.json" Link="validation-parity.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

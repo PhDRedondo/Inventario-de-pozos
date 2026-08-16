@@ -1,0 +1,200 @@
+{
+  "empty": {
+    "uwi": null,
+    "is_valid": false,
+    "error_count": 9,
+    "warning_count": 0,
+    "issues": [
+      {
+        "field": "pozo_existente_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"¿Pozo existente en AVM ANH?\" es obligatorio."
+      },
+      {
+        "field": "operadora",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Operadora\" es obligatorio."
+      },
+      {
+        "field": "contrato",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Contrato según AVM ANH\" es obligatorio."
+      },
+      {
+        "field": "campo_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Campo AVM\" es obligatorio."
+      },
+      {
+        "field": "nombre_pozo_sgc",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Nombre pozo (SGC)\" es obligatorio."
+      },
+      {
+        "field": "estado_pozo",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Estado del pozo\" es obligatorio."
+      },
+      {
+        "field": "departamento",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Departamento\" es obligatorio."
+      },
+      {
+        "field": "municipio",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Municipio\" es obligatorio."
+      },
+      {
+        "field": "nombre_pozo_sgc",
+        "severity": "error",
+        "rule": "uwi_nombre",
+        "message": "Se requiere el nombre del pozo para generar el UWI fiscalizado."
+      }
+    ]
+  },
+  "ambar": {
+    "uwi": "50568AMBA0157AM0116HST1P-LR",
+    "is_valid": false,
+    "error_count": 7,
+    "warning_count": 1,
+    "issues": [
+      {
+        "field": "pozo_existente_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"¿Pozo existente en AVM ANH?\" es obligatorio."
+      },
+      {
+        "field": "operadora",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Operadora\" es obligatorio."
+      },
+      {
+        "field": "contrato",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Contrato según AVM ANH\" es obligatorio."
+      },
+      {
+        "field": "campo_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Campo AVM\" es obligatorio."
+      },
+      {
+        "field": "estado_pozo",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Estado del pozo\" es obligatorio."
+      },
+      {
+        "field": "departamento",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Departamento\" es obligatorio."
+      },
+      {
+        "field": "municipio",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Municipio\" es obligatorio."
+      },
+      {
+        "field": "sistema_levantamiento",
+        "severity": "warning",
+        "rule": "conditional_required",
+        "message": "Los pozos productores deben reportar el sistema de levantamiento."
+      },
+      {
+        "field": "uwi_sgc",
+        "severity": "info",
+        "rule": "uwi_consistency",
+        "message": "El UWI SGC (DIFERENTE-123) difiere del UWI fiscalizado generado (50568AMBA0157AM0116HST1P-LR)."
+      }
+    ]
+  },
+  "badcat": {
+    "uwi": null,
+    "is_valid": false,
+    "error_count": 11,
+    "warning_count": 0,
+    "issues": [
+      {
+        "field": "pozo_existente_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"¿Pozo existente en AVM ANH?\" es obligatorio."
+      },
+      {
+        "field": "contrato",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Contrato según AVM ANH\" es obligatorio."
+      },
+      {
+        "field": "campo_avm",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Campo AVM\" es obligatorio."
+      },
+      {
+        "field": "nombre_pozo_sgc",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Nombre pozo (SGC)\" es obligatorio."
+      },
+      {
+        "field": "estado_pozo",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Estado del pozo\" es obligatorio."
+      },
+      {
+        "field": "municipio",
+        "severity": "error",
+        "rule": "required",
+        "message": "El atributo \"Municipio\" es obligatorio."
+      },
+      {
+        "field": "operadora",
+        "severity": "error",
+        "rule": "catalog",
+        "message": "El valor \"OPERADORA QUE NO EXISTE SA\" no está en la lista permitida para \"Operadora\"."
+      },
+      {
+        "field": "departamento",
+        "severity": "error",
+        "rule": "catalog",
+        "message": "El valor \"NARNIA\" no está en la lista oficial de departamentos (DANE)."
+      },
+      {
+        "field": "prod_petroleo",
+        "severity": "error",
+        "rule": "numeric",
+        "message": "\"Petróleo acumulado\" debe ser numérico."
+      },
+      {
+        "field": "coord_bogota_x",
+        "severity": "error",
+        "rule": "coordinate",
+        "message": "El atributo \"Coordenada superficie X (Bogotá)\" no tiene formato numérico válido."
+      },
+      {
+        "field": "nombre_pozo_sgc",
+        "severity": "error",
+        "rule": "uwi_nombre",
+        "message": "Se requiere el nombre del pozo para generar el UWI fiscalizado."
+      }
+    ]
+  }
+}

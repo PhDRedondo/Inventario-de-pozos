@@ -235,4 +235,93 @@ public static class UwiGenerator
     /// <summary>Valida que un UWI cumpla la estructura del instructivo.</summary>
     public static bool ValidateFormat(string? uwi) =>
         !string.IsNullOrEmpty(uwi) && UwiFormat.IsMatch(uwi);
+
+    /// <summary>
+    /// Valida el cumplimiento del instructivo UWI (abril 2026) — port de
+    /// <c>validateUwiInstructivo</c> de uwi.ts.
+    /// </summary>
+    public static List<UwiValidationIssue> ValidateInstructivo(UwiWellInput record)
+    {
+        var issues = new List<UwiValidationIssue>();
+        var nombre = record.NombrePozoSgc ?? record.NombrePozoForma6cr ?? record.PozoAvm;
+        var components = BuildComponents(record);
+
+        if (string.IsNullOrEmpty(nombre))
+        {
+            issues.Add(new UwiValidationIssue("nombre_pozo_sgc", "error",
+                "Se requiere el nombre del pozo para generar el UWI fiscalizado.", "uwi_nombre"));
+            return issues;
+        }
+
+        if (string.IsNullOrEmpty(record.CodigoDaneDepto) || string.IsNullOrEmpty(record.CodigoDaneMuni))
+        {
+            issues.Add(new UwiValidationIssue("codigo_dane_muni", "error",
+                "Código DANE departamental (2 dígitos) y municipal (3 dígitos) son obligatorios.", "uwi_dane"));
+        }
+        else if (components is not null)
+        {
+            if (!Regex.IsMatch(components.Departamento, @"^\d{2}$"))
+                issues.Add(new UwiValidationIssue("codigo_dane_depto", "error",
+                    $"Código departamental inválido: \"{components.Departamento}\". Debe tener 2 dígitos.", "uwi_dane_depto"));
+            if (!Regex.IsMatch(components.Municipio, @"^\d{3}$"))
+                issues.Add(new UwiValidationIssue("codigo_dane_muni", "error",
+                    $"Código municipal inválido: \"{components.Municipio}\". Debe tener 3 dígitos.", "uwi_dane_muni"));
+        }
+
+        if (string.IsNullOrEmpty(record.TipoAngulo) && ExtractAngle(null, nombre).Length == 0)
+            issues.Add(new UwiValidationIssue("tipo_angulo", "error",
+                "Tipo de pozo por ángulo (H, V, D) es obligatorio para el UWI fiscalizado.", "uwi_angulo"));
+
+        if (string.IsNullOrEmpty(record.TipoTrayectoria) && ExtractTrajectory(null, nombre).Length == 0)
+            issues.Add(new UwiValidationIssue("tipo_trayectoria", "warning",
+                "Trayectoria del pozo (ST, P, PR, ML, G, O) no definida; se omitirá en el UWI.", "uwi_trayectoria"));
+
+        if (string.IsNullOrEmpty(record.TipoObjetivo))
+            issues.Add(new UwiValidationIssue("tipo_objetivo", "error",
+                "Objetivo del pozo (P, I, M, D, EST) es obligatorio para el UWI fiscalizado.", "uwi_objetivo"));
+
+        if (components is null) return issues;
+
+        if (!Regex.IsMatch(components.Sigla, @"^[A-Z]{4,}$"))
+            issues.Add(new UwiValidationIssue("nombre_pozo_sgc", "error",
+                $"Sigla \"{components.Sigla}\" no cumple: mínimo 4 caracteres alfabéticos según reglas del nombre.", "uwi_sigla"));
+
+        if (!Regex.IsMatch(components.Numero, @"^\d{4}$"))
+            issues.Add(new UwiValidationIssue("nombre_pozo_sgc", "error",
+                $"Numeración \"{components.Numero}\" debe ser exactamente 4 dígitos con ceros a la izquierda.", "uwi_numero"));
+
+        if (components.Angulo.Length > 0 && !AngleCodes.Contains(components.Angulo))
+            issues.Add(new UwiValidationIssue("tipo_angulo", "error",
+                $"Código de ángulo \"{components.Angulo}\" no válido. Use H, V o D.", "uwi_angulo_code"));
+
+        if (components.Trayectoria.Length > 0 && !Regex.IsMatch(components.Trayectoria, @"^ST\d*$|^PR$|^ML$|^P$|^G$|^O$"))
+            issues.Add(new UwiValidationIssue("tipo_trayectoria", "error",
+                $"Trayectoria \"{components.Trayectoria}\" no válida. Use ST[n], P, PR, ML, G u O.", "uwi_trayectoria_code"));
+
+        if (components.Objetivo.Length > 0 && !ObjectiveCodes.Contains(components.Objetivo))
+            issues.Add(new UwiValidationIssue("tipo_objetivo", "error",
+                $"Objetivo \"{components.Objetivo}\" no válido. Use P, I, M, D o EST.", "uwi_objetivo_code"));
+
+        if (components.Terminacion.Length > 0)
+        {
+            if (!TerminationCodes.Contains(components.Terminacion))
+                issues.Add(new UwiValidationIssue("tipo_terminacion", "error",
+                    $"Terminación \"{components.Terminacion}\" no válida.", "uwi_terminacion_code"));
+            if (components.Terminacion == "OH" && !components.Objetivo.Contains("EST"))
+                issues.Add(new UwiValidationIssue("tipo_terminacion", "warning",
+                    "Hueco abierto (OH) solo aplica para pozos estratigráficos o excepciones aprobadas por la ANH.", "uwi_terminacion_oh"));
+        }
+        else
+        {
+            issues.Add(new UwiValidationIssue("tipo_terminacion", "warning",
+                "Terminación no definida; el UWI se generará sin sufijo -[CD|LC|LR|GP|CC|OH|O].", "uwi_terminacion_missing"));
+        }
+
+        var uwi = Assemble(components, components.Terminacion.Length > 0);
+        if (!ValidateFormat(uwi))
+            issues.Add(new UwiValidationIssue("uwi_fiscalizado", "error",
+                $"El UWI \"{uwi}\" no cumple la estructura del instructivo.", "uwi_format"));
+
+        return issues;
+    }
 }

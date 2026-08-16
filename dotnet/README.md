@@ -14,10 +14,10 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 
 | Proyecto | Rol |
 |---|---|
-| `src/Anh.Vip.Domain` | Dominio puro: entidades y lógica de negocio. **Módulo UWI portado** (`Uwi/UwiGenerator.cs`). Sin dependencias. |
-| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core) mapeado al esquema `[vip]`. |
+| `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/UwiGenerator.cs`) y **motor de validación** (`Validation/WellValidator.cs`). Sin dependencias. |
+| `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core) mapeado al esquema `[vip]` y `DbCatalogProvider` (catálogos desde SQL Server). |
 | `src/Anh.Vip.Api` | Web API mínima: `/health` y `POST /api/uwi/preview`. |
-| `tests/Anh.Vip.Domain.Tests` | Paridad del UWI con el piloto (casos del instructivo). |
+| `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
 
 ## Requisitos
 
@@ -60,14 +60,27 @@ paridad se verifica contra los 8 casos de referencia del instructivo
 | MORICHE 56 / 1289 | `15572MORI00561289` |
 | AMBAR 157H ST1 / AMBAR 116 (H, ST, P, LR) | `50568AMBA0157AM0116HST1P-LR` |
 
+## Módulo portado: motor de validación
+
+`Validation/WellValidator.cs` es un port fiel de `validateWell` (validation.ts):
+obligatorios, catálogos (vía `ICatalogProvider`), condicionales AVM y de
+levantamiento, numéricos, coordenadas, y las reglas del instructivo UWI. La
+verificación geográfica (`isCanonicalDepartamento`) y la reparación de mojibake
+se portan en `Text/SpanishText.cs`. En pruebas usa un `InMemoryCatalogProvider`
+alimentado por el mismo `data/seed.json`; en producción, `DbCatalogProvider`
+carga los catálogos `cat_*` de SQL Server.
+
 ## Estado de verificación
 
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **10/10 pruebas superadas** — los 8 casos del instructivo
-  (`INSTRUCTIVO_EXAMPLES`) más 2 de datos faltantes. El port a C# produce UWI
-  idénticos al piloto (`src/lib/uwi.ts`), confirmado también con `npm run test:uwi`.
+- ✅ **`dotnet test`:** **15/15 pruebas superadas**:
+  - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
+  - **Validación (5):** paridad de `validateWell` contra la salida canónica del
+    piloto para 3 registros de referencia (`Fixtures/validation-parity.json`,
+    generado con la implementación TS), el conteo de 59 reglas activas y el
+    resumen agregado.
 
 Reproducir:
 
