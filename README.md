@@ -21,6 +21,7 @@ También se le conoce por su sigla interna: **VIP — Validador del Inventario d
 ## Tabla de contenidos
 
 - [Resumen ejecutivo](#resumen-ejecutivo)
+- [Migración al stack institucional (ANH-GTIC-MA-02)](#migración-al-stack-institucional-anh-gtic-ma-02)
 - [Arquitectura del sistema](#arquitectura-del-sistema)
   - [Vista de capas](#vista-de-capas)
   - [Ciclo de una petición](#ciclo-de-una-petición)
@@ -62,6 +63,37 @@ El sistema cubre el ciclo completo del inventario de pozos:
 5. El **administrador** gestiona usuarios y puede operar cuadernos en nombre de cualquier operadora.
 
 Los **40 atributos** del formato Excel están centralizados en `src/lib/catalogs.ts` (temas) y `src/lib/attributes.ts` (29 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado). La misma definición alimenta el **formulario, la validación, la plantilla descargable y el parser de carga**, de modo que las cuatro caras del sistema nunca se desincronizan.
+
+---
+
+## Migración al stack institucional (ANH-GTIC-MA-02)
+
+El repositorio contiene **dos implementaciones** del mismo sistema:
+
+| Implementación | Stack | Ubicación | Uso |
+|---|---|---|---|
+| **Piloto** (este README) | Next.js · React · SQLite | raíz del repo | Demo funcional en Vercel |
+| **Institucional** | **Angular · .NET/C# · SQL Server** | [`vip-web/`](vip-web/) + [`dotnet/`](dotnet/) | Objetivo productivo (MA-02 §9.1.1.3.1 y §10.2) |
+
+La versión institucional replica la lógica del piloto **capa por capa con pruebas
+de paridad** (mismos casos de UWI, validación, ETL/DANE, ingesta Excel). Estado
+verificado: **`dotnet test` 53/53** y **`ng test` 19/19**.
+
+### Integraciones OTI
+
+| Integración | Estado | Evidencia |
+|---|---|---|
+| **SQL Server** | ✅ Verificado en motor real | Migración `InitialCreate` aplicada a **SQL Server 2022** (10 tablas en `[vip]`); round-trip `POST/GET` persistido y confirmado con `sqlcmd`. |
+| **SMTP** (correo de aplicación) | ✅ Transmisión real verificada | Al aplicar un cuaderno, `SmtpEmailSender` emitió un SMTP real capturado por un catcher local (`vip@anh.gov.co → inventariopozos@anh.gov.co`). |
+| **Entra ID + MFA** | ✅ Cableado · ⛔ tenant real pendiente | API: JWT Bearer + validación **fail-closed** (probada). SPA: **MSAL** (login redirect, guard, interceptor). Script de registro listo; falta ejecutarlo contra el tenant de la OTI. |
+
+Detalle y runbook: [`dotnet/docs/OTI-INTEGRACION.md`](dotnet/docs/OTI-INTEGRACION.md)
+· registro Entra: [`dotnet/docs/ENTRA-APP-REGISTRATION.md`](dotnet/docs/ENTRA-APP-REGISTRATION.md)
+· subproyectos: [`dotnet/README.md`](dotnet/README.md), [`vip-web/README.md`](vip-web/README.md).
+
+> Lo único pendiente de infraestructura es **ejecutar el registro de app y validar
+> un token contra el tenant Entra real** de la OTI (no disponible en el entorno de
+> desarrollo). El resto de integraciones quedó verificado sobre motores reales.
 
 ---
 
@@ -941,13 +973,17 @@ Incluye:
 
 ## Limitaciones y próximos pasos
 
-| Área | Estado actual | Recomendación |
-|------|---------------|---------------|
-| **Persistencia Vercel** | SQLite en `/tmp`, no durable | Migrar a base gestionada |
-| **Correo** | Simulado en `data/outbox/` | Integrar SMTP institucional |
-| **Autenticación** | Usuarios locales (demo) | SSO / LDAP ANH |
+Las filas marcadas **✅ (institucional)** ya están resueltas en el stack
+Angular · .NET · SQL Server (ver [Migración al stack institucional](#migración-al-stack-institucional-anh-gtic-ma-02));
+lo indicado aplica al **piloto** Next.js/SQLite de este README.
+
+| Área | Estado (piloto) | Resuelto en el stack institucional |
+|------|-----------------|------------------------------------|
+| **Persistencia Vercel** | SQLite en `/tmp`, no durable | ✅ SQL Server 2022 (migración EF Core aplicada y verificada) |
+| **Correo** | Simulado en `data/outbox/` | ✅ SMTP real (verificado con catcher local) |
+| **Autenticación** | Usuarios locales (demo) | ✅ Entra ID + MFA (API fail-closed; SPA con MSAL) · ⛔ falta tenant real |
+| **Migraciones DB** | `ensureColumn` ad hoc | ✅ Migraciones EF Core versionadas |
 | **Plantilla — cascada municipio** | Lista completa sin dependencia del departamento | Listas dependientes (INDIRECT) si se requiere |
-| **Migraciones DB** | `ensureColumn` ad hoc | Herramienta de migraciones versionadas |
 | **Producción institucional** | Demo en Vercel + repo personal | Ver [`docs/guia-produccion-anh.html`](docs/guia-produccion-anh.html) |
 
 ---
