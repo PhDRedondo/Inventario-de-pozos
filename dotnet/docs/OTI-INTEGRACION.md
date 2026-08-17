@@ -65,8 +65,11 @@ En producción la API valida **JWT Bearer** contra el tenant Entra ID. Los roles
 ```
 
 - Registrar la API en Entra (App registration), exponer un scope/`App ID URI`
-  y definir los **app roles** `Operadora`, `Anh`, `Admin`; asignarlos a los
-  grupos/usuarios correspondientes.
+  y definir los **app roles** `operadora`, `anh`, `admin`; asignarlos a los
+  grupos/usuarios correspondientes. Automatizado en
+  [`scripts/entra/register-vip-entra.sh`](../scripts/entra/register-vip-entra.sh);
+  guía completa (roles, claim `operadora`, MFA) en
+  [ENTRA-APP-REGISTRATION.md](ENTRA-APP-REGISTRATION.md).
 - **MFA** se exige del lado de Entra mediante **Acceso Condicional** (no en el
   código de la app); la API solo valida el token resultante.
 - **Fail-closed:** en producción, si falta `Oidc:Authority` o `Oidc:Audience`, la

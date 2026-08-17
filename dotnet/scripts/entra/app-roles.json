@@ -1,0 +1,26 @@
+[
+  {
+    "id": "b1f6a3d2-0001-4a10-9c21-000000000001",
+    "displayName": "Operadora",
+    "description": "Gestiona los cuadernos de su operadora (carga y envío del inventario).",
+    "value": "operadora",
+    "allowedMemberTypes": ["User"],
+    "isEnabled": true
+  },
+  {
+    "id": "b1f6a3d2-0002-4a10-9c21-000000000002",
+    "displayName": "ANH",
+    "description": "Consulta el inventario validado y la analítica comparativa.",
+    "value": "anh",
+    "allowedMemberTypes": ["User"],
+    "isEnabled": true
+  },
+  {
+    "id": "b1f6a3d2-0003-4a10-9c21-000000000003",
+    "displayName": "Administrador",
+    "description": "Acceso total: catálogos, inventario completo y administración.",
+    "value": "admin",
+    "allowedMemberTypes": ["User"],
+    "isEnabled": true
+  }
+]
