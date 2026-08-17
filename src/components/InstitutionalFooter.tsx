@@ -68,9 +68,17 @@ const LEGAL_LINKS = [
 function GovCoMark() {
   return (
     <svg viewBox="0 0 120 32" className="h-7 w-auto" aria-hidden>
-      <rect x="0" y="4" width="28" height="20" rx="2" fill="#FCD116" />
-      <rect x="0" y="4" width="28" height="10" fill="#003893" />
-      <rect x="0" y="14" width="28" height="10" fill="#CE1126" />
+      {/* Bandera de Colombia: mitad amarillo, cuarto azul, cuarto rojo */}
+      <defs>
+        <clipPath id="govco-flag">
+          <rect x="0" y="4" width="28" height="20" rx="2" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#govco-flag)">
+        <rect x="0" y="4" width="28" height="10" fill="#FCD116" />
+        <rect x="0" y="14" width="28" height="5" fill="#003893" />
+        <rect x="0" y="19" width="28" height="5" fill="#CE1126" />
+      </g>
       <text x="36" y="21" fill="currentColor" fontSize="18" fontWeight="700" fontFamily="Nunito Sans, sans-serif">
         gov.co
       </text>
