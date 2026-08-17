@@ -9,6 +9,11 @@
       <a routerLink="/flujo" routerLinkActive="active">Flujo</a>
       <a routerLink="/mapa" routerLinkActive="active">Mapa</a>
     </nav>
+    <div class="session" *ngIf="authEnabled">
+      <span class="user" *ngIf="username">{{ username }}</span>
+      <button type="button" class="auth-btn" *ngIf="!username" (click)="login()">Ingresar</button>
+      <button type="button" class="auth-btn" *ngIf="username" (click)="logout()">Salir</button>
+    </div>
   </div>
 </header>
 

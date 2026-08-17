@@ -99,6 +99,23 @@ resultante; no gestiona el segundo factor.
 En arranque, la API valida esta configuración **fail-closed**: si falta, aborta
 con un mensaje claro (no queda en 401 silencioso).
 
+**SPA (Angular)** — `vip-web/src/environments/environment.prod.ts`:
+
+```ts
+msal: {
+  tenantId: '<TENANT_ID>',
+  clientId: '<SPA_CLIENT_ID>',      // appId del registro "ANH VIP Web"
+  apiScope: 'api://anh-vip/access_as_user',
+  redirectUri: 'https://vip.anh.gov.co'
+}
+```
+
+Construir el SPA para Entra con `ng build --configuration entra` (reemplaza
+`environment.ts` por `environment.prod.ts`). Con `msal` presente, el SPA activa
+MSAL: login por redirect, `MsalInterceptor` adjunta el token a la API y
+`MsalGuard` protege las rutas. Sin `msal` (build por defecto) se mantiene el
+perfil de desarrollo sin login.
+
 ---
 
 ## Estado

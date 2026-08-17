@@ -83,14 +83,23 @@ La URL base de la API se configura en `src/environments/environment.ts`
 
 ## Seguridad
 
-- `auth/auth.service.ts` guarda el token de acceso; `auth/auth.interceptor.ts`
-  lo adjunta como `Authorization: Bearer …` a las llamadas a `/api/`. Registrado
-  en `app.config.ts` con `withInterceptors`.
-- **Producción:** integrar `@azure/msal-angular` para el login OIDC contra
-  Microsoft Entra ID / AD FS (con MFA) y alimentar `AuthService` con el token.
+El wiring de autenticación es **condicional por entorno** (`app.config.ts`):
+
+- **Desarrollo** (`environment.msal = null`): la API .NET auto-autentica con el
+  esquema Dev, así que `auth/auth.interceptor.ts` adjunta un token simple (si lo
+  hay) a `/api/` y `auth/auth.guard.ts` permite el acceso sin login.
+- **Producción / Entra ID** (`environment.prod.ts` con `msal`): se activa
+  **MSAL** (`@azure/msal-angular`) — login por redirect contra Microsoft Entra
+  ID (con MFA por Acceso Condicional), `MsalInterceptor` adjunta el token de
+  acceso de la API y `MsalGuard` (vía `authGuard`) protege todas las rutas. El
+  header muestra el usuario y un botón Ingresar/Salir.
+
+Configuración MSAL en `auth/msal.config.ts` (instancia, guard e interceptor).
+Build para Entra: `ng build --configuration entra` (reemplaza `environment.ts`
+por `environment.prod.ts`). Registro del tenant y valores (tenantId, clientId,
+`apiScope`): ver [dotnet/docs/ENTRA-APP-REGISTRATION.md](../dotnet/docs/ENTRA-APP-REGISTRATION.md).
 
 ## Siguiente
 
-- Login OIDC (MSAL) + guardas de ruta por rol.
 - Pantallas de panel/analítica y listado de cuadernos (requiere endpoints
   adicionales en la API).

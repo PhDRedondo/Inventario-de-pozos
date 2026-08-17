@@ -6,4 +6,12 @@
 export const environment = {
   production: false,
   apiBase: '',
+  // Desarrollo: sin MSAL (la API .NET auto-autentica con el esquema Dev).
+  msal: null as null | {
+    tenantId: string;
+    clientId: string;
+    apiScope: string;
+    redirectUri?: string;
+    apiBaseForToken?: string;
+  },
 };

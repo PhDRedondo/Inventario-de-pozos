@@ -42,3 +42,30 @@ main {
   background: #f3f6f8;
   min-height: 100vh;
 }
+
+/* Sesión Entra ID (solo visible en producción con MSAL) */
+.session {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.75rem;
+}
+.session .user {
+  font-size: 0.8rem;
+  color: #cdd7dc;
+  max-width: 16ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.session .auth-btn {
+  background: #ff8c00;
+  color: #1a2428;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.session .auth-btn:hover { background: #ffa333; }
