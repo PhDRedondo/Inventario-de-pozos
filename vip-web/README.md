@@ -73,11 +73,13 @@ La URL base de la API se configura en `src/environments/environment.ts`
 
 ## Estado de verificación
 
-- ✅ **`ng build --configuration production`**: compila (AOT), bundle ~80 kB gzip.
-- ✅ **`ng test` (ChromeHeadless):** **17/17** — cliente de API con
+- ✅ **`ng build`**: compila (AOT), ~136 kB de transferencia inicial. El build
+  institucional con MSAL es `ng build --configuration entra` (ver Seguridad).
+- ✅ **`ng test` (ChromeHeadless):** **19/19** — cliente de API con
   `HttpTestingController` (crear/listar/detalle de cuaderno, carga multipart,
-  validaciones, submit, plantilla, stats, analítica, Sankey, mapa), interceptor
-  de token (adjunta Bearer solo a `/api/`) y render del shell.
+  validaciones, submit, plantilla, stats, analítica temática, Sankey, mapa y
+  conteo por municipio), interceptor de token (adjunta Bearer solo a `/api/`),
+  guard de rutas (pass-through en desarrollo) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.
 

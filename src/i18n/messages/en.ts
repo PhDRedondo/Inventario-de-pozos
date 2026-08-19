@@ -492,17 +492,18 @@ export const en = {
     etlItems:
       "Encoding repair (mojibake) for accented and special characters.|Department and municipality normalization against DANE catalogs.|Auto-corrections logged as warnings (etl_geography, etl_encoding).|Out-of-catalog values flagged as errors for operator correction.",
     architectureTitle: "Architecture",
-    architectureBody: "Full-stack monolithic application with clear layers:",
+    architectureBody:
+      "Institutional layered architecture (ANH-GTIC-MA-02). The Next.js pilot is the interim implementation, with the same functionality ported 1:1 and verified by parity tests:",
     architectureItems:
-      "Presentation: Next.js App Router, React 19, Tailwind CSS, reusable components (Leaflet map, Recharts charts).|Internal REST API: /api routes for wells, stats, uploads, validations, catalogs, and template generation.|Business logic (src/lib): rule-based validation, UWI generation, geographic ETL, and cross-filters.|Notebook template: notebook-template.ts (ExcelJS) and template-columns.ts, with the column definition shared with the upload parser for round-trip.|Persistence: SQLite (better-sqlite3) with wells, validation_issues, uploads, notebooks tables and catalogs in seed.json.|Geo: departmental/municipal polygons (GeoJSON) and OSM/Carto base maps.",
+      "Presentation: Angular SPA (standalone components), Leaflet map, and SVG radar/Sankey; calls the Web API over HTTP with a Bearer token.|Web API: ASP.NET Core (.NET 8) Minimal APIs — notebooks, uploads, validations, stats, analytics, and map; Swagger in development.|Domain logic (C#): rule-based validation, UWI generation, geographic/DANE ETL, and Excel ingestion (ClosedXML), with parity tests against the pilot.|Persistence: SQL Server (schema [vip]) via EF Core 8 with versioned migrations (InitialCreate).|Geo: departmental and municipal polygons (DANE GeoJSON) and OSM base layers.|Interim pilot: Next.js App Router + React + SQLite (better-sqlite3), deployed on Vercel for demonstration.",
     stackTitle: "Technology stack",
-    stackBody: "Main components and libraries:",
+    stackBody: "Main components of the institutional stack (production target) and the pilot:",
     stackItems:
-      "Next.js 16.2 · TypeScript · React 19.2|SQLite (better-sqlite3 12) · ExcelJS (generation) / xlsx (reading)|Leaflet / react-leaflet · Recharts · driver.js (guided tour)|jsPDF + html2canvas (per-well PDF report)|ES/EN i18n · light/dark theme",
+      "Institutional frontend: Angular 18 (SPA) · the pilot uses Next.js 16 / React 19 / TypeScript.|Backend: .NET 8 / C# (ASP.NET Core Minimal APIs) · EF Core 8 · SQL Server 2019/2022.|Authentication: Microsoft Entra ID (OpenID Connect / JWT) with MSAL in the SPA and MFA via Conditional Access.|Excel: ClosedXML (template generation and ingestion) · Leaflet, SVG radar and Sankey.|Testing: xUnit (backend) and Karma/Jasmine (Angular), with parity against the pilot.|ES/EN i18n · light/dark theme (pilot).",
     securityTitle: "Security and access control",
-    securityBody: "Controls in place for this module (visible to the administrator profile only):",
+    securityBody: "Institutional-stack controls (visible to the administrator profile only):",
     securityItems:
-      "Session via HMAC-signed anh_session cookie (SESSION_SECRET); middleware verifies every request and protects everything except public routes.|Role authorization: requireSession() + requireRole() on every sensitive endpoint; the ANH role only sees validated inventory.|Data scope: buildScopeClause() filters wells by operator and status (drafts never leave the notebook).|File upload: upload-security.ts validates the Excel type and size before parsing.|Auditing: audit_log records administrative actions (well edits/deletes, submissions).|Per-environment secrets: SESSION_SECRET and ANH_ADMIN_PASSWORD; demo login never sends passwords to the browser.",
+      "Authentication: JWT Bearer against Entra ID with fail-closed validation (the API refuses to start without Authority/Audience) and MFA enforced via Conditional Access.|Role authorization: ASP.NET Core policies (OperatorOrAdmin, ReadInventory, AnhOrAdmin); the ANH role only sees validated inventory.|Per-operator data scope: draft notebooks never leave the operator's workspace.|Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy, HSTS) and restricted CORS.|Institutional SMTP notification when the inventory is submitted.|Per-environment secrets / Key Vault, no credentials in code (pilot: HMAC-signed session cookie).",
     uwiTitle: "Fiscal UWI",
     uwiBody:
       "The unique identifier is built per the ANH guideline (April 2026): DANE department and municipality codes, operator acronym, well number, cluster, angle, trajectory, objective, and completion. The system computes it on intake and exposes it in queries and reports.",
@@ -516,7 +517,7 @@ export const en = {
     analyticsItems:
       "KPI cards: total wells (filtered subset vs full catalog), processed uploads, and validation counts. Click a card to apply the matching filter.|Validation, status, and objective-type donuts (P, I, M, D, EST): ring charts with a central total; each segment is clickable to filter.|Horizontal bars: ranking of top operators and departments with the highest well concentration in the current subset.|Sankey diagram: Department → State → Operator flow; link thickness represents well count; click a node to cross-filter.|Territorial map: well layer and departmental polygons; wells excluded by the filter are dimmed; click a department, well, or legend entry to update the rest of the panel.|Paginated table: summary view (10/25/50 rows) or full query; interactive rows and columns for filtering; click a well to open its modal report.|Real-time aggregations: data comes from /api/stats and recalculates when any filter changes; selector options also cascade to the visible subset.",
     footerNote:
-      "Demo version with sample data. In production, SQLite can be replaced with a corporate database and the API integrated with institutional authentication and automated email workflows.",
+      "The system ships as two implementations: the Next.js/SQLite pilot (Vercel demo) and the institutional Angular · .NET · SQL Server · Entra ID stack mandated by the ANH (MA-02). SQL Server and the SMTP notification are verified on real engines; Entra authentication is ready for the OTI tenant.",
     operadora: {
       title: "About VIP",
       subtitle: "Guide to upload, validate, and submit your operator's well inventory.",
