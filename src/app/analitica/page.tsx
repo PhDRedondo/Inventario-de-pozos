@@ -252,6 +252,19 @@ export default function AnaliticaPage() {
   const baselineValues = payload?.baseline.values ?? {};
   const hasComparison = Boolean(selectedEntity);
 
+  // Unidad y formato de cada indicador (para la tabla de valores absolutos).
+  const numberLocale = locale === "en" ? "en-US" : "es-CO";
+  const unitFor = (metricKey: string): string => {
+    const m = ANALYTICS_THEMES[activeTheme].metrics.find((x) => x.key === metricKey);
+    return m?.unitKey ? t(m.unitKey) : "";
+  };
+  const formatMetricValue = (metricKey: string, raw: number): string => {
+    const unit = unitFor(metricKey);
+    if (unit === "%") return `${Number.isInteger(raw) ? raw : Number(raw.toFixed(1))}%`;
+    const n = raw.toLocaleString(numberLocale, { maximumFractionDigits: 2 });
+    return unit ? `${n} ${unit}` : n;
+  };
+
   function buildHeatmapRows(
     groups: Array<{ name: string; values: Record<string, number>; sampleSize: number }> | undefined,
   ) {
@@ -731,40 +744,87 @@ export default function AnaliticaPage() {
           )}
 
           <div className={`card mt-4 p-3 sm:p-4 ${loading ? "opacity-60" : ""}`}>
-            <h3 className="mb-3 font-bold text-anh-primary">{t("analytics.rawValuesTitle")}</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[520px] text-sm">
-                <thead>
-                  <tr className="border-b border-anh-border text-left text-xs text-anh-muted">
-                    <th className="p-2">{t("analytics.rawValuesTitle")}</th>
-                    <th className="p-2">{t("analytics.rawBaseline")}</th>
-                    <th className="p-2">{hasComparison ? fixEncoding(selectedEntity!.label) : "—"}</th>
-                    <th className="p-2">{t("analytics.deltaTitle")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payload.radar.map((point) => (
-                    <tr key={point.metricKey} className="border-b border-anh-border/50">
-                      <td className="p-2 font-semibold text-anh-primary">{t(point.metric)}</td>
-                      <td className="p-2">{point.baselineRaw.toLocaleString()}</td>
-                      <td className="p-2">{point.comparisonRaw.toLocaleString()}</td>
-                      <td className="p-2">
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                            point.deltaPct >= 0
-                              ? "bg-anh-secondary/20 text-anh-secondary"
-                              : "bg-sky-500/15 text-sky-600 dark:text-sky-300"
-                          }`}
-                        >
-                          {point.deltaPct > 0 ? "+" : ""}
-                          {point.deltaPct}%
-                        </span>
-                      </td>
+            <h3 className="mb-1 font-bold text-anh-primary">{t("analytics.rawValuesTitle")}</h3>
+            <p className="mb-3 text-xs text-anh-muted">{t("analytics.rawSubtitle")}</p>
+
+            {payload.radar.every((p) => p.baselineRaw === 0 && p.comparisonRaw === 0) ? (
+              <p className="rounded-lg border border-dashed border-anh-border bg-anh-bg/30 p-4 text-sm text-anh-muted">
+                {t("analytics.rawEmptyTheme")}
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[420px] text-sm">
+                  <thead>
+                    <tr className="border-b border-anh-border text-left text-xs text-anh-muted">
+                      <th className="p-2">{t("analytics.rawMetricCol")}</th>
+                      <th className="p-2 text-right">{t("analytics.rawBaseline")}</th>
+                      {hasComparison && (
+                        <>
+                          <th className="p-2 text-right">{fixEncoding(selectedEntity!.label)}</th>
+                          <th className="p-2">{t("analytics.deltaTitle")}</th>
+                        </>
+                      )}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {payload.radar.map((point) => {
+                      const up = point.deltaPct > 0;
+                      const zero = point.deltaPct === 0;
+                      const half = (Math.min(Math.abs(point.deltaPct), 100) / 100) * 50;
+                      const barColor = zero ? "#94a3b8" : up ? "#ff8c00" : "#38bdf8";
+                      return (
+                        <tr key={point.metricKey} className="border-b border-anh-border/50">
+                          <td className="p-2 font-semibold text-anh-primary">{t(point.metric)}</td>
+                          <td className="p-2 text-right tabular-nums text-anh-muted">
+                            {formatMetricValue(point.metricKey, point.baselineRaw)}
+                          </td>
+                          {hasComparison && (
+                            <>
+                              <td className="p-2 text-right font-semibold tabular-nums text-anh-primary">
+                                {formatMetricValue(point.metricKey, point.comparisonRaw)}
+                              </td>
+                              <td className="p-2">
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="relative h-2.5 w-24 shrink-0 rounded-full bg-anh-bg/70"
+                                    aria-hidden
+                                  >
+                                    <span className="absolute left-1/2 top-1/2 h-3.5 w-px -translate-y-1/2 bg-anh-border" />
+                                    <span
+                                      className="absolute top-0 h-full rounded-full"
+                                      style={{
+                                        backgroundColor: barColor,
+                                        left: up ? "50%" : `${50 - half}%`,
+                                        width: `${zero ? 0 : half}%`,
+                                      }}
+                                    />
+                                  </div>
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${
+                                      zero
+                                        ? "bg-anh-border/40 text-anh-muted"
+                                        : up
+                                        ? "bg-anh-secondary/20 text-anh-secondary"
+                                        : "bg-sky-500/15 text-sky-600 dark:text-sky-300"
+                                    }`}
+                                  >
+                                    {up ? "+" : ""}
+                                    {point.deltaPct}%
+                                  </span>
+                                </div>
+                              </td>
+                            </>
+                          )}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                {!hasComparison && (
+                  <p className="mt-3 text-xs text-anh-muted">{t("analytics.rawSelectHint")}</p>
+                )}
+              </div>
+            )}
           </div>
         </>
       ) : null}
