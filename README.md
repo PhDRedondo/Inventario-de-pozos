@@ -270,7 +270,7 @@ Swagger UI disponible en desarrollo (`/swagger`).
 | `/` | Cuadernos (listado + creación) | `GET/POST /api/notebooks` |
 | `/cuadernos/:id` | Workspace: plantilla, carga, versiones, hallazgos, aplicar | `.../upload`, `.../submit`, `/api/validations`, `/api/notebooks/template` |
 | `/panel` | Panel: KPIs y desgloses + tabla | `GET /api/stats` |
-| `/analitica` | Radar comparativo por tema + **coropleto territorial por indicador** | `GET /api/analytics`, `/api/analytics/by-departamento` |
+| `/analitica` | Radar comparativo por tema, **indicadores con barra divergente** (variación vs nacional) y **coropleto territorial por indicador** | `GET /api/analytics`, `/api/analytics/by-departamento` |
 | `/flujo` | Diagrama Sankey | `GET /api/analytics/sankey` |
 | `/mapa` | Coropleto municipal + puntos por validación | `GET /api/wells/by-municipio`, `/api/wells/map` |
 
@@ -922,7 +922,14 @@ Un pozo inválido puede tener **varios** hallazgos `error`. La trazabilidad y el
 | **Perfil operativo** | % activos, horizontales, productores, inyectores, coordenadas, UWI |
 | **Portafolio** | Pozos por operadora, cobertura territorial, contratos |
 
-Visualizaciones: radar comparativo (base = 100 nacional), barras de delta, nube de producción, **coropleto territorial de Colombia** (departamentos coloreados por un indicador vs el promedio nacional, con selector de métrica) y mapa térmico por operadora.
+Visualizaciones: radar comparativo (base = 100 nacional), **tabla de valores absolutos** (nacional y entidad seleccionada, con la variación como barra divergente), nube de producción, **coropleto territorial de Colombia** (departamentos coloreados por un indicador vs el promedio nacional, con selector de métrica) y mapa térmico por operadora.
+
+> **Convención de lectura (compartida con el stack institucional):** la variación
+> de cada indicador se mide frente al **promedio nacional (100%)** y se representa
+> con una **barra divergente centrada** — **naranja hacia la derecha** cuando la
+> entidad está por encima del nacional, **azul hacia la izquierda** cuando está por
+> debajo, y **neutra sin barra** cuando coincide. Los valores llevan su unidad
+> (%, bbl, kpc, días, pozos).
 
 ---
 

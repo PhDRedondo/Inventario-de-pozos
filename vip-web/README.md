@@ -23,8 +23,9 @@ departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
 (alcance por rol).
 
 **Analítica** (`/analitica`): radar comparativo (SVG) de una operadora o
-departamento frente al promedio nacional (base 100) más barras de índice, desde
-`GET /api/analytics`. Selector de **tema**: `perfil` (porcentajes operativos),
+departamento frente al promedio nacional (base 100) e **indicadores con barra
+divergente** de variación (naranja por encima / azul por debajo del nacional,
+neutra al coincidir), desde `GET /api/analytics`. Selector de **tema**: `perfil` (porcentajes operativos),
 `produccion` (petróleo/gas/agua/días acumulados) e `inyeccion` (agua/gas/otros),
 con el sufijo `%` solo en el tema perfil. Incluye un **coropleto territorial**
 (Leaflet) que colorea los departamentos por un indicador de perfil operativo
