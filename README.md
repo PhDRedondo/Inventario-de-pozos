@@ -16,12 +16,29 @@ También se le conoce por su sigla interna: **VIP — Validador del Inventario d
 | i18n | Español (por defecto) / English |
 | Despliegue | Vercel (SQLite efímero en `/tmp`) |
 
+> Esta tabla corresponde al **piloto**. El objetivo productivo es el stack
+> institucional **Angular · .NET/C# · SQL Server · Entra ID** (ANH-GTIC-MA-02):
+> ver [Migración al stack institucional](#migración-al-stack-institucional-anh-gtic-ma-02).
+
 ---
 
 ## Tabla de contenidos
 
 - [Resumen ejecutivo](#resumen-ejecutivo)
 - [Migración al stack institucional (ANH-GTIC-MA-02)](#migración-al-stack-institucional-anh-gtic-ma-02)
+  - [Arquitectura institucional (vista de capas)](#arquitectura-institucional-vista-de-capas)
+  - [Flujo del envío institucional](#flujo-del-envío-institucional-con-integraciones-oti)
+  - [Integraciones OTI](#integraciones-oti)
+  - [Estructura del proyecto institucional](#estructura-del-proyecto-institucional)
+  - [Backend .NET: capas y responsabilidades](#backend-net-capas-y-responsabilidades)
+  - [API institucional: endpoints](#api-institucional-endpoints)
+  - [Frontend Angular: pantallas y servicios](#frontend-angular-pantallas-y-servicios)
+  - [Modelo de datos institucional](#modelo-de-datos-institucional)
+  - [Autenticación y seguridad institucional (GU-18)](#autenticación-y-seguridad-institucional-gu-18)
+  - [Pruebas y paridad](#pruebas-y-paridad)
+  - [Inicio rápido: stack institucional](#inicio-rápido-stack-institucional)
+  - [Despliegue institucional (OTI)](#despliegue-institucional-oti)
+  - [Equivalencias piloto y institucional](#equivalencias-piloto-y-institucional)
 - [Arquitectura del sistema](#arquitectura-del-sistema)
   - [Vista de capas](#vista-de-capas)
   - [Ciclo de una petición](#ciclo-de-una-petición)
@@ -157,9 +174,217 @@ Detalle y runbook: [`dotnet/docs/OTI-INTEGRACION.md`](dotnet/docs/OTI-INTEGRACIO
 > un token contra el tenant Entra real** de la OTI (no disponible en el entorno de
 > desarrollo). El resto de integraciones quedó verificado sobre motores reales.
 
+### Estructura del proyecto institucional
+
+**Backend — solución .NET (`dotnet/Anh.Vip.sln`):**
+
+```
+dotnet/
+├── src/
+│   ├── Anh.Vip.Domain/          # Dominio puro (sin dependencias de infraestructura)
+│   │   ├── Uwi/                 #   UWI fiscalizado (port fiel de uwi.ts)
+│   │   ├── Validation/         #   Motor de reglas (port de validateWell)
+│   │   ├── Etl/ · Geo/         #   ETL geográfico + resolución de códigos DANE
+│   │   ├── Excel/              #   Mapa de columnas del formato oficial
+│   │   ├── Ingest/             #   Pipeline de ingesta (WellIngestor)
+│   │   ├── Entities/           #   Entidades EF Core (wells, uploads, notebooks, cat_*)
+│   │   ├── Catalogs/ · Text/   #   Catálogos y normalización de texto español
+│   │   └── Attributes/         #   Etiquetas de los 40 atributos del formato
+│   ├── Anh.Vip.Infrastructure/  # Persistencia y servicios
+│   │   ├── VipDbContext.cs     #   DbContext (esquema [vip])
+│   │   ├── Migrations/         #   Migraciones EF Core (InitialCreate)
+│   │   ├── Excel/              #   ExcelSheetReader (ClosedXML)
+│   │   ├── Ingestion/          #   NotebookUploadService · NotebookSubmitService · DemoDataSeeder
+│   │   ├── Stats/              #   StatsService · AnalyticsService (panel, radar, Sankey, mapa)
+│   │   ├── Notifications/      #   IEmailSender (SMTP real / log)
+│   │   └── DbCatalogProvider · DbGeographyResolver
+│   └── Anh.Vip.Api/             # Web API (ASP.NET Core Minimal APIs)
+│       ├── Program.cs          #   Endpoints, auth, seguridad, DI
+│       └── Security/           #   Roles, políticas, OidcConfig (fail-closed), DevAuthHandler
+├── tests/Anh.Vip.Domain.Tests/  # 53 pruebas (paridad + integración WebApplicationFactory)
+└── docs/                        # OTI-INTEGRACION.md · ENTRA-APP-REGISTRATION.md
+```
+
+**Frontend — SPA Angular (`vip-web/`):**
+
+```
+vip-web/src/app/
+├── notebooks/    # Listado de cuadernos (ruta /)
+├── cuaderno/     # Workspace: cargar, validar, aplicar (/cuadernos/:id)
+├── panel/        # KPIs y desgloses (/panel)
+├── analitica/    # Radar comparativo por tema (/analitica)
+├── flujo/        # Diagrama Sankey (/flujo)
+├── mapa/         # Coropleto municipal + puntos (/mapa)
+├── services/     # vip-api.service.ts (cliente tipado de la Web API)
+├── models/       # Contratos TypeScript de la API
+├── auth/         # msal.config · auth.guard · auth.interceptor
+└── app.config.ts · app.routes.ts
+```
+
+### Backend .NET: capas y responsabilidades
+
+| Proyecto | Responsabilidad |
+|---|---|
+| `Anh.Vip.Domain` | Dominio puro sin dependencias: UWI, motor de validación, ETL/DANE, mapa de columnas del Excel, ingesta y entidades. Portado 1:1 desde `src/lib/*.ts` del piloto. |
+| `Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) y migraciones; lectura de Excel (ClosedXML); servicios de ingesta, envío, estadística y analítica; emisor SMTP; proveedores de catálogos/geografía desde SQL Server. |
+| `Anh.Vip.Api` | Web API Minimal APIs: endpoints, autenticación JWT/Entra, políticas de rol, cabeceras de seguridad e inyección de dependencias. |
+| `tests/Anh.Vip.Domain.Tests` | 53 pruebas: paridad contra el piloto (UWI, validación, ETL, ingesta) e integración de la API con `WebApplicationFactory`. |
+
+> Los módulos de dominio son **ports fieles** del piloto, verificados por pruebas
+> de paridad (misma salida para los casos de referencia). Los conceptos
+> compartidos —UWI, reglas de validación, formato Excel, catálogos DANE— se
+> describen en [Validación y UWI fiscalizado](#validación-y-uwi-fiscalizado),
+> [Flujo de carga Excel y validación](#flujo-de-carga-excel-y-validación) y
+> [Plantilla descargable del cuaderno](#plantilla-descargable-del-cuaderno).
+
+### API institucional: endpoints
+
+Autenticación **JWT Bearer** (Entra ID en producción; esquema `Dev` en
+desarrollo). Políticas de rol: `OperatorOrAdmin`, `ReadInventory`
+(operadora · anh · admin) y `AnhOrAdmin`.
+
+| Método | Ruta | Autorización | Descripción |
+|---|---|---|---|
+| GET | `/health` | Anónimo | Estado del servicio. |
+| POST | `/api/uwi/preview` | Autenticado | Previsualiza el UWI fiscalizado (sin BD). |
+| GET | `/api/notebooks` | OperatorOrAdmin | Lista cuadernos (operadora ve los suyos). |
+| POST | `/api/notebooks` | OperatorOrAdmin | Crea un cuaderno. |
+| POST | `/api/notebooks/{id}/upload` | OperatorOrAdmin | Carga una versión (`.xlsx`): ingesta + validación. |
+| GET | `/api/notebooks/{id}` | OperatorOrAdmin | Detalle: versiones y eventos. |
+| POST | `/api/notebooks/{id}/submit` | OperatorOrAdmin | Aplica el inventario a la ANH (+ correo SMTP). |
+| GET | `/api/validations?uploadId=` | ReadInventory | Hallazgos por versión. |
+| GET | `/api/notebooks/template?rows=&operadora=` | OperatorOrAdmin | Descarga la plantilla `.xlsx`. |
+| GET | `/api/stats?limit=` | ReadInventory | KPIs y desgloses del panel (alcance por rol). |
+| GET | `/api/wells/map` | ReadInventory | Pozos georreferenciados. |
+| GET | `/api/wells/by-municipio` | ReadInventory | Conteo y producción por municipio (coropleto). |
+| GET | `/api/analytics?theme=&entityType=&entity=` | AnhOrAdmin | Radar comparativo (`perfil`/`produccion`/`inyeccion`). |
+| GET | `/api/analytics/sankey` | AnhOrAdmin | Flujo Departamento → Estado → Operadora. |
+
+Swagger UI disponible en desarrollo (`/swagger`).
+
+### Frontend Angular: pantallas y servicios
+
+| Ruta | Pantalla | Endpoints |
+|---|---|---|
+| `/` | Cuadernos (listado + creación) | `GET/POST /api/notebooks` |
+| `/cuadernos/:id` | Workspace: plantilla, carga, versiones, hallazgos, aplicar | `.../upload`, `.../submit`, `/api/validations`, `/api/notebooks/template` |
+| `/panel` | Panel: KPIs y desgloses + tabla | `GET /api/stats` |
+| `/analitica` | Radar comparativo por tema | `GET /api/analytics` |
+| `/flujo` | Diagrama Sankey | `GET /api/analytics/sankey` |
+| `/mapa` | Coropleto municipal + puntos por validación | `GET /api/wells/by-municipio`, `/api/wells/map` |
+
+Cliente HTTP tipado en `services/vip-api.service.ts`; contratos en `models/`.
+Todas las rutas se protegen con `authGuard` (MSAL en producción; libre en
+desarrollo, donde la API auto-autentica).
+
+### Modelo de datos institucional
+
+Mismo modelo conceptual del piloto (ver [Modelo de datos](#modelo-de-datos)),
+materializado en **SQL Server** bajo el esquema `[vip]` mediante **EF Core 8**.
+La migración `InitialCreate` crea **10 tablas** + `__EFMigrationsHistory`:
+
+`wells` · `uploads` · `notebooks` · `notebook_events` · `validation_issues` ·
+`users` · `audit_log` · `cat_departamento` · `cat_municipio` · `cat_lista_valor`.
+
+El esquema se despliega con `dotnet ef database update` o con un script T-SQL
+idempotente (`dotnet ef migrations script --idempotent`) para que la OTI lo
+aplique con SSMS/sqlcmd. **Las migraciones no se aplican al iniciar la API**: el
+despliegue del esquema es una compuerta controlada por la OTI (control de cambios
+MA-02).
+
+### Autenticación y seguridad institucional (GU-18)
+
+- **Autenticación:** JWT **Bearer** contra **Microsoft Entra ID** (OpenID
+  Connect). El SPA obtiene el token con **MSAL** (login por redirect); la API lo
+  valida y lee los roles del claim `roles`.
+- **MFA:** exigido por **Acceso Condicional** en Entra; la API solo valida el
+  token resultante.
+- **Fail-closed:** en producción la API **aborta el arranque** si faltan
+  `Oidc:Authority`/`Oidc:Audience` (no queda en 401 silencioso).
+- **Autorización por rol:** políticas ASP.NET Core (`OperatorOrAdmin`,
+  `ReadInventory`, `AnhOrAdmin`); segregación de funciones GU-18. La operadora se
+  fuerza al alcance del usuario.
+- **Endurecimiento:** cabeceras `X-Content-Type-Options`, `X-Frame-Options`,
+  `Referrer-Policy`, HSTS fuera de desarrollo; CORS restringido; token Bearer
+  (sin cookies) que mitiga CSRF.
+- **Notificación:** al aplicar un cuaderno se envía un correo institucional por
+  **SMTP** (best-effort; no revierte el envío si el SMTP falla).
+
+Registro de la app y del SPA en Entra: script y guía en
+[`dotnet/docs/ENTRA-APP-REGISTRATION.md`](dotnet/docs/ENTRA-APP-REGISTRATION.md).
+
+### Pruebas y paridad
+
+- **Backend — `dotnet test`: 53/53.** UWI (10), validación (5), ETL (6), ingesta
+  (2), panel (3), mapa (4), analítica (5), seguridad (6), listado (2), API (6) y
+  OTI (4). Estrategia de **paridad**: se ejecuta el piloto TS para generar
+  fixtures de referencia y se verifica que C# reproduce la salida exacta.
+- **Frontend — `ng test`: 19/19.** Cliente de API (`HttpTestingController`),
+  interceptor de token, guard de rutas y render del shell.
+
+### Inicio rápido: stack institucional
+
+**Requisitos:** .NET SDK 8.0 · Node.js 18.19+ · (opcional) SQL Server 2019/2022.
+
+```bash
+# 1) Backend en perfil de desarrollo (EF Core InMemory + catálogos, sin SQL Server)
+cd dotnet
+dotnet run --project src/Anh.Vip.Api          # http://localhost:5199 (Swagger en /swagger)
+
+# 2) Frontend Angular (proxy /api -> :5199)
+cd ../vip-web
+npm install && npm start                        # http://localhost:4200
+
+# Pruebas
+cd dotnet && dotnet test                                                # 53/53
+cd ../vip-web && npx ng test --watch=false --browsers=ChromeHeadless    # 19/19
+```
+
+Para ejecutar contra **SQL Server real**, aplique el esquema y arranque sin
+InMemory:
+
+```bash
+export VIP_DB="Server=...;Database=VIP_Inventario;User Id=...;Password=...;TrustServerCertificate=True"
+dotnet ef database update --project src/Anh.Vip.Infrastructure --startup-project src/Anh.Vip.Infrastructure
+UseInMemoryDatabase=false ConnectionStrings__VipDb="$VIP_DB" dotnet run --project src/Anh.Vip.Api
+```
+
+Build del SPA para Entra: `ng build --configuration entra` (usa
+`environment.prod.ts` con `tenantId`/`clientId`/`apiScope`).
+
+### Despliegue institucional (OTI)
+
+1. **Base de datos:** aplicar el esquema `[vip]` a la instancia SQL Server
+   2019/2022 (`dotnet ef database update` o script idempotente); apuntar
+   `ConnectionStrings:VipDb`.
+2. **Identidad:** ejecutar el [registro de app en Entra ID](dotnet/docs/ENTRA-APP-REGISTRATION.md)
+   (roles `operadora`/`anh`/`admin`, SPA, MFA por Acceso Condicional); completar
+   `Oidc:Authority`/`Oidc:Audience` y `environment.prod.ts`.
+3. **Correo:** configurar `Smtp:Host`, remitente y destinatario ANH.
+4. **Publicación:** desplegar la Web API (contenedor/IIS/App Service) y el SPA
+   (host estático o tras el mismo dominio). Runbook: [`dotnet/docs/OTI-INTEGRACION.md`](dotnet/docs/OTI-INTEGRACION.md).
+
+### Equivalencias piloto y institucional
+
+| Concepto | Piloto (Next.js) | Institucional (.NET / Angular) |
+|---|---|---|
+| UI | React (`src/app/**`) | Angular SPA (`vip-web/`) |
+| API | Route Handlers (`src/app/api/**`) | Minimal APIs (`Anh.Vip.Api`) |
+| Dominio | `src/lib/*.ts` | `Anh.Vip.Domain` |
+| Persistencia | SQLite (`better-sqlite3`) | SQL Server + EF Core (`[vip]`) |
+| Autenticación | Cookie de sesión firmada (HMAC) | JWT Entra ID + MSAL |
+| Excel | ExcelJS / xlsx | ClosedXML |
+| Correo | Outbox simulado | SMTP institucional |
+| Pruebas | `npm test` (Node) | xUnit (backend) · Karma (Angular) |
+
 ---
 
 ## Arquitectura del sistema
+
+> Las secciones siguientes documentan en detalle la **implementación piloto**
+> (Next.js/SQLite). Los conceptos de dominio —formato Excel, validación, UWI,
+> cuadernos, modelo de datos, roles— son **compartidos** y el stack institucional
+> los reproduce 1:1 (ver [Migración al stack institucional](#migración-al-stack-institucional-anh-gtic-ma-02)).
 
 Una sola aplicación **Next.js full-stack**: el frontend (React) y el backend (API Routes) viven en el mismo proceso. No hay microservicios, colas de mensajes ni servicios externos; la persistencia es un archivo SQLite local.
 
@@ -926,7 +1151,7 @@ Todas las rutas sensibles validan sesión (`requireSession`) y rol (`requireRole
 
 \* Rol ANH: solo uploads `submitted`/`processed` y pozos `valid`/`warning`.
 
-### Panel y analítica
+### Endpoints de panel y analítica
 
 | Endpoint | Método | Roles | Descripción |
 |----------|--------|-------|-------------|

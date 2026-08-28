@@ -101,7 +101,13 @@ Build para Entra: `ng build --configuration entra` (reemplaza `environment.ts`
 por `environment.prod.ts`). Registro del tenant y valores (tenantId, clientId,
 `apiScope`): ver [dotnet/docs/ENTRA-APP-REGISTRATION.md](../dotnet/docs/ENTRA-APP-REGISTRATION.md).
 
-## Siguiente
+## Pendiente (infraestructura OTI)
 
-- Pantallas de panel/analítica y listado de cuadernos (requiere endpoints
-  adicionales en la API).
+El SPA está **completo y verificado** (todas las pantallas y el wiring MSAL). Lo
+único pendiente depende de la infraestructura institucional:
+
+- Completar `environment.prod.ts` con los valores del **tenant Entra ID**
+  (`tenantId`, `clientId`, `apiScope`) y construir con `ng build --configuration entra`.
+- Validar el login real (redirect + MFA) contra el tenant de la OTI.
+
+Registro del tenant: [`../dotnet/docs/ENTRA-APP-REGISTRATION.md`](../dotnet/docs/ENTRA-APP-REGISTRATION.md).

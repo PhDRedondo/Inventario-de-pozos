@@ -17,7 +17,7 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
 | `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) + **migraciones** (`Migrations/`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y `NotebookUploadService` (ingesta + persistencia). |
 | `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, **cuadernos** (crear, cargar, consultar, aplicar, validaciones, **plantilla**), **panel** (`/api/stats`) y **analítica comparativa** (`/api/analytics`). Autenticación JWT/OIDC + roles. |
-| `tests/Anh.Vip.Domain.Tests` | Paridad con el piloto: UWI (instructivo) y validación (`validateWell`). |
+| `tests/Anh.Vip.Domain.Tests` | **53 pruebas**: paridad con el piloto (UWI, validación, ETL, ingesta) e integración de la API (`WebApplicationFactory`: cuadernos, panel, mapa, analítica, seguridad, OTI). |
 
 ## Requisitos
 
@@ -50,7 +50,8 @@ dotnet run --project src/Anh.Vip.Api
 # GET  /api/notebooks/template?rows=N&operadora= (descarga la plantilla .xlsx)
 # GET  /api/stats?limit=            (KPIs y desgloses del panel, alcance por rol)
 # GET  /api/wells/map               (pozos georreferenciados para el mapa)
-# GET  /api/analytics?entityType=&entity=  (radar comparativo vs nacional; anh|admin)
+# GET  /api/wells/by-municipio      (conteo + producción por municipio, coropleto)
+# GET  /api/analytics?theme=&entityType=&entity=  (radar: perfil|produccion|inyeccion; anh|admin)
 # GET  /api/analytics/sankey        (flujo Departamento->Estado->Operadora; anh|admin)
 # Swagger UI en desarrollo: /swagger
 ```
@@ -77,9 +78,10 @@ INVENTARIO con `ExcelSheetReader`, ingiere con `WellIngestor` (catálogos/DANE
 desde SQL Server vía `CatalogCache`) y persiste el lote (upload, wells, issues,
 evento) con EF Core, replicando `addNotebookVersion`/`saveUploadBatch`.
 
-> Nota: los endpoints aún **no tienen autenticación** (el upload usa
-> `DisableAntiforgery`); AD/OIDC + MFA y CSRF institucional entran en la fase de
-> seguridad (ver guía de producción §4, fase 4).
+> Nota: la **autenticación JWT/Entra y las políticas de rol ya están
+> implementadas** (ver «Seguridad»); en el perfil de desarrollo un esquema `Dev`
+> auto-autentica. El upload usa `DisableAntiforgery` (sin cookies; el token
+> Bearer mitiga CSRF).
 
 ## Módulo portado en esta fase: UWI fiscalizado
 
@@ -255,9 +257,15 @@ Reproducir:
 cd dotnet && dotnet build -c Release && dotnet test
 ```
 
-## Siguiente en Fase 2
+## Pendiente (infraestructura OTI)
 
-- Port del motor de **validación** (`validation.ts` → servicio C#) y del **ETL**
-  (`etl.ts`), consultando los catálogos `cat_*` vía EF Core.
-- Endpoints de cuadernos, cargue (lectura de Excel con ClosedXML/EPPlus) y panel.
-- Migraciones EF Core alineadas al DDL de la Fase 1.
+El backend está **completo y verificado** (ver «Estado de verificación»: 53/53,
+SQL Server real, SMTP real, Entra fail-closed). Lo único pendiente depende de la
+infraestructura institucional:
+
+- Aplicar el esquema `[vip]` a la instancia **SQL Server** 2019/2022 de la OTI.
+- Ejecutar el **registro de app en Entra ID** y validar un token real (MFA).
+- Configurar el **SMTP** institucional (host, remitente, destinatario ANH).
+
+Runbook: [`docs/OTI-INTEGRACION.md`](docs/OTI-INTEGRACION.md) ·
+[`docs/ENTRA-APP-REGISTRATION.md`](docs/ENTRA-APP-REGISTRATION.md).
