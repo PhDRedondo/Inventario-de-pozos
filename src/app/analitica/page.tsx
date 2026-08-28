@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Download } from "lucide-react";
 import {
@@ -36,6 +37,13 @@ import {
 import { downloadAnalyticsReportPdf } from "@/lib/analytics-report-pdf";
 import { getChartTheme } from "@/lib/chart-theme";
 import { fixEncoding } from "@/lib/geo";
+
+const AnalyticsChoropleth = dynamic(() => import("@/components/AnalyticsChoropleth"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[420px] animate-pulse rounded-lg border border-anh-border bg-anh-bg/40" />
+  ),
+});
 
 interface AnalyticsEntity {
   id: string;
@@ -90,7 +98,7 @@ export default function AnaliticaPage() {
   const router = useRouter();
   const chartTheme = useMemo(() => getChartTheme(theme), [theme]);
 
-  const [activeTheme, setActiveTheme] = useState<AnalyticsThemeId>("produccion");
+  const [activeTheme, setActiveTheme] = useState<AnalyticsThemeId>("operativo");
   const [entityType, setEntityType] = useState<CompareEntityType>("municipio");
   const [entityQuery, setEntityQuery] = useState("");
   const [entities, setEntities] = useState<AnalyticsEntity[]>([]);
@@ -650,58 +658,74 @@ export default function AnaliticaPage() {
           )}
 
           {payload.distribution && (heatmapDept.length > 0 || heatmapOp.length > 0) && (
-            <div className={`grid gap-4 lg:grid-cols-2 ${loading ? "opacity-60" : ""}`}>
-              {[
-                { title: t("analytics.heatmapByDept"), rows: heatmapDept },
-                { title: t("analytics.heatmapByOp"), rows: heatmapOp },
-              ].map(({ title, rows }) =>
-                rows.length > 0 ? (
-                  <div key={title} className="card overflow-hidden p-3 sm:p-4">
-                    <h3 className="mb-1 font-bold text-anh-primary">{t("analytics.heatmapTitle")}</h3>
-                    <p className="mb-3 text-xs text-anh-muted">
-                      {title} · {t("analytics.heatmapHint")}
-                    </p>
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[480px] border-collapse text-xs">
-                        <thead>
-                          <tr>
-                            <th className="sticky left-0 bg-anh-card p-2 text-left font-semibold text-anh-muted">
-                              {title}
+            <div className={`space-y-4 ${loading ? "opacity-60" : ""}`}>
+              {/* Territorial: coropleto real de Colombia por indicador vs promedio nacional. */}
+              {heatmapDept.length > 0 && (
+                <div className="card overflow-hidden p-3 sm:p-4">
+                  <h3 className="mb-1 font-bold text-anh-primary">{t("analytics.choroplethTitle")}</h3>
+                  <p className="mb-3 text-xs text-anh-muted">{t("analytics.choroplethHint")}</p>
+                  <AnalyticsChoropleth
+                    rows={heatmapDept}
+                    defaultMetricKey="pct_activo"
+                    colorFor={heatColor}
+                    locale={locale === "en" ? "en-US" : "es-CO"}
+                    labels={{
+                      metric: t("analytics.choroplethMetric"),
+                      vsNational: t("analytics.vsNational"),
+                      noSample: t("analytics.noSample"),
+                      sample: (count: number) => t("analytics.sampleSize", { count }),
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Por operadora: se mantiene como tabla de calor (no es geográfico). */}
+              {heatmapOp.length > 0 && (
+                <div className="card overflow-hidden p-3 sm:p-4">
+                  <h3 className="mb-1 font-bold text-anh-primary">{t("analytics.heatmapTitle")}</h3>
+                  <p className="mb-3 text-xs text-anh-muted">
+                    {t("analytics.heatmapByOp")} · {t("analytics.heatmapHint")}
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[480px] border-collapse text-xs">
+                      <thead>
+                        <tr>
+                          <th className="sticky left-0 bg-anh-card p-2 text-left font-semibold text-anh-muted">
+                            {t("analytics.heatmapByOp")}
+                          </th>
+                          {payload.metrics.map((metric) => (
+                            <th key={metric.key} className="p-2 text-center font-semibold text-anh-muted">
+                              {t(metric.labelKey)}
                             </th>
-                            {payload.metrics.map((metric) => (
-                              <th key={metric.key} className="p-2 text-center font-semibold text-anh-muted">
-                                {t(metric.labelKey)}
-                              </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {heatmapOp.map((row) => (
+                          <tr key={row.name} className="border-t border-anh-border/60">
+                            <td className="sticky left-0 bg-anh-card p-2 font-semibold text-anh-primary">
+                              {row.name}
+                              <span className="block text-[10px] font-normal text-anh-muted">
+                                {t("analytics.sampleSize", { count: row.sampleSize })}
+                              </span>
+                            </td>
+                            {row.cells.map((cell) => (
+                              <td key={cell.key} className="p-1">
+                                <div
+                                  className="rounded-md px-1 py-2 text-center font-bold text-anh-black"
+                                  style={{ backgroundColor: heatColor(cell.ratio) }}
+                                  title={`${cell.ratio.toFixed(0)}% · ${cell.raw.toLocaleString()}`}
+                                >
+                                  {cell.ratio.toFixed(0)}%
+                                </div>
+                              </td>
                             ))}
                           </tr>
-                        </thead>
-                        <tbody>
-                          {rows.map((row) => (
-                            <tr key={row.name} className="border-t border-anh-border/60">
-                              <td className="sticky left-0 bg-anh-card p-2 font-semibold text-anh-primary">
-                                {row.name}
-                                <span className="block text-[10px] font-normal text-anh-muted">
-                                  {t("analytics.sampleSize", { count: row.sampleSize })}
-                                </span>
-                              </td>
-                              {row.cells.map((cell) => (
-                                <td key={cell.key} className="p-1">
-                                  <div
-                                    className="rounded-md px-1 py-2 text-center font-bold text-anh-black"
-                                    style={{ backgroundColor: heatColor(cell.ratio) }}
-                                    title={`${cell.ratio.toFixed(0)}% · ${cell.raw.toLocaleString()}`}
-                                  >
-                                    {cell.ratio.toFixed(0)}%
-                                  </div>
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ) : null,
+                </div>
               )}
             </div>
           )}
