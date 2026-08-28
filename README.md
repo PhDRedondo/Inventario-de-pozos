@@ -79,6 +79,68 @@ La versión institucional replica la lógica del piloto **capa por capa con prue
 de paridad** (mismos casos de UWI, validación, ETL/DANE, ingesta Excel). Estado
 verificado: **`dotnet test` 53/53** y **`ng test` 19/19**.
 
+### Arquitectura institucional (vista de capas)
+
+```mermaid
+flowchart TB
+  subgraph Cliente["🖥️  Cliente (navegador)"]
+    SPA["SPA Angular 18 (standalone)<br/>cuadernos · panel · analítica · mapa"]
+    MSAL["MSAL<br/>login redirect · guard · interceptor"]
+  end
+
+  subgraph Idp["🔐  Identidad — Microsoft Entra ID"]
+    ENTRA["OpenID Connect / JWT<br/>app roles · MFA (Acceso Condicional)"]
+  end
+
+  subgraph Api["⚙️  Web API — ASP.NET Core .NET 8 (Minimal APIs)"]
+    AUTH["JWT Bearer (fail-closed)<br/>políticas de rol · cabeceras de seguridad"]
+    EP["Endpoints REST<br/>/api/notebooks · /stats · /analytics · /wells"]
+  end
+
+  subgraph Dominio["🧠  Dominio (C#) — Anh.Vip.Domain"]
+    VAL["validación · UWI<br/>ETL geográfico/DANE · ingesta Excel (ClosedXML)"]
+  end
+
+  subgraph Infra["🔧  Infraestructura — EF Core 8"]
+    SVC["Servicios<br/>Stats · Analytics · Submit · Email"]
+    CTX["VipDbContext<br/>migraciones (InitialCreate)"]
+  end
+
+  subgraph Datos["💾  Persistencia y externos"]
+    SQL[("SQL Server 2019/2022<br/>esquema vip — 10 tablas")]
+    SMTP["SMTP institucional<br/>notificación de aplicación"]
+    GEO["GeoJSON DANE<br/>departamentos · municipios"]
+  end
+
+  SPA --> MSAL --> ENTRA
+  SPA -->|Bearer| AUTH --> EP
+  EP --> VAL & SVC
+  SVC --> CTX --> SQL
+  SVC -->|submit| SMTP
+  SPA --> GEO
+```
+
+### Flujo del envío institucional (con integraciones OTI)
+
+```mermaid
+sequenceDiagram
+  participant U as Operadora · SPA Angular
+  participant E as Entra ID
+  participant A as Web API .NET 8
+  participant D as Dominio + EF Core
+  participant S as SQL Server vip
+  participant M as SMTP institucional
+
+  U->>E: login (MSAL, redirect + MFA)
+  E-->>U: token JWT (app roles)
+  U->>A: POST /api/notebooks/{id}/submit (Bearer)
+  A->>A: valida JWT + política de rol
+  A->>D: SubmitAsync(id)
+  D->>S: marca versión y cuaderno como submitted
+  D->>M: correo de aplicación a la ANH
+  A-->>U: 200 — inventario aplicado
+```
+
 ### Integraciones OTI
 
 | Integración | Estado | Evidencia |
