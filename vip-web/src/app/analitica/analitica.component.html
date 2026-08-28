@@ -56,11 +56,22 @@
       <div class="metric" *ngFor="let m of res.metrics">
         <div class="metric-head">
           <span>{{ m.label }}</span>
-          <strong [class.up]="m.index >= 100" [class.down]="m.index < 100">índice {{ m.index }}</strong>
+          <strong
+            class="delta"
+            [class.up]="deltaPct(m.index) > 0"
+            [class.down]="deltaPct(m.index) < 0"
+            [class.zero]="deltaPct(m.index) === 0"
+          >{{ deltaPct(m.index) > 0 ? '+' : '' }}{{ deltaPct(m.index) }}%</strong>
         </div>
         <div class="metric-bar">
-          <span class="fill" [style.width.%]="(m.index > 200 ? 200 : m.index) / 2"></span>
-          <span class="base"></span>
+          <span class="center"></span>
+          <span
+            class="fill"
+            [class.up]="barUp(m.index)"
+            [class.down]="!barUp(m.index) && !barZero(m.index)"
+            [style.left.%]="barLeft(m.index)"
+            [style.width.%]="barZero(m.index) ? 0 : barHalf(m.index)"
+          ></span>
         </div>
         <div class="metric-foot">
           <span>{{ res.entityLabel }}: {{ m.entityValue }}{{ unit }}</span>

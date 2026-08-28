@@ -36,10 +36,14 @@
 .legend .sw.entity { background: #ff8c00; }
 
 .metric { margin-bottom: 0.85rem; }
-.metric-head { display: flex; justify-content: space-between; font-size: 0.85rem; }
-.metric-head strong.up { color: #1b7f4a; }
-.metric-head strong.down { color: #b42318; }
+.metric-head { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+.metric-head .delta { font-size: 0.75rem; font-weight: 700; padding: 0.05rem 0.5rem; border-radius: 999px; }
+.metric-head .delta.up { background: rgba(255, 140, 0, 0.18); color: #b5650a; }
+.metric-head .delta.down { background: rgba(56, 189, 248, 0.2); color: #0369a1; }
+.metric-head .delta.zero { background: #eef2f6; color: #5a6b7d; }
 .metric-bar { position: relative; height: 12px; background: #eef2f6; border-radius: 999px; overflow: hidden; margin: 0.3rem 0; }
-.metric-bar .fill { position: absolute; left: 0; top: 0; height: 100%; background: linear-gradient(90deg, #ffc107, #ff8c00); }
-.metric-bar .base { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: #1e3a4a; }
+.metric-bar .center { position: absolute; left: 50%; top: 0; width: 2px; height: 100%; background: #94a3b8; transform: translateX(-1px); }
+.metric-bar .fill { position: absolute; top: 0; height: 100%; border-radius: 999px; }
+.metric-bar .fill.up { background: linear-gradient(90deg, #ffc107, #ff8c00); }
+.metric-bar .fill.down { background: linear-gradient(90deg, #38bdf8, #0ea5e9); }
 .metric-foot { display: flex; justify-content: space-between; font-size: 0.72rem; color: #5a6b7d; }

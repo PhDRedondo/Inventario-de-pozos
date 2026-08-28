@@ -74,6 +74,31 @@ export class AnaliticaComponent implements OnInit {
     return this.theme === 'perfil' ? '%' : '';
   }
 
+  // ---- Barra divergente de variación (índice vs nacional = 100) -------------
+
+  /** Variación respecto al promedio nacional (índice 100), redondeada. */
+  deltaPct(index: number): number {
+    return Math.round((index - 100) * 10) / 10;
+  }
+
+  /** Semiancho de la barra (0–50%), proporcional a |índice−100| con tope de 100. */
+  barHalf(index: number): number {
+    return (Math.min(Math.abs(index - 100), 100) / 100) * 50;
+  }
+
+  /** Posición izquierda de la barra: desde el centro hacia la derecha o la izquierda. */
+  barLeft(index: number): number {
+    return index >= 100 ? 50 : 50 - this.barHalf(index);
+  }
+
+  barUp(index: number): boolean {
+    return index > 100;
+  }
+
+  barZero(index: number): boolean {
+    return this.deltaPct(index) === 0;
+  }
+
   // ---- Geometría del radar -------------------------------------------------
 
   private angle(i: number, n: number): number {
