@@ -106,6 +106,19 @@ describe('VipApiService', () => {
     req.flush({ nodes: [{ id: 'd:META', label: 'META', col: 0, value: 6 }, { id: 'e:Activo', label: 'Activo', col: 1, value: 6 }], links: [{ source: 'd:META', target: 'e:Activo', value: 6 }] });
   });
 
+  it('gets the territorial profile by department', () => {
+    service.getTerritorio().subscribe((r) => {
+      expect(r.metrics.length).toBe(1);
+      expect(r.departamentos[0].name).toBe('META');
+    });
+    const req = httpMock.expectOne('/api/analytics/by-departamento');
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      metrics: [{ key: 'pct_activo', label: '% activos', national: 75 }],
+      departamentos: [{ name: 'META', sampleSize: 6, values: { pct_activo: 83.3 } }],
+    });
+  });
+
   it('gets georeferenced wells for the map', () => {
     service.getWellsMap().subscribe((p) => expect(p.length).toBe(1));
     const req = httpMock.expectOne('/api/wells/map');

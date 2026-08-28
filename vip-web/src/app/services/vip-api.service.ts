@@ -12,6 +12,7 @@ import {
   NotebookSummary,
   SankeyData,
   SubmitResponse,
+  TerritorioResult,
   UploadResult,
   ValidationResult,
   WellMapPoint,
@@ -71,6 +72,10 @@ export class VipApiService {
 
   getSankey(): Observable<SankeyData> {
     return this.http.get<SankeyData>(`${this.base}/api/analytics/sankey`);
+  }
+
+  getTerritorio(): Observable<TerritorioResult> {
+    return this.http.get<TerritorioResult>(`${this.base}/api/analytics/by-departamento`);
   }
 
   getWellsMap(): Observable<WellMapPoint[]> {

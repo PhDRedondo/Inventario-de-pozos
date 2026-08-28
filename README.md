@@ -76,7 +76,7 @@ El sistema cubre el ciclo completo del inventario de pozos:
 1. La **operadora** crea un **cuaderno de inventario**, indica cuántos pozos va a registrar y **descarga una plantilla Excel** con los encabezados oficiales, listas desplegables y filas listas para diligenciar.
 2. Carga versiones del Excel diligenciado y **corrige hallazgos** hasta obtener **cero pozos inválidos** en la versión activa.
 3. Al **aplicar el envío a la ANH**, el lote pasa de `draft` a `submitted`, queda visible en el panel institucional y se genera un paquete en `data/outbox/` (simulación de correo a `correspondenciaanh@anh.gov.co`).
-4. **Funcionarios ANH** consultan el inventario **ya validado** en el panel y profundizan en **analítica comparativa** (radar, mapas térmicos, nubes de producción).
+4. **Funcionarios ANH** consultan el inventario **ya validado** en el panel y profundizan en **analítica comparativa** (radar, coropleto territorial por indicador, nubes de producción).
 5. El **administrador** gestiona usuarios y puede operar cuadernos en nombre de cualquier operadora.
 
 Los **40 atributos** del formato Excel están centralizados en `src/lib/catalogs.ts` (temas) y `src/lib/attributes.ts` (29 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado). La misma definición alimenta el **formulario, la validación, la plantilla descargable y el parser de carga**, de modo que las cuatro caras del sistema nunca se desincronizan.
@@ -94,7 +94,7 @@ El repositorio contiene **dos implementaciones** del mismo sistema:
 
 La versión institucional replica la lógica del piloto **capa por capa con pruebas
 de paridad** (mismos casos de UWI, validación, ETL/DANE, ingesta Excel). Estado
-verificado: **`dotnet test` 53/53** y **`ng test` 19/19**.
+verificado: **`dotnet test` 55/55** y **`ng test` 20/20**.
 
 ### Arquitectura institucional (vista de capas)
 
@@ -259,6 +259,7 @@ desarrollo). Políticas de rol: `OperatorOrAdmin`, `ReadInventory`
 | GET | `/api/wells/by-municipio` | ReadInventory | Conteo y producción por municipio (coropleto). |
 | GET | `/api/analytics?theme=&entityType=&entity=` | AnhOrAdmin | Radar comparativo (`perfil`/`produccion`/`inyeccion`). |
 | GET | `/api/analytics/sankey` | AnhOrAdmin | Flujo Departamento → Estado → Operadora. |
+| GET | `/api/analytics/by-departamento` | AnhOrAdmin | Perfil operativo por departamento (coropleto territorial). |
 
 Swagger UI disponible en desarrollo (`/swagger`).
 
@@ -269,7 +270,7 @@ Swagger UI disponible en desarrollo (`/swagger`).
 | `/` | Cuadernos (listado + creación) | `GET/POST /api/notebooks` |
 | `/cuadernos/:id` | Workspace: plantilla, carga, versiones, hallazgos, aplicar | `.../upload`, `.../submit`, `/api/validations`, `/api/notebooks/template` |
 | `/panel` | Panel: KPIs y desgloses + tabla | `GET /api/stats` |
-| `/analitica` | Radar comparativo por tema | `GET /api/analytics` |
+| `/analitica` | Radar comparativo por tema + **coropleto territorial por indicador** | `GET /api/analytics`, `/api/analytics/by-departamento` |
 | `/flujo` | Diagrama Sankey | `GET /api/analytics/sankey` |
 | `/mapa` | Coropleto municipal + puntos por validación | `GET /api/wells/by-municipio`, `/api/wells/map` |
 
@@ -315,11 +316,11 @@ Registro de la app y del SPA en Entra: script y guía en
 
 ### Pruebas y paridad
 
-- **Backend — `dotnet test`: 53/53.** UWI (10), validación (5), ETL (6), ingesta
-  (2), panel (3), mapa (4), analítica (5), seguridad (6), listado (2), API (6) y
+- **Backend — `dotnet test`: 55/55.** UWI (10), validación (5), ETL (6), ingesta
+  (2), panel (3), mapa (4), analítica (7), seguridad (6), listado (2), API (6) y
   OTI (4). Estrategia de **paridad**: se ejecuta el piloto TS para generar
   fixtures de referencia y se verifica que C# reproduce la salida exacta.
-- **Frontend — `ng test`: 19/19.** Cliente de API (`HttpTestingController`),
+- **Frontend — `ng test`: 20/20.** Cliente de API (`HttpTestingController`),
   interceptor de token, guard de rutas y render del shell.
 
 ### Inicio rápido: stack institucional
@@ -921,7 +922,7 @@ Un pozo inválido puede tener **varios** hallazgos `error`. La trazabilidad y el
 | **Perfil operativo** | % activos, horizontales, productores, inyectores, coordenadas, UWI |
 | **Portafolio** | Pozos por operadora, cobertura territorial, contratos |
 
-Visualizaciones: radar comparativo (base = 100 nacional), barras de delta, nube de producción, mapas térmicos.
+Visualizaciones: radar comparativo (base = 100 nacional), barras de delta, nube de producción, **coropleto territorial de Colombia** (departamentos coloreados por un indicador vs el promedio nacional, con selector de métrica) y mapa térmico por operadora.
 
 ---
 

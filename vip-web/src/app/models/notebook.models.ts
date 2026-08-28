@@ -141,6 +141,22 @@ export interface AnalyticsResult {
   departamentos: string[];
 }
 
+/** Perfil operativo por departamento para el coropleto (GET /api/analytics/by-departamento). */
+export interface TerritorioMetric {
+  key: string;
+  label: string;
+  national: number;
+}
+export interface TerritorioDept {
+  name: string;
+  sampleSize: number;
+  values: Record<string, number>;
+}
+export interface TerritorioResult {
+  metrics: TerritorioMetric[];
+  departamentos: TerritorioDept[];
+}
+
 /** Conteo de pozos por municipio DANE (GET /api/wells/by-municipio). */
 export interface MunicipioCount {
   codigoDane: string;

@@ -17,7 +17,7 @@ y porta el dominio desde el piloto Next.js (`src/lib/*.ts`).
 | `src/Anh.Vip.Domain` | Dominio puro: entidades, **UWI** (`Uwi/`), **validación** (`Validation/`), **ETL geográfico** (`Etl/`, `Geo/`), **mapeo de columnas** (`Excel/`) e **ingesta** (`Ingest/WellIngestor.cs`). Sin dependencias. |
 | `src/Anh.Vip.Infrastructure` | `VipDbContext` (EF Core, esquema `[vip]`) + **migraciones** (`Migrations/`), `DbCatalogProvider`, `DbGeographyResolver`, `ExcelSheetReader` (ClosedXML), `CatalogCache` y `NotebookUploadService` (ingesta + persistencia). |
 | `src/Anh.Vip.Api` | Web API: `/health`, `POST /api/uwi/preview`, **cuadernos** (crear, cargar, consultar, aplicar, validaciones, **plantilla**), **panel** (`/api/stats`) y **analítica comparativa** (`/api/analytics`). Autenticación JWT/OIDC + roles. |
-| `tests/Anh.Vip.Domain.Tests` | **53 pruebas**: paridad con el piloto (UWI, validación, ETL, ingesta) e integración de la API (`WebApplicationFactory`: cuadernos, panel, mapa, analítica, seguridad, OTI). |
+| `tests/Anh.Vip.Domain.Tests` | **55 pruebas**: paridad con el piloto (UWI, validación, ETL, ingesta) e integración de la API (`WebApplicationFactory`: cuadernos, panel, mapa, analítica, seguridad, OTI). |
 
 ## Requisitos
 
@@ -53,6 +53,7 @@ dotnet run --project src/Anh.Vip.Api
 # GET  /api/wells/by-municipio      (conteo + producción por municipio, coropleto)
 # GET  /api/analytics?theme=&entityType=&entity=  (radar: perfil|produccion|inyeccion; anh|admin)
 # GET  /api/analytics/sankey        (flujo Departamento->Estado->Operadora; anh|admin)
+# GET  /api/analytics/by-departamento (perfil operativo por departamento; coropleto; anh|admin)
 # Swagger UI en desarrollo: /swagger
 ```
 
@@ -186,7 +187,7 @@ sin «LISTA»).
 - ✅ **Compilación:** `dotnet build -c Release` de toda la solución (Domain,
   Infrastructure/EF Core, Api, Tests) con **0 advertencias y 0 errores**
   (SDK .NET 8.0.424).
-- ✅ **`dotnet test`:** **53/53 pruebas superadas**:
+- ✅ **`dotnet test`:** **55/55 pruebas superadas**:
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
@@ -205,7 +206,7 @@ sin «LISTA»).
     para el coropleto: 9 municipios que suman 12 pozos, ordenados por total con
     desglose válido/advertencia/inválido y **producción acumulada**
     (petróleo/gas/agua) para el tooltip; ambos sin token → 401.
-  - **Analítica (5):** `/api/analytics` — tema `perfil` nacional con índice 100 en
+  - **Analítica (7):** `/api/analytics` — tema `perfil` nacional con índice 100 en
     cada métrica, entidad (operadora) con índices relativos, rol operadora → 403;
     tema `produccion` con métricas numéricas (petróleo/gas/agua/días) promediadas
     y valor nacional > 0; y `/api/analytics/sankey` con las tres columnas y los
@@ -259,7 +260,7 @@ cd dotnet && dotnet build -c Release && dotnet test
 
 ## Pendiente (infraestructura OTI)
 
-El backend está **completo y verificado** (ver «Estado de verificación»: 53/53,
+El backend está **completo y verificado** (ver «Estado de verificación»: 55/55,
 SQL Server real, SMTP real, Entra fail-closed). Lo único pendiente depende de la
 infraestructura institucional:
 

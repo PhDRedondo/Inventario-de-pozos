@@ -26,7 +26,10 @@ departamento, estado y objetivo) más la tabla de pozos, desde `GET /api/stats`
 departamento frente al promedio nacional (base 100) más barras de índice, desde
 `GET /api/analytics`. Selector de **tema**: `perfil` (porcentajes operativos),
 `produccion` (petróleo/gas/agua/días acumulados) e `inyeccion` (agua/gas/otros),
-con el sufijo `%` solo en el tema perfil.
+con el sufijo `%` solo en el tema perfil. Incluye un **coropleto territorial**
+(Leaflet) que colorea los departamentos por un indicador de perfil operativo
+frente al promedio nacional (100%), con selector de métrica, desde
+`GET /api/analytics/by-departamento`.
 
 **Flujo** (`/flujo`): diagrama Sankey (SVG) Departamento → Estado → Operadora,
 desde `GET /api/analytics/sankey`.
@@ -75,10 +78,10 @@ La URL base de la API se configura en `src/environments/environment.ts`
 
 - ✅ **`ng build`**: compila (AOT), ~136 kB de transferencia inicial. El build
   institucional con MSAL es `ng build --configuration entra` (ver Seguridad).
-- ✅ **`ng test` (ChromeHeadless):** **19/19** — cliente de API con
+- ✅ **`ng test` (ChromeHeadless):** **20/20** — cliente de API con
   `HttpTestingController` (crear/listar/detalle de cuaderno, carga multipart,
-  validaciones, submit, plantilla, stats, analítica temática, Sankey, mapa y
-  conteo por municipio), interceptor de token (adjunta Bearer solo a `/api/`),
+  validaciones, submit, plantilla, stats, analítica temática, Sankey, mapa,
+  conteo por municipio y perfil territorial por departamento), interceptor de token (adjunta Bearer solo a `/api/`),
   guard de rutas (pass-through en desarrollo) y render del shell.
 - ✅ **Render verificado** en el navegador (`ng serve`): shell VIP y formulario
   del cuaderno.

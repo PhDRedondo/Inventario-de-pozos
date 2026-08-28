@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { VipApiService } from '../services/vip-api.service';
 import { AnalyticsResult } from '../models/notebook.models';
+import { TerritorioChoroplethComponent } from './territorio-choropleth.component';
 
 interface RadarAxis {
   lineX: number;
@@ -20,7 +21,7 @@ interface RadarAxis {
 @Component({
   selector: 'app-analitica',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TerritorioChoroplethComponent],
   templateUrl: './analitica.component.html',
   styleUrl: './analitica.component.css',
 })

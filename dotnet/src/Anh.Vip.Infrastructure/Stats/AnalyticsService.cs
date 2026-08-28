@@ -26,6 +26,17 @@ public sealed record AnalyticsResult
     public IReadOnlyList<string> Departamentos { get; init; } = [];
 }
 
+/// <summary>Métrica territorial con su valor nacional (base del coropleto).</summary>
+public sealed record TerritorioMetric(string Key, string Label, double National);
+
+/// <summary>Valores del perfil operativo de un departamento y su muestra.</summary>
+public sealed record TerritorioDept(string Name, int SampleSize, IReadOnlyDictionary<string, double> Values);
+
+/// <summary>Analítica territorial por departamento (para el coropleto por indicador).</summary>
+public sealed record TerritorioResult(
+    IReadOnlyList<TerritorioMetric> Metrics,
+    IReadOnlyList<TerritorioDept> Departamentos);
+
 /// <summary>
 /// Analítica comparativa del inventario aplicado (analytics.ts): compara una
 /// operadora o departamento frente al promedio nacional (base 100). Temas:
@@ -108,6 +119,33 @@ public sealed class AnalyticsService(VipDbContext db)
             Operadoras = operadoras,
             Departamentos = departamentos,
         };
+    }
+
+    /// <summary>
+    /// Perfil operativo por departamento (para el coropleto por indicador). Cada
+    /// departamento trae sus porcentajes y su muestra; las métricas incluyen el
+    /// valor nacional como base (100%).
+    /// </summary>
+    public async Task<TerritorioResult> GetTerritorioAsync(CancellationToken ct = default)
+    {
+        var defs = Themes["perfil"];
+        var national = AppliedWells();
+        var nat = await ComputePerfilAsync(national, ct);
+
+        var deptNames = await national.Where(w => w.Departamento != null && w.Departamento != "")
+            .Select(w => w.Departamento!).Distinct().OrderBy(x => x).ToListAsync(ct);
+
+        var departamentos = new List<TerritorioDept>();
+        foreach (var name in deptNames)
+        {
+            var set = national.Where(w => w.Departamento == name);
+            var size = await set.CountAsync(ct);
+            var values = await ComputePerfilAsync(set, ct);
+            departamentos.Add(new TerritorioDept(name, size, values));
+        }
+
+        var metrics = defs.Select(m => new TerritorioMetric(m.Key, m.Label, Math.Round(nat[m.Key], 1))).ToList();
+        return new TerritorioResult(metrics, departamentos.OrderByDescending(d => d.SampleSize).ToList());
     }
 
     /// <summary>Flujo Departamento → Estado → Operadora (port del Sankey del panel).</summary>

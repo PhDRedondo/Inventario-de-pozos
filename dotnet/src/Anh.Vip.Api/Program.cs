@@ -349,6 +349,12 @@ app.MapGet("/api/analytics/sankey", async (Anh.Vip.Infrastructure.Stats.Analytic
 .RequireAuthorization(Roles.AnhOrAdmin)
 .WithName("GetSankey");
 
+// Perfil operativo por departamento para el coropleto territorial — anh | admin.
+app.MapGet("/api/analytics/by-departamento", async (Anh.Vip.Infrastructure.Stats.AnalyticsService analytics, CancellationToken ct) =>
+    Results.Ok(await analytics.GetTerritorioAsync(ct)))
+.RequireAuthorization(Roles.AnhOrAdmin)
+.WithName("GetTerritorio");
+
 app.Run();
 
 /// <summary>Cuerpo para crear un cuaderno.</summary>

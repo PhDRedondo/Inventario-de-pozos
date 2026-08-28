@@ -22,6 +22,34 @@ public class AnalyticsEndpointTests : IClassFixture<VipApiFactory>
     }
 
     [Fact]
+    public async Task Territorio_ByDepartamento_ReturnsPerfilPerDepartment()
+    {
+        var client = _factory.CreateAuthedClient(roles: "anh", email: "func@anh.gov.co");
+        var res = await (await client.GetAsync("/api/analytics/by-departamento")).Content.ReadFromJsonAsync<JsonElement>();
+
+        // 4 métricas de perfil, con valor nacional; 3 departamentos del inventario demo.
+        Assert.Equal(4, res.GetProperty("metrics").GetArrayLength());
+        Assert.Contains(res.GetProperty("metrics").EnumerateArray(), m => m.GetProperty("key").GetString() == "pct_activo");
+        foreach (var m in res.GetProperty("metrics").EnumerateArray())
+            Assert.True(m.TryGetProperty("national", out _));
+
+        var deps = res.GetProperty("departamentos");
+        Assert.Equal(3, deps.GetArrayLength());
+        // Ordenado por tamaño de muestra desc: META lidera con 6 pozos.
+        var top = deps.EnumerateArray().First();
+        Assert.Equal(6, top.GetProperty("sampleSize").GetInt32());
+        Assert.True(top.GetProperty("values").TryGetProperty("pct_activo", out _));
+    }
+
+    [Fact]
+    public async Task Territorio_ForbiddenForOperadora()
+    {
+        var client = _factory.CreateAuthedClient(roles: "operadora", operadora: "HOCOL S.A.");
+        var res = await client.GetAsync("/api/analytics/by-departamento");
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
     public async Task Analytics_National_ReturnsMetricsAndEntities()
     {
         var client = _factory.CreateAuthedClient(roles: "anh", email: "func@anh.gov.co");
