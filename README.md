@@ -519,7 +519,7 @@ flowchart LR
 
 Para que la operadora **no tenga que adivinar el formato**, el sistema genera bajo demanda una plantilla Excel lista para diligenciar. Es el mismo archivo que luego se vuelve a cargar: descargar → diligenciar → cargar.
 
-> 📄 **Instructivo de diligenciamiento:** [`docs/instructivo-diligenciamiento-excel-vip.html`](docs/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 40 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). Ábralo en el navegador o expórtelo a PDF.
+> 📄 **Instructivo de diligenciamiento:** [`public/instructivo-diligenciamiento-excel-vip.html`](public/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 40 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). La app lo sirve en `/instructivo-diligenciamiento-excel-vip.html` (enlazado desde el modal «Acerca»); ábralo en el navegador o expórtelo a PDF.
 
 ```mermaid
 sequenceDiagram
@@ -1056,7 +1056,6 @@ flowchart LR
 inventario-pozos-anh/
 ├── docs/                          # Documentación institucional (HTML autocontenido)
 │   ├── guia-produccion-anh.html   #   Plan de puesta en producción
-│   ├── instructivo-diligenciamiento-excel-vip.html  # Instructivo del formato Excel
 │   ├── presentacion-general-vip.html
 │   ├── revision-cumplimiento-anh-gtic.html
 │   └── ... (analítica, IA/ML, hardening OTI)
@@ -1066,6 +1065,7 @@ inventario-pozos-anh/
 │   └── outbox/                    # Correos y Excel simulados al aplicar envío
 ├── public/
 │   ├── geo/                       # GeoJSON departamentos y municipios
+│   ├── instructivo-diligenciamiento-excel-vip.html  # Instructivo del formato Excel (servido por la app)
 │   └── anh-logo.*                 # Identidad visual ANH
 ├── scripts/
 │   ├── github-setup.sh
