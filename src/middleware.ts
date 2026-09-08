@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/anh-logo") ||
     pathname.startsWith("/geo/") ||
-    pathname.match(/\.(png|jpg|svg|ico|geojson)$/)
+    pathname.match(/\.(png|jpg|svg|ico|geojson|html)$/)
   ) {
     return NextResponse.next();
   }

@@ -518,6 +518,7 @@ export const en = {
       "KPI cards: total wells (filtered subset vs full catalog), processed uploads, and validation counts. Click a card to apply the matching filter.|Validation, status, and objective-type donuts (P, I, M, D, EST): ring charts with a central total; each segment is clickable to filter.|Horizontal bars: ranking of top operators and departments with the highest well concentration in the current subset.|Sankey diagram: Department → State → Operator flow; link thickness represents well count; click a node to cross-filter.|Territorial map: well layer and departmental polygons; wells excluded by the filter are dimmed; click a department, well, or legend entry to update the rest of the panel.|Paginated table: summary view (10/25/50 rows) or full query; interactive rows and columns for filtering; click a well to open its modal report.|Real-time aggregations: data comes from /api/stats and recalculates when any filter changes; selector options also cascade to the visible subset.",
     footerNote:
       "The system ships as two implementations: the Next.js/SQLite pilot (Vercel demo) and the institutional Angular · .NET · SQL Server · Entra ID stack mandated by the ANH (MA-02). SQL Server and the SMTP notification are verified on real engines; Entra authentication is ready for the OTI tenant.",
+    instructivoLink: "Open the Excel filling guide",
     operadora: {
       title: "About VIP",
       subtitle: "Guide to upload, validate, and submit your operator's well inventory.",

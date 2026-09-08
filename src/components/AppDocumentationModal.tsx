@@ -189,6 +189,15 @@ export function AppDocumentationModal({ onClose }: AppDocumentationModalProps) {
 
           <section className="rounded-xl border border-dashed border-anh-border bg-anh-bg/30 p-4 text-xs leading-relaxed text-anh-muted sm:p-5">
             <p>{t(headerKeys.footerNote)}</p>
+            <a
+              href="/instructivo-diligenciamiento-excel-vip.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-anh-secondary hover:underline"
+            >
+              <BookOpen className="h-4 w-4" />
+              {t("appDocs.instructivoLink")}
+            </a>
           </section>
         </div>
       </div>
