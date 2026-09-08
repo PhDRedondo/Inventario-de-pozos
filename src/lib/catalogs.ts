@@ -64,7 +64,7 @@ export const THEMES: ThemeDefinition[] = [
       { key: "tipo_objetivo", label: "Tipo de pozo (según objetivo)", type: "select", catalogKey: "tipo_objetivo" },
       { key: "tipo_terminacion", label: "Tipo de terminación", type: "select", catalogKey: "tipo_terminacion" },
       { key: "sistema_levantamiento", label: "Sistema de levantamiento", type: "select", catalogKey: "sistema_levantamiento" },
-      { key: "clasificacion_lahee", label: "Clasificación Lahee final", type: "text" },
+      { key: "clasificacion_lahee", label: "Clasificación Lahee final", type: "select", catalogKey: "clasificacion_lahee" },
       { key: "nombre_pozo_forma_6cr", label: "Nombre pozo FORMA 6CR", type: "text" },
       { key: "nombre_pozo_sgc", label: "Nombre pozo (SGC)", type: "text", required: true },
       { key: "uwi_sgc", label: "UWI (SGC)", type: "text" },

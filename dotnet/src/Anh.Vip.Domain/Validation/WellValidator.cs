@@ -40,6 +40,7 @@ public sealed class WellValidator(ICatalogProvider catalogs)
         ("tipo_objetivo", "tipo_objetivo", "Tipo de pozo por objetivo"),
         ("tipo_terminacion", "tipo_terminacion", "Tipo de terminación"),
         ("sistema_levantamiento", "sistema_levantamiento", "Sistema de levantamiento"),
+        ("clasificacion_lahee", "clasificacion_lahee", "Clasificación Lahee final"),
         ("estado_pozo", "estado_pozo", "Estado del pozo"),
         ("departamento", "departamentos", "Departamento"),
     };
@@ -169,7 +170,7 @@ public sealed class WellValidator(ICatalogProvider catalogs)
 
     /// <summary>Reglas activas en validateWell más el instructivo UWI (paridad con getActiveValidationRuleCount).</summary>
     public static int GetActiveValidationRuleCount() =>
-        8 + 13 + 3 + 1 + 8 + 4 + 2 + 1 + 1 + 18;
+        8 + 14 + 3 + 1 + 8 + 4 + 2 + 1 + 1 + 18;
 
     // ---- Helpers -------------------------------------------------------------
 

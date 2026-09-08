@@ -73,7 +73,7 @@ public class WellValidatorTests
     });
 
     [Fact]
-    public void ActiveRuleCount_Is59() => Assert.Equal(59, WellValidator.GetActiveValidationRuleCount());
+    public void ActiveRuleCount_Is60() => Assert.Equal(60, WellValidator.GetActiveValidationRuleCount());
 
     [Fact]
     public void Summarize_CountsBuckets()

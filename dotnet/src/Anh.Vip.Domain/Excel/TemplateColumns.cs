@@ -34,7 +34,7 @@ public static class TemplateColumns
         ("tipo_objetivo", "select", "tipo_objetivo", false),
         ("tipo_terminacion", "select", "tipo_terminacion", false),
         ("sistema_levantamiento", "select", "sistema_levantamiento", false),
-        ("clasificacion_lahee", "text", null, false),
+        ("clasificacion_lahee", "select", "clasificacion_lahee", false),
         ("nombre_pozo_forma_6cr", "text", null, false),
         ("nombre_pozo_sgc", "text", null, true),
         ("uwi_sgc", "text", null, false),
