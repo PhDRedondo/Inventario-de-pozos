@@ -519,6 +519,8 @@ flowchart LR
 
 Para que la operadora **no tenga que adivinar el formato**, el sistema genera bajo demanda una plantilla Excel lista para diligenciar. Es el mismo archivo que luego se vuelve a cargar: descargar → diligenciar → cargar.
 
+> 📄 **Instructivo de diligenciamiento:** [`docs/instructivo-diligenciamiento-excel-vip.html`](docs/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 40 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). Ábralo en el navegador o expórtelo a PDF.
+
 ```mermaid
 sequenceDiagram
   actor Op as Operadora
@@ -1054,6 +1056,7 @@ flowchart LR
 inventario-pozos-anh/
 ├── docs/                          # Documentación institucional (HTML autocontenido)
 │   ├── guia-produccion-anh.html   #   Plan de puesta en producción
+│   ├── instructivo-diligenciamiento-excel-vip.html  # Instructivo del formato Excel
 │   ├── presentacion-general-vip.html
 │   ├── revision-cumplimiento-anh-gtic.html
 │   └── ... (analítica, IA/ML, hardening OTI)
