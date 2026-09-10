@@ -297,7 +297,8 @@ app.MapGet("/api/notebooks/template", async (int? rows, string? operadora, VipDb
 {
     var n = TemplateColumns.ClampRows(rows ?? TemplateColumns.DefaultRows);
     var options = await TemplateCatalogOptions.LoadAsync(db, ct);
-    var bytes = NotebookTemplateBuilder.Build(n, operadora, options);
+    var municipiosByDept = await TemplateCatalogOptions.LoadMunicipiosByDeptAsync(db, ct);
+    var bytes = NotebookTemplateBuilder.Build(n, operadora, options, municipiosByDept);
     return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"plantilla-inventario-pozos-{n}-registros.xlsx");
 })
 .RequireAuthorization(Roles.OperatorOrAdmin)

@@ -13,7 +13,20 @@ public static class NotebookTemplateBuilder
     private static readonly XLColor HeaderFill = XLColor.FromArgb(0x1A, 0x1A, 0x1A);          // ANH negro
     private static readonly XLColor HeaderRequiredFill = XLColor.FromArgb(0xFF, 0x8C, 0x00);  // ANH naranja
 
-    public static byte[] Build(int rows, string? operadora, IReadOnlyDictionary<string, IReadOnlyList<string>> catalogOptions)
+    /// <summary>
+    /// Nombre de rango definido (Excel) para los municipios de un departamento.
+    /// Debe coincidir EXACTAMENTE con la fórmula INDIRECT/SUBSTITUTE del municipio:
+    /// espacio → «_», y se eliminan comas y puntos (las tildes se conservan).
+    /// El prefijo «D_» evita nombres que parezcan referencias o empiecen por dígito.
+    /// </summary>
+    private static string DeptRangeName(string depto) =>
+        "D_" + depto.Replace(" ", "_").Replace(",", "").Replace(".", "");
+
+    public static byte[] Build(
+        int rows,
+        string? operadora,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> catalogOptions,
+        IReadOnlyList<(string Departamento, IReadOnlyList<string> Municipios)>? municipiosByDept = null)
     {
         rows = TemplateColumns.ClampRows(rows);
         using var wb = new XLWorkbook();
@@ -22,10 +35,16 @@ public static class NotebookTemplateBuilder
         var listas = wb.AddWorksheet("Listas");
         listas.Visibility = XLWorksheetVisibility.Hidden;
 
-        // 1) Hoja Listas: una columna por catálogo usado; guardar el rango.
+        // 1) Hoja Listas: una columna por catálogo usado; guardar el rango. La
+        //    columna «municipios» se omite: el municipio depende del
+        //    departamento y se genera una lista por departamento (paso 1b).
         var rangeByCatalog = new Dictionary<string, IXLRange>(StringComparer.Ordinal);
         var listCol = 1;
-        foreach (var catalogKey in TemplateColumns.All.Where(c => c.CatalogKey is not null).Select(c => c.CatalogKey!).Distinct())
+        foreach (var catalogKey in TemplateColumns.All
+                     .Where(c => c.CatalogKey is not null)
+                     .Select(c => c.CatalogKey!)
+                     .Where(c => c != "municipios")
+                     .Distinct())
         {
             var opts = catalogOptions.TryGetValue(catalogKey, out var v) ? v : Array.Empty<string>();
             listas.Cell(1, listCol).Value = catalogKey;
@@ -35,6 +54,28 @@ public static class NotebookTemplateBuilder
             rangeByCatalog[catalogKey] = listas.Range(2, listCol, lastRow, listCol);
             listCol++;
         }
+
+        // 1b) Municipios dependientes del departamento: una columna por
+        //     departamento en la hoja Listas, publicada como nombre definido
+        //     (D_<DEPARTAMENTO>). La validación del municipio la resuelve con
+        //     INDIRECT sobre el departamento elegido.
+        foreach (var (depto, muniList) in municipiosByDept ?? Array.Empty<(string, IReadOnlyList<string>)>())
+        {
+            if (muniList.Count == 0) continue;
+            listas.Cell(1, listCol).Value = depto;
+            for (var i = 0; i < muniList.Count; i++)
+                listas.Cell(i + 2, listCol).Value = muniList[i];
+            var lastRow = muniList.Count + 1;
+            var colLetter = listas.Column(listCol).ColumnLetter();
+            wb.DefinedNames.Add(DeptRangeName(depto), $"Listas!${colLetter}$2:${colLetter}${lastRow}");
+            listCol++;
+        }
+
+        // Letra de columna DEPARTAMENTO (para la fórmula dependiente del municipio).
+        var deptColIndex = -1;
+        for (var i = 0; i < TemplateColumns.All.Count; i++)
+            if (TemplateColumns.All[i].Key == "departamento") { deptColIndex = i; break; }
+        var deptColLetter = deptColIndex >= 0 ? ws.Column(deptColIndex + 1).ColumnLetter() : "A";
 
         // 2) Encabezados.
         var columns = TemplateColumns.All;
@@ -65,7 +106,22 @@ public static class NotebookTemplateBuilder
                 for (var r = 2; r <= rows + 1; r++)
                     ws.Cell(r, c + 1).Value = op;
 
-            if (col.CatalogKey is not null && rangeByCatalog.TryGetValue(col.CatalogKey, out var range))
+            if (col.Key == "municipio")
+            {
+                // Lista dependiente: solo los municipios del departamento elegido.
+                // El ancla ($V2) es relativa por fila: Excel evalúa cada celda con
+                // el departamento de su propia fila.
+                var dv = ws.Range(2, c + 1, rows + 1, c + 1).CreateDataValidation();
+                dv.List(
+                    $"INDIRECT(\"D_\"&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(${deptColLetter}2,\" \",\"_\"),\",\",\"\"),\".\",\"\"))",
+                    true);
+                dv.IgnoreBlanks = true;
+                dv.ErrorStyle = XLErrorStyle.Warning;
+                dv.ErrorTitle = "Municipio fuera del departamento";
+                dv.ErrorMessage =
+                    "Seleccione primero el departamento y luego un municipio de su lista. Puede continuar, pero se marcará en la validación.";
+            }
+            else if (col.CatalogKey is not null && rangeByCatalog.TryGetValue(col.CatalogKey, out var range))
             {
                 var dv = ws.Range(2, c + 1, rows + 1, c + 1).CreateDataValidation();
                 dv.List(range, true);

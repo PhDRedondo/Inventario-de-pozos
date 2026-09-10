@@ -135,7 +135,13 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
         {
             Assert.Contains(wb.Worksheets, w => w.Name == "Listas");
             Assert.Contains(wb.Worksheets, w => w.Name == "Instrucciones");
-            Assert.True(wb.Worksheet("INVENTARIO").DataValidations.Any()); // hay selectores
+            var inv = wb.Worksheet("INVENTARIO");
+            Assert.True(inv.DataValidations.Any()); // hay selectores
+
+            // Municipio dependiente: nombres definidos por departamento (D_*) y
+            // una validación que los resuelve con INDIRECT sobre el departamento.
+            Assert.Contains(wb.DefinedNames, n => n.Name.StartsWith("D_", System.StringComparison.Ordinal));
+            Assert.Contains(inv.DataValidations, dv => dv.Value.Contains("INDIRECT"));
         }
     }
 }

@@ -38,6 +38,34 @@ function catalogOptions(catalogKey: string): string[] {
 }
 
 /**
+ * Nombre de rango definido (Excel) para los municipios de un departamento.
+ * Debe coincidir EXACTAMENTE con la transformación que hace la fórmula
+ * INDIRECT/SUBSTITUTE de la validación del municipio: espacio → «_», y se
+ * eliminan comas y puntos (las tildes se conservan, son válidas en un nombre
+ * definido). Se antepone «D_» para evitar nombres que parezcan referencias de
+ * celda o empiecen por dígito.
+ */
+function deptRangeName(depto: string): string {
+  return "D_" + depto.replace(/ /g, "_").replace(/,/g, "").replace(/\./g, "");
+}
+
+/** Municipios por código DANE de departamento, ordenados alfabéticamente. */
+function municipiosByDept(
+  munis: Record<string, { nombre: string; dept_code: string }>,
+): Map<string, string[]> {
+  const map = new Map<string, string[]>();
+  for (const { nombre, dept_code } of Object.values(munis)) {
+    const list = map.get(dept_code) ?? [];
+    list.push(nombre);
+    map.set(dept_code, list);
+  }
+  for (const [code, list] of map) {
+    map.set(code, [...new Set(list)].sort((a, b) => a.localeCompare(b, "es")));
+  }
+  return map;
+}
+
+/**
  * Genera la plantilla `.xlsx` del cuaderno: una hoja INVENTARIO con los
  * encabezados oficiales y `rows` filas listas para diligenciar, selectores en
  * las columnas de catálogo, una hoja Listas oculta con los valores permitidos y
@@ -58,10 +86,13 @@ export async function buildNotebookTemplate(options: {
   });
   const listas = workbook.addWorksheet("Listas", { state: "hidden" });
 
-  // 1) Hoja oculta de listas: una columna por catálogo usado.
+  // 1) Hoja oculta de listas: una columna por catálogo usado. La columna
+  //    «municipios» se omite aquí porque el municipio depende del departamento
+  //    (ver paso 1b): se genera una lista por departamento en su lugar.
   const rangeByCatalog = new Map<string, string>();
   let listCol = 1;
-  const usedCatalogs = [...new Set(TEMPLATE_COLUMNS.filter((c) => c.catalogKey).map((c) => c.catalogKey!))];
+  const usedCatalogs = [...new Set(TEMPLATE_COLUMNS.filter((c) => c.catalogKey).map((c) => c.catalogKey!))]
+    .filter((c) => c !== "municipios");
   for (const catalogKey of usedCatalogs) {
     const options_ = catalogOptions(catalogKey);
     const colLetter = listas.getColumn(listCol).letter;
@@ -74,6 +105,38 @@ export async function buildNotebookTemplate(options: {
     rangeByCatalog.set(catalogKey, `Listas!$${colLetter}$2:$${colLetter}$${Math.max(lastRow, 2)}`);
     listCol += 1;
   }
+
+  // 1b) Municipios dependientes del departamento: una columna por departamento
+  //     en la hoja Listas, expuesta como nombre definido (D_<DEPARTAMENTO>). La
+  //     validación del municipio la resuelve con INDIRECT sobre el departamento
+  //     elegido, de modo que solo aparezcan los municipios de ese departamento.
+  const catalogsRaw = getCatalogs() as Record<string, unknown>;
+  const deptDane = catalogsRaw.departamentos_dane as Record<string, string> | undefined;
+  const muniDane = catalogsRaw.municipios_dane as
+    | Record<string, { nombre: string; dept_code: string }>
+    | undefined;
+  if (deptDane && muniDane) {
+    const byDept = municipiosByDept(muniDane);
+    for (const [code, deptName] of Object.entries(deptDane)) {
+      const names = byDept.get(code) ?? [];
+      if (names.length === 0) continue;
+      const colLetter = listas.getColumn(listCol).letter;
+      listas.getCell(1, listCol).value = deptName;
+      names.forEach((n, i) => {
+        listas.getCell(i + 2, listCol).value = n;
+      });
+      const lastRow = names.length + 1;
+      workbook.definedNames.add(
+        `Listas!$${colLetter}$2:$${colLetter}$${lastRow}`,
+        deptRangeName(deptName),
+      );
+      listCol += 1;
+    }
+  }
+
+  // Letra de la columna DEPARTAMENTO (para la fórmula dependiente del municipio).
+  const deptColIndex = TEMPLATE_COLUMNS.findIndex((c) => c.key === "departamento");
+  const deptColLetter = deptColIndex >= 0 ? sheet.getColumn(deptColIndex + 1).letter : "A";
 
   // 2) Encabezados en la hoja INVENTARIO.
   sheet.columns = TEMPLATE_COLUMNS.map((col) => ({
@@ -112,7 +175,21 @@ export async function buildNotebookTemplate(options: {
         cell.value = operadora;
       }
 
-      if (col.catalogKey) {
+      if (col.key === "municipio") {
+        // Lista dependiente: solo los municipios del departamento elegido.
+        cell.dataValidation = {
+          type: "list",
+          allowBlank: true,
+          formulae: [
+            `INDIRECT("D_"&SUBSTITUTE(SUBSTITUTE(SUBSTITUTE($${deptColLetter}${r}," ","_"),",",""),".",""))`,
+          ],
+          showErrorMessage: true,
+          errorStyle: "warning",
+          errorTitle: "Municipio fuera del departamento",
+          error:
+            "Seleccione primero el departamento y luego un municipio de su lista. Puede continuar, pero se marcará en la validación.",
+        };
+      } else if (col.catalogKey) {
         const range = rangeByCatalog.get(col.catalogKey);
         if (range) {
           cell.dataValidation = {

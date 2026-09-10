@@ -26,4 +26,33 @@ public static class TemplateCatalogOptions
 
         return options;
     }
+
+    /// <summary>
+    /// Municipios agrupados por nombre de departamento (para el selector
+    /// dependiente del municipio). Cada entrada es (departamento, municipios
+    /// ordenados). Solo se incluyen departamentos con al menos un municipio.
+    /// </summary>
+    public static async Task<IReadOnlyList<(string Departamento, IReadOnlyList<string> Municipios)>>
+        LoadMunicipiosByDeptAsync(VipDbContext db, CancellationToken ct = default)
+    {
+        var deptNames = await db.CatDepartamentos
+            .AsNoTracking()
+            .ToDictionaryAsync(d => d.CodigoDane, d => d.Nombre, ct);
+
+        var munis = await db.CatMunicipios
+            .AsNoTracking()
+            .Select(m => new { m.Nombre, m.CodigoDaneDepto })
+            .ToListAsync(ct);
+
+        return munis
+            .Where(m => deptNames.ContainsKey(m.CodigoDaneDepto))
+            .GroupBy(m => deptNames[m.CodigoDaneDepto])
+            .Select(g => (
+                Departamento: g.Key,
+                Municipios: (IReadOnlyList<string>)g.Select(m => m.Nombre)
+                    .Distinct()
+                    .OrderBy(n => n, StringComparer.Create(new System.Globalization.CultureInfo("es"), false))
+                    .ToList()))
+            .ToList();
+    }
 }
