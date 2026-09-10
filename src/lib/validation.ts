@@ -76,7 +76,11 @@ export function validateWell(
     { key: "pozo_existente_avm", catalog: "pozo_existente_avm", label: "¿Pozo existente en AVM ANH?" },
     { key: "operadora", catalog: "operadoras", label: "Operadora" },
     { key: "contrato", catalog: "contratos", label: "Contrato según AVM ANH" },
+    { key: "tipo_contrato", catalog: "tipos_contrato", label: "Tipo de contrato" },
     { key: "campo_avm", catalog: "campos_avm", label: "Campo AVM" },
+    { key: "pozo_formacion_avm", catalog: "pozos_formacion_avm", label: "Pozo formación AVM" },
+    { key: "pozo_avm", catalog: "pozos_avm", label: "Pozo AVM" },
+    { key: "formacion_avm", catalog: "formaciones_avm", label: "Formación AVM" },
     { key: "formacion_ruty", catalog: "formaciones_ruty", label: "Formación RUTY" },
     { key: "yacimiento_ruty", catalog: "yacimientos_ruty", label: "Yacimiento RUTY" },
     { key: "tipo_angulo", catalog: "tipo_angulo", label: "Tipo de pozo por ángulo" },
@@ -86,6 +90,7 @@ export function validateWell(
     { key: "sistema_levantamiento", catalog: "sistema_levantamiento", label: "Sistema de levantamiento" },
     { key: "clasificacion_lahee", catalog: "clasificacion_lahee", label: "Clasificación Lahee final" },
     { key: "nombre_pozo_sgc", catalog: "nombres_pozo_sgc", label: "Nombre pozo (SGC)" },
+    { key: "uwi_sgc", catalog: "uwis_sgc", label: "UWI (SGC)" },
     { key: "estado_pozo", catalog: "estado_pozo", label: "Estado del pozo" },
     { key: "departamento", catalog: "departamentos", label: "Departamento" },
   ];
@@ -249,7 +254,7 @@ export function summarizeValidation(results: ValidationResult[]) {
 /** Active checks in validateWell plus UWI instructivo rules (abril 2026). */
 export function getActiveValidationRuleCount(): number {
   const requiredFields = 8;
-  const selectChecks = 15;
+  const selectChecks = 20;
   const conditionalAvm = 3;
   const levantamiento = 1;
   const numericFields = 8;

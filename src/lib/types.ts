@@ -4,6 +4,7 @@ export interface WellRecord {
   pozo_existente_avm: string | null;
   operadora: string | null;
   contrato: string | null;
+  tipo_contrato: string | null;
   campo_avm: string | null;
   pozo_formacion_avm: string | null;
   pozo_avm: string | null;

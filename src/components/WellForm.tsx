@@ -11,6 +11,7 @@ const EMPTY_RECORD: WellRecord = {
   pozo_existente_avm: null,
   operadora: null,
   contrato: null,
+  tipo_contrato: null,
   campo_avm: null,
   pozo_formacion_avm: null,
   pozo_avm: null,

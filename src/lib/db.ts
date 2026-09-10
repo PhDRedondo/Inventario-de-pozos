@@ -43,6 +43,7 @@ function initSchema(database: Database.Database) {
       pozo_existente_avm TEXT,
       operadora TEXT,
       contrato TEXT,
+      tipo_contrato TEXT,
       campo_avm TEXT,
       pozo_formacion_avm TEXT,
       pozo_avm TEXT,
@@ -99,6 +100,15 @@ function initSchema(database: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_wells_estado ON wells(estado_pozo);
     CREATE INDEX IF NOT EXISTS idx_wells_upload ON wells(upload_id);
   `);
+
+  // Migración incremental: columnas añadidas después de la creación original.
+  for (const col of ["tipo_contrato"]) {
+    try {
+      database.exec(`ALTER TABLE wells ADD COLUMN ${col} TEXT`);
+    } catch {
+      /* la columna ya existe */
+    }
+  }
 }
 
 function seedIfEmpty(database: Database.Database) {
@@ -119,7 +129,7 @@ function seedIfEmpty(database: Database.Database) {
 
   const insertWell = database.prepare(`
     INSERT INTO wells (
-      upload_id, pozo_existente_avm, operadora, contrato, campo_avm, pozo_formacion_avm, pozo_avm,
+      upload_id, pozo_existente_avm, operadora, contrato, tipo_contrato, campo_avm, pozo_formacion_avm, pozo_avm,
       formacion_avm, formacion_forma_9sh, formacion_ruty, yacimiento_ruty, tipo_angulo, tipo_trayectoria,
       tipo_objetivo, tipo_terminacion, sistema_levantamiento, clasificacion_lahee, nombre_pozo_forma_6cr,
       uwi_sgc, uwi_fiscalizado, nombre_pozo_sgc, estado_pozo, departamento, municipio, codigo_dane_depto,
@@ -127,7 +137,7 @@ function seedIfEmpty(database: Database.Database) {
       longitud, latitud, prod_dias, prod_petroleo, prod_agua, prod_gas, iny_dias, iny_agua, iny_gas,
       iny_otros, validation_status
     ) VALUES (
-      @upload_id, @pozo_existente_avm, @operadora, @contrato, @campo_avm, @pozo_formacion_avm, @pozo_avm,
+      @upload_id, @pozo_existente_avm, @operadora, @contrato, @tipo_contrato, @campo_avm, @pozo_formacion_avm, @pozo_avm,
       @formacion_avm, @formacion_forma_9sh, @formacion_ruty, @yacimiento_ruty, @tipo_angulo, @tipo_trayectoria,
       @tipo_objetivo, @tipo_terminacion, @sistema_levantamiento, @clasificacion_lahee, @nombre_pozo_forma_6cr,
       @uwi_sgc, @uwi_fiscalizado, @nombre_pozo_sgc, @estado_pozo, @departamento, @municipio, @codigo_dane_depto,
@@ -247,7 +257,7 @@ function recomputeStoredUwis(database: Database.Database) {
 }
 
 const WELL_FIELDS = [
-  "pozo_existente_avm", "operadora", "contrato", "campo_avm", "pozo_formacion_avm", "pozo_avm",
+  "pozo_existente_avm", "operadora", "contrato", "tipo_contrato", "campo_avm", "pozo_formacion_avm", "pozo_avm",
   "formacion_avm", "formacion_forma_9sh", "formacion_ruty", "yacimiento_ruty", "tipo_angulo",
   "tipo_trayectoria", "tipo_objetivo", "tipo_terminacion", "sistema_levantamiento",
   "clasificacion_lahee", "nombre_pozo_forma_6cr", "uwi_sgc", "uwi_fiscalizado", "nombre_pozo_sgc",

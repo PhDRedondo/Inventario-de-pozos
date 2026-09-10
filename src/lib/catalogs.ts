@@ -18,30 +18,18 @@ export const ANH_COLORS = {
 
 export const THEMES: ThemeDefinition[] = [
   {
-    id: "tema",
-    title: "Tipo de registro",
-    description: "Indique si el pozo se mantiene, se crea o se modifica en el AVM.",
-    fields: [
-      {
-        key: "pozo_existente_avm",
-        label: "¿Pozo existente en AVM ANH?",
-        type: "select",
-        catalogKey: "pozo_existente_avm",
-        required: true,
-      },
-    ],
-  },
-  {
     id: "avm",
-    title: "Información AVM",
-    description: "Datos de operadora, contrato, campo petrolero (AVM) y formaciones según el AVM de la ANH.",
+    title: "Información AVM y contrato",
+    description: "Operadora, contrato y campo (AVM), tipo de registro y formaciones según el AVM de la ANH.",
     fields: [
       { key: "operadora", label: "Operadora", type: "select", catalogKey: "operadoras", required: true },
       { key: "contrato", label: "Contrato según AVM ANH", type: "select", catalogKey: "contratos", required: true },
+      { key: "tipo_contrato", label: "Tipo de contrato", type: "select", catalogKey: "tipos_contrato", required: false },
       { key: "campo_avm", label: "Campo AVM", type: "select", catalogKey: "campos_avm", required: true },
-      { key: "pozo_formacion_avm", label: "Pozo formación AVM", type: "text", required: false },
-      { key: "pozo_avm", label: "Pozo AVM", type: "text", required: false },
-      { key: "formacion_avm", label: "Formación AVM", type: "text", required: false },
+      { key: "pozo_existente_avm", label: "¿Pozo existente en AVM ANH?", type: "select", catalogKey: "pozo_existente_avm", required: true },
+      { key: "pozo_formacion_avm", label: "Pozo formación AVM", type: "select", catalogKey: "pozos_formacion_avm", required: false },
+      { key: "pozo_avm", label: "Pozo AVM", type: "select", catalogKey: "pozos_avm", required: false },
+      { key: "formacion_avm", label: "Formación AVM", type: "select", catalogKey: "formaciones_avm", required: false },
     ],
   },
   {
@@ -67,7 +55,7 @@ export const THEMES: ThemeDefinition[] = [
       { key: "clasificacion_lahee", label: "Clasificación Lahee final", type: "select", catalogKey: "clasificacion_lahee" },
       { key: "nombre_pozo_forma_6cr", label: "Nombre pozo FORMA 6CR", type: "text" },
       { key: "nombre_pozo_sgc", label: "Nombre pozo (SGC)", type: "select", catalogKey: "nombres_pozo_sgc", required: true },
-      { key: "uwi_sgc", label: "UWI (SGC)", type: "text" },
+      { key: "uwi_sgc", label: "UWI (SGC)", type: "select", catalogKey: "uwis_sgc" },
       { key: "uwi_fiscalizado", label: "UWI fiscalizado (generado)", type: "readonly" },
       { key: "estado_pozo", label: "Estado del pozo", type: "select", catalogKey: "estado_pozo", required: true },
     ],
@@ -118,6 +106,7 @@ export const EXCEL_COLUMN_MAP: Record<string, keyof import("./types").WellRecord
   "POZO EXISTENTE EN AVM ANH?": "pozo_existente_avm",
   OPERADORA: "operadora",
   "CONTRATO SEGÚN AVM ANH": "contrato",
+  "TIPO DE CONTRATO": "tipo_contrato",
   "CAMPO AVM": "campo_avm",
   "POZO FORMACION AVM": "pozo_formacion_avm",
   "POZO AVM": "pozo_avm",
