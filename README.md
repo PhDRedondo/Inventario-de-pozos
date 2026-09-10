@@ -865,12 +865,12 @@ Panel (inventario validado) → Analítica (comparar vs promedio nacional)
 
 ## Validación y UWI fiscalizado
 
-Motor en `src/lib/validation.ts`. Reglas activas (~59 comprobaciones según `getActiveValidationRuleCount()`):
+Motor en `src/lib/validation.ts`. Reglas activas (~61 comprobaciones según `getActiveValidationRuleCount()`):
 
 | Categoría | Ejemplos |
 |-----------|----------|
 | **Obligatorios** | Operadora, contrato, campo AVM, nombre pozo SGC, estado, departamento, municipio |
-| **Catálogos** | Listas oficiales en `data/seed.json` (operadoras, contratos, formaciones, tipos de pozo, etc.) |
+| **Catálogos** | Listas oficiales en `data/seed.json`: operadoras, **contratos normalizados** (cruce GOP ↔ Áreas), **nombre de pozo (SGC)** (registro oficial), **clasificación Lahee**, estado del pozo, formaciones, tipos de pozo, etc. |
 | **Departamento DANE** | Validación canónica vía `isCanonicalDepartamento()` |
 | **Condicionales** | Campos AVM si «SE MANTIENE» / «MODIFIC»; sistema de levantamiento si productor |
 | **Numéricos** | Producción e inyección acumulada |
