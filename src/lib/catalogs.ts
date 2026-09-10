@@ -66,7 +66,7 @@ export const THEMES: ThemeDefinition[] = [
       { key: "sistema_levantamiento", label: "Sistema de levantamiento", type: "select", catalogKey: "sistema_levantamiento" },
       { key: "clasificacion_lahee", label: "Clasificación Lahee final", type: "select", catalogKey: "clasificacion_lahee" },
       { key: "nombre_pozo_forma_6cr", label: "Nombre pozo FORMA 6CR", type: "text" },
-      { key: "nombre_pozo_sgc", label: "Nombre pozo (SGC)", type: "text", required: true },
+      { key: "nombre_pozo_sgc", label: "Nombre pozo (SGC)", type: "select", catalogKey: "nombres_pozo_sgc", required: true },
       { key: "uwi_sgc", label: "UWI (SGC)", type: "text" },
       { key: "uwi_fiscalizado", label: "UWI fiscalizado (generado)", type: "readonly" },
       { key: "estado_pozo", label: "Estado del pozo", type: "select", catalogKey: "estado_pozo", required: true },

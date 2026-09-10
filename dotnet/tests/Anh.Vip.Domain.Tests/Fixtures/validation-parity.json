@@ -64,7 +64,7 @@
   "ambar": {
     "uwi": "50568AMBA0157AM0116HST1P-LR",
     "is_valid": false,
-    "error_count": 7,
+    "error_count": 8,
     "warning_count": 1,
     "issues": [
       {
@@ -108,6 +108,12 @@
         "severity": "error",
         "rule": "required",
         "message": "El atributo \"Municipio\" es obligatorio."
+      },
+      {
+        "field": "nombre_pozo_sgc",
+        "severity": "error",
+        "rule": "catalog",
+        "message": "El valor \"AMBAR 157H ST1\" no está en la lista permitida para \"Nombre pozo (SGC)\"."
       },
       {
         "field": "sistema_levantamiento",

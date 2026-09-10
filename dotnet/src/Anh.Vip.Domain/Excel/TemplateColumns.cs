@@ -36,7 +36,7 @@ public static class TemplateColumns
         ("sistema_levantamiento", "select", "sistema_levantamiento", false),
         ("clasificacion_lahee", "select", "clasificacion_lahee", false),
         ("nombre_pozo_forma_6cr", "text", null, false),
-        ("nombre_pozo_sgc", "text", null, true),
+        ("nombre_pozo_sgc", "select", "nombres_pozo_sgc", true),
         ("uwi_sgc", "text", null, false),
         ("estado_pozo", "select", "estado_pozo", true),
         ("departamento", "select", "departamentos", true),

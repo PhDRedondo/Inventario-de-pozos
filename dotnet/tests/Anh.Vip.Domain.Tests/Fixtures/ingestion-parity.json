@@ -45,9 +45,15 @@
       },
       "uwi": "50568RUBI0323AM0116HSTP-LR",
       "validation_status": "invalid",
-      "error_count": 1,
+      "error_count": 2,
       "warning_count": 3,
       "issues": [
+        {
+          "field": "nombre_pozo_sgc",
+          "severity": "error",
+          "rule": "catalog",
+          "message": "El valor \"RUBIALES 323\" no está en la lista permitida para \"Nombre pozo (SGC)\"."
+        },
         {
           "field": "pozo_avm",
           "severity": "warning",
