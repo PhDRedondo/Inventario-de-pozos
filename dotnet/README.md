@@ -191,7 +191,7 @@ sin «LISTA»).
   - **UWI (10):** 8 casos del instructivo (`INSTRUCTIVO_EXAMPLES`) + 2 de nulos.
   - **Validación (5):** paridad de `validateWell` contra la salida canónica del
     piloto para 3 registros de referencia (`Fixtures/validation-parity.json`),
-    el conteo de 61 reglas activas y el resumen agregado.
+    el conteo de 66 reglas activas y el resumen agregado.
   - **ETL (6):** paridad de `normalizeWellRecordForIngest` + `resolveDaneCodes`
     contra el piloto para 5 registros (limpio, minúsculas, desconocido,
     mojibake, vacío) (`Fixtures/etl-parity.json`) y `isCanonicalDepartamento`.

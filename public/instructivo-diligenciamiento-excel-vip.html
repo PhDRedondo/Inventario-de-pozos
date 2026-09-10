@@ -71,12 +71,12 @@
     <h1>Instructivo para el diligenciamiento del formato Excel</h1>
     <p class="subtitle">
       Guía para que las operadoras diligencien correctamente el formato oficial del inventario de pozos
-      (hoja <strong>FORMATO INVENTARIO POZOS</strong>): estructura del archivo, diccionario de los 40 atributos
+      (hoja <strong>FORMATO INVENTARIO POZOS</strong>): estructura del archivo, diccionario de los 41 atributos
       por tema, reglas de validación y proceso de carga y envío a la ANH.
     </p>
     <div class="meta-row">
       <span class="meta-chip">Módulo: Inventario de Pozos (GOP)</span>
-      <span class="meta-chip">40 atributos · 8 temas</span>
+      <span class="meta-chip">41 atributos · 8 temas</span>
       <span class="meta-chip">UWI fiscalizado: instructivo ANH abr 2026 (PPDM)</span>
     </div>
   </div>
@@ -96,7 +96,7 @@
   <h2 id="proposito">1. Propósito y alcance</h2>
   <p>
     Este instructivo guía a las operadoras en el diligenciamiento del formato Excel del inventario de pozos que se
-    carga y valida en el VIP. El formato reúne <strong>40 atributos</strong> organizados en temas (información AVM,
+    carga y valida en el VIP. El formato reúne <strong>41 atributos</strong> organizados en temas (información AVM,
     general, ubicación, producción e inyección). El sistema valida cada registro, asigna el <strong>UWI
     fiscalizado</strong> y reporta errores y advertencias por pozo.
   </p>
@@ -114,6 +114,8 @@
     <li>Diligencie una fila por pozo en la hoja «INVENTARIO». No cambie los encabezados de la fila 1.</li>
     <li>Las columnas marcadas con «&nbsp;*&nbsp;» (y con <span class="badge req">Obligatorio</span> en este instructivo) son obligatorias.</li>
     <li>En las columnas con lista desplegable, elija un valor del selector (flecha a la derecha de la celda). No escriba valores libres en esas columnas.</li>
+    <li><strong>Municipio depende del departamento:</strong> elija primero el <strong>Departamento</strong> y luego el <strong>Municipio</strong>; el selector de municipio solo mostrará los del departamento seleccionado.</li>
+    <li>En las listas de gran tamaño tomadas del AVM y del cruce SGC (Pozo formación AVM, Pozo AVM, Formación AVM, UWI (SGC)), si el valor no aparece elija la opción <strong>«No aparece»</strong>.</li>
     <li>Los códigos DANE y el UWI fiscalizado se calculan automáticamente al cargar; no es necesario diligenciarlos.</li>
     <li>Si necesita más filas, copie una fila existente hacia abajo para conservar los selectores.</li>
     <li>Guarde el archivo en formato <code>.xlsx</code> y cárguelo en el cuaderno con «Validar y crear versión».</li>
@@ -138,10 +140,11 @@
     <tbody>
       <tr><td><strong>Operadora</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista oficial de operadoras (ANH).</td></tr>
       <tr><td><strong>Contrato según AVM ANH</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista de contratos <strong>normalizados</strong> (cruce GOP ↔ Áreas Asignadas). Un contrato fuera de la lista se marca como error.</td></tr>
+      <tr><td><strong>Tipo de contrato</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>Tipo de contrato según el AVM (lista desplegable).</td></tr>
       <tr><td><strong>Campo AVM</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista oficial de campos (AVM).</td></tr>
-      <tr><td><strong>Pozo formación AVM</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Texto libre, según el AVM.</td></tr>
-      <tr><td><strong>Pozo AVM</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Texto libre, según el AVM.</td></tr>
-      <tr><td><strong>Formación AVM</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Texto libre, según el AVM.</td></tr>
+      <tr><td><strong>Pozo formación AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+      <tr><td><strong>Pozo AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+      <tr><td><strong>Formación AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
     </tbody>
   </table>
 
@@ -169,7 +172,7 @@
       <tr><td><strong>Clasificación Lahee final</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>B1 · B3 · C3 · B2C · B2A · B2B · C2A · C2B · C2C · Desarrollo · C1.</td></tr>
       <tr><td><strong>Nombre pozo FORMA 6CR</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Texto libre.</td></tr>
       <tr><td><strong>Nombre pozo (SGC)</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Nombre oficial del pozo según el registro SGC (lista desplegable). Un nombre fuera del SGC se marca como error.</td></tr>
-      <tr><td><strong>UWI (SGC)</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Opcional. Si difiere del UWI fiscalizado generado, se marca como información.</td></tr>
+      <tr><td><strong>UWI (SGC)</strong></td><td class="type">Lista</td><td class="oblig">—</td><td>Lista desplegable de UWI del cruce SGC (hoja «Pozos_UWI»). Si el UWI no está en la lista, elija <strong>«No aparece»</strong>. Si difiere del UWI fiscalizado generado, se marca como información.</td></tr>
       <tr><td><strong>UWI fiscalizado (generado)</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td>Se genera automáticamente. <em>No diligenciar.</em></td></tr>
       <tr><td><strong>Estado del pozo</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Activo · Inactivo · Suspendido Temporalmente (con/sin Plan) · Abandonado Temporalmente (con/sin Plan) · Abandonado Definitivamente · No se encuentra.</td></tr>
     </tbody>
@@ -180,8 +183,8 @@
   <table>
     <thead><tr><th>Columna (Excel / formulario)</th><th>Tipo</th><th>Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
     <tbody>
-      <tr><td><strong>Departamento</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista oficial DANE.</td></tr>
-      <tr><td><strong>Municipio</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista oficial DANE.</td></tr>
+      <tr><td><strong>Departamento</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista oficial DANE. <strong>Selecciónelo primero:</strong> de él depende la lista de municipios.</td></tr>
+      <tr><td><strong>Municipio</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td>Lista <strong>dependiente</strong> del departamento: solo muestra los municipios (DANE) del departamento elegido. Cambie el departamento y la lista de municipios se ajusta.</td></tr>
       <tr><td><strong>Código DANE departamento</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td>Se calcula desde el departamento. <em>No diligenciar.</em></td></tr>
       <tr><td><strong>Código DANE municipio</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td>Se calcula desde el municipio. <em>No diligenciar.</em></td></tr>
       <tr><td><strong>Locación-clúster</strong></td><td class="type">Texto</td><td class="oblig">—</td><td>Nombre de la locación o clúster (usado para el UWI).</td></tr>

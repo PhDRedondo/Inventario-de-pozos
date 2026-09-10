@@ -79,7 +79,7 @@ El sistema cubre el ciclo completo del inventario de pozos:
 4. **Funcionarios ANH** consultan el inventario **ya validado** en el panel y profundizan en **analítica comparativa** (radar, coropleto territorial por indicador, nubes de producción).
 5. El **administrador** gestiona usuarios y puede operar cuadernos en nombre de cualquier operadora.
 
-Los **40 atributos** del formato Excel están centralizados en `src/lib/catalogs.ts` (temas) y `src/lib/attributes.ts` (29 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado). La misma definición alimenta el **formulario, la validación, la plantilla descargable y el parser de carga**, de modo que las cuatro caras del sistema nunca se desincronizan.
+Los **41 atributos** del formato Excel están centralizados en `src/lib/catalogs.ts` (temas) y `src/lib/attributes.ts` (30 columnas del mapa oficial + columnas especiales + UWI fiscalizado generado). La misma definición alimenta el **formulario, la validación, la plantilla descargable y el parser de carga**, de modo que las cuatro caras del sistema nunca se desincronizan.
 
 ---
 
@@ -189,7 +189,7 @@ dotnet/
 │   │   ├── Ingest/             #   Pipeline de ingesta (WellIngestor)
 │   │   ├── Entities/           #   Entidades EF Core (wells, uploads, notebooks, cat_*)
 │   │   ├── Catalogs/ · Text/   #   Catálogos y normalización de texto español
-│   │   └── Attributes/         #   Etiquetas de los 40 atributos del formato
+│   │   └── Attributes/         #   Etiquetas de los 41 atributos del formato
 │   ├── Anh.Vip.Infrastructure/  # Persistencia y servicios
 │   │   ├── VipDbContext.cs     #   DbContext (esquema [vip])
 │   │   ├── Migrations/         #   Migraciones EF Core (InitialCreate)
@@ -519,7 +519,7 @@ flowchart LR
 
 Para que la operadora **no tenga que adivinar el formato**, el sistema genera bajo demanda una plantilla Excel lista para diligenciar. Es el mismo archivo que luego se vuelve a cargar: descargar → diligenciar → cargar.
 
-> 📄 **Instructivo de diligenciamiento:** [`public/instructivo-diligenciamiento-excel-vip.html`](public/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 40 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). La app lo sirve en `/instructivo-diligenciamiento-excel-vip.html` (enlazado desde el modal «Acerca»); ábralo en el navegador o expórtelo a PDF.
+> 📄 **Instructivo de diligenciamiento:** [`public/instructivo-diligenciamiento-excel-vip.html`](public/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 41 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). La app lo sirve en `/instructivo-diligenciamiento-excel-vip.html` (enlazado desde el modal «Acerca»); ábralo en el navegador o expórtelo a PDF.
 
 ```mermaid
 sequenceDiagram
@@ -547,10 +547,10 @@ sequenceDiagram
 | **Listas** (oculta) | Una columna por catálogo; las celdas de INVENTARIO referencian estos rangos como **listas desplegables**. |
 | **Instrucciones** | Cómo diligenciar, campos obligatorios y que los códigos DANE / UWI se calculan al cargar. |
 
-- **Selectores (data validation):** 14 columnas de catálogo (estado del pozo, tipo de pozo, operadora, contrato, campo AVM, departamento, municipio, formaciones…) se despliegan desde la hoja `Listas`.
+- **Selectores (data validation):** 21 columnas de catálogo (operadora, contrato, **tipo de contrato**, campo AVM, **pozo formación / pozo / formación AVM**, estado del pozo, tipos de pozo, clasificación Lahee, **nombre pozo (SGC)**, **UWI (SGC)**, departamento, municipio, formaciones…) se despliegan desde la hoja `Listas`. En las listas grandes tomadas del AVM y del cruce SGC se incluye la opción **«No aparece»**.
 - **Obligatorios:** resaltados en naranja + nota «Campo obligatorio». No se marca con `*` en el encabezado, porque el texto del encabezado es la **llave que usa el parser** para mapear cada columna a su atributo.
-- **Columnas compartidas:** `template-columns.ts` define las columnas una sola vez y las usan tanto el **generador** como el **parser de carga**. Las 29 columnas ya mapeadas reutilizan los encabezados oficiales; las 10 columnas especiales (coordenadas e inyección) usan encabezados limpios registrados en `TEMPLATE_SPECIAL_COLUMN_MAP`, de modo que la plantilla **hace round-trip** al recargarse.
-- **Municipio:** lista completa del catálogo DANE (sin cascada dependiente del departamento) por robustez en Excel; la validación al cargar corrige lo que no coincida.
+- **Columnas compartidas:** `template-columns.ts` define las columnas una sola vez (en el orden oficial del formato) y las usan tanto el **generador** como el **parser de carga**. Las 30 columnas ya mapeadas reutilizan los encabezados oficiales; las 10 columnas especiales (coordenadas e inyección) usan encabezados limpios registrados en `TEMPLATE_SPECIAL_COLUMN_MAP`, de modo que la plantilla **hace round-trip** al recargarse.
+- **Municipio dependiente del departamento:** el selector de municipio es una **lista dependiente** — al elegir el departamento solo aparecen sus municipios. Se implementa con un rango con nombre por departamento (`D_<DEPARTAMENTO>`) en la hoja `Listas` e `INDIRECT(...)` en la validación, igual en el piloto (ExcelJS) y en la versión institucional (ClosedXML).
 
 Puntos de descarga (misma función en dos lugares):
 
@@ -865,12 +865,12 @@ Panel (inventario validado) → Analítica (comparar vs promedio nacional)
 
 ## Validación y UWI fiscalizado
 
-Motor en `src/lib/validation.ts`. Reglas activas (~61 comprobaciones según `getActiveValidationRuleCount()`):
+Motor en `src/lib/validation.ts`. Reglas activas (~66 comprobaciones según `getActiveValidationRuleCount()`):
 
 | Categoría | Ejemplos |
 |-----------|----------|
 | **Obligatorios** | Operadora, contrato, campo AVM, nombre pozo SGC, estado, departamento, municipio |
-| **Catálogos** | Listas oficiales en `data/seed.json`: operadoras, **contratos normalizados** (cruce GOP ↔ Áreas), **nombre de pozo (SGC)** (registro oficial), **clasificación Lahee**, estado del pozo, formaciones, tipos de pozo, etc. |
+| **Catálogos** | Listas oficiales en `data/seed.json`: operadoras, **contratos normalizados** (cruce GOP ↔ Áreas), **tipo de contrato**, **pozo formación / pozo / formación AVM** (del AVM, con «No aparece»), **nombre de pozo (SGC)** y **UWI (SGC)** (registro y cruce SGC, con «No aparece»), **clasificación Lahee**, estado del pozo, formaciones, tipos de pozo, etc. |
 | **Departamento DANE** | Validación canónica vía `isCanonicalDepartamento()` |
 | **Condicionales** | Campos AVM si «SE MANTIENE» / «MODIFIC»; sistema de levantamiento si productor |
 | **Numéricos** | Producción e inyección acumulada |
@@ -1281,7 +1281,7 @@ lo indicado aplica al **piloto** Next.js/SQLite de este README.
 | **Correo** | Simulado en `data/outbox/` | ✅ SMTP real (verificado con catcher local) |
 | **Autenticación** | Usuarios locales (demo) | ✅ Entra ID + MFA (API fail-closed; SPA con MSAL) · ⛔ falta tenant real |
 | **Migraciones DB** | `ensureColumn` ad hoc | ✅ Migraciones EF Core versionadas |
-| **Plantilla — cascada municipio** | Lista completa sin dependencia del departamento | Listas dependientes (INDIRECT) si se requiere |
+| **Plantilla — cascada municipio** | ✅ Lista dependiente (INDIRECT + rangos con nombre por departamento) | ✅ Misma cascada en ClosedXML |
 | **Producción institucional** | Demo en Vercel + repo personal | Ver [`docs/guia-produccion-anh.html`](docs/guia-produccion-anh.html) |
 
 ---
