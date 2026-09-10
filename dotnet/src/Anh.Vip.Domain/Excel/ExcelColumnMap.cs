@@ -11,12 +11,13 @@ namespace Anh.Vip.Domain.Excel;
 /// </summary>
 public static class ExcelColumnMap
 {
-    /// <summary>Encabezado oficial -> atributo (29 columnas mapeadas). Preserva dobles espacios.</summary>
+    /// <summary>Encabezado oficial -> atributo (30 columnas mapeadas). Preserva dobles espacios.</summary>
     public static readonly IReadOnlyList<(string Header, string Key)> ColumnMap = new[]
     {
         ("POZO EXISTENTE EN AVM ANH?", "pozo_existente_avm"),
         ("OPERADORA", "operadora"),
         ("CONTRATO SEGÚN AVM ANH", "contrato"),
+        ("TIPO DE CONTRATO", "tipo_contrato"),
         ("CAMPO AVM", "campo_avm"),
         ("POZO FORMACION AVM", "pozo_formacion_avm"),
         ("POZO AVM", "pozo_avm"),

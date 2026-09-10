@@ -19,16 +19,20 @@ public static class TemplateColumns
     // (clave, tipo, catálogo, obligatorio) en el orden de los temas del formato.
     private static readonly (string Key, string Type, string? Catalog, bool Required)[] Defs =
     {
-        ("pozo_existente_avm", "select", "pozo_existente_avm", true),
+        // Tema "avm": Información AVM y contrato.
         ("operadora", "select", "operadoras", true),
         ("contrato", "select", "contratos", true),
+        ("tipo_contrato", "select", "tipos_contrato", false),
         ("campo_avm", "select", "campos_avm", true),
-        ("pozo_formacion_avm", "text", null, false),
-        ("pozo_avm", "text", null, false),
-        ("formacion_avm", "text", null, false),
+        ("pozo_existente_avm", "select", "pozo_existente_avm", true),
+        ("pozo_formacion_avm", "select", "pozos_formacion_avm", false),
+        ("pozo_avm", "select", "pozos_avm", false),
+        ("formacion_avm", "select", "formaciones_avm", false),
+        // Tema "formaciones": otras fuentes.
         ("formacion_forma_9sh", "text", null, false),
         ("formacion_ruty", "select", "formaciones_ruty", false),
         ("yacimiento_ruty", "select", "yacimientos_ruty", false),
+        // Tema "general": clasificación técnica, UWI y estado.
         ("tipo_angulo", "select", "tipo_angulo", false),
         ("tipo_trayectoria", "select", "tipo_trayectoria", false),
         ("tipo_objetivo", "select", "tipo_objetivo", false),
@@ -37,8 +41,9 @@ public static class TemplateColumns
         ("clasificacion_lahee", "select", "clasificacion_lahee", false),
         ("nombre_pozo_forma_6cr", "text", null, false),
         ("nombre_pozo_sgc", "select", "nombres_pozo_sgc", true),
-        ("uwi_sgc", "text", null, false),
+        ("uwi_sgc", "select", "uwis_sgc", false),
         ("estado_pozo", "select", "estado_pozo", true),
+        // Tema "ubicacion".
         ("departamento", "select", "departamentos", true),
         ("municipio", "select", "municipios", true),
         ("locacion_cluster", "text", null, false),

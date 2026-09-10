@@ -11,6 +11,7 @@ public static class AttributeLabels
         ["pozo_existente_avm"] = "¿Pozo existente en AVM ANH?",
         ["operadora"] = "Operadora",
         ["contrato"] = "Contrato según AVM ANH",
+        ["tipo_contrato"] = "Tipo de contrato",
         ["campo_avm"] = "Campo AVM",
         ["pozo_formacion_avm"] = "Pozo formación AVM",
         ["pozo_avm"] = "Pozo AVM",

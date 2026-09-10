@@ -55,6 +55,7 @@ public class Well
     [Column("pozo_existente_avm")] public string? PozoExistenteAvm { get; set; }
     [Column("operadora")] public string? Operadora { get; set; }
     [Column("contrato")] public string? Contrato { get; set; }
+    [Column("tipo_contrato")] public string? TipoContrato { get; set; }
     [Column("campo_avm")] public string? CampoAvm { get; set; }
     [Column("pozo_formacion_avm")] public string? PozoFormacionAvm { get; set; }
     [Column("pozo_avm")] public string? PozoAvm { get; set; }

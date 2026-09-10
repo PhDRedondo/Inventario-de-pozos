@@ -64,7 +64,7 @@
   "ambar": {
     "uwi": "50568AMBA0157AM0116HST1P-LR",
     "is_valid": false,
-    "error_count": 8,
+    "error_count": 9,
     "warning_count": 1,
     "issues": [
       {
@@ -114,6 +114,12 @@
         "severity": "error",
         "rule": "catalog",
         "message": "El valor \"AMBAR 157H ST1\" no está en la lista permitida para \"Nombre pozo (SGC)\"."
+      },
+      {
+        "field": "uwi_sgc",
+        "severity": "error",
+        "rule": "catalog",
+        "message": "El valor \"DIFERENTE-123\" no está en la lista permitida para \"UWI (SGC)\"."
       },
       {
         "field": "sistema_levantamiento",

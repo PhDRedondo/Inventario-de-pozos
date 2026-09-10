@@ -125,7 +125,7 @@ public class NotebookEndpointsTests : IClassFixture<VipApiFactory>
             var sheet = ExcelSheetReader.Read(ms);
             Assert.Equal("INVENTARIO", sheet.SheetName);
             Assert.Equal(3, sheet.Rows.Count);                       // 3 filas de datos
-            Assert.Equal(37, sheet.Rows[0].Count);                   // 37 columnas
+            Assert.Equal(38, sheet.Rows[0].Count);                   // 38 columnas (incl. TIPO DE CONTRATO)
             Assert.All(sheet.Rows, r => Assert.Equal("HOCOL S.A.", r["OPERADORA"])); // operadora prellenada
         }
 

@@ -32,7 +32,11 @@ public sealed class WellValidator(ICatalogProvider catalogs)
         ("pozo_existente_avm", "pozo_existente_avm", "¿Pozo existente en AVM ANH?"),
         ("operadora", "operadoras", "Operadora"),
         ("contrato", "contratos", "Contrato según AVM ANH"),
+        ("tipo_contrato", "tipos_contrato", "Tipo de contrato"),
         ("campo_avm", "campos_avm", "Campo AVM"),
+        ("pozo_formacion_avm", "pozos_formacion_avm", "Pozo formación AVM"),
+        ("pozo_avm", "pozos_avm", "Pozo AVM"),
+        ("formacion_avm", "formaciones_avm", "Formación AVM"),
         ("formacion_ruty", "formaciones_ruty", "Formación RUTY"),
         ("yacimiento_ruty", "yacimientos_ruty", "Yacimiento RUTY"),
         ("tipo_angulo", "tipo_angulo", "Tipo de pozo por ángulo"),
@@ -42,6 +46,7 @@ public sealed class WellValidator(ICatalogProvider catalogs)
         ("sistema_levantamiento", "sistema_levantamiento", "Sistema de levantamiento"),
         ("clasificacion_lahee", "clasificacion_lahee", "Clasificación Lahee final"),
         ("nombre_pozo_sgc", "nombres_pozo_sgc", "Nombre pozo (SGC)"),
+        ("uwi_sgc", "uwis_sgc", "UWI (SGC)"),
         ("estado_pozo", "estado_pozo", "Estado del pozo"),
         ("departamento", "departamentos", "Departamento"),
     };
@@ -171,7 +176,7 @@ public sealed class WellValidator(ICatalogProvider catalogs)
 
     /// <summary>Reglas activas en validateWell más el instructivo UWI (paridad con getActiveValidationRuleCount).</summary>
     public static int GetActiveValidationRuleCount() =>
-        8 + 15 + 3 + 1 + 8 + 4 + 2 + 1 + 1 + 18;
+        8 + 20 + 3 + 1 + 8 + 4 + 2 + 1 + 1 + 18;
 
     // ---- Helpers -------------------------------------------------------------
 
@@ -213,6 +218,7 @@ public sealed class WellValidator(ICatalogProvider catalogs)
         "pozo_existente_avm" => r.PozoExistenteAvm,
         "operadora" => r.Operadora,
         "contrato" => r.Contrato,
+        "tipo_contrato" => r.TipoContrato,
         "campo_avm" => r.CampoAvm,
         "pozo_formacion_avm" => r.PozoFormacionAvm,
         "pozo_avm" => r.PozoAvm,
@@ -224,7 +230,9 @@ public sealed class WellValidator(ICatalogProvider catalogs)
         "tipo_objetivo" => r.TipoObjetivo,
         "tipo_terminacion" => r.TipoTerminacion,
         "sistema_levantamiento" => r.SistemaLevantamiento,
+        "clasificacion_lahee" => r.ClasificacionLahee,
         "nombre_pozo_sgc" => r.NombrePozoSgc,
+        "uwi_sgc" => r.UwiSgc,
         "estado_pozo" => r.EstadoPozo,
         "departamento" => r.Departamento,
         "municipio" => r.Municipio,

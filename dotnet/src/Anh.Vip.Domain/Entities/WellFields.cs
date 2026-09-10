@@ -8,6 +8,7 @@ public static class WellFields
         "pozo_existente_avm" => w.PozoExistenteAvm,
         "operadora" => w.Operadora,
         "contrato" => w.Contrato,
+        "tipo_contrato" => w.TipoContrato,
         "campo_avm" => w.CampoAvm,
         "pozo_formacion_avm" => w.PozoFormacionAvm,
         "pozo_avm" => w.PozoAvm,
@@ -54,6 +55,7 @@ public static class WellFields
             case "pozo_existente_avm": w.PozoExistenteAvm = value; break;
             case "operadora": w.Operadora = value; break;
             case "contrato": w.Contrato = value; break;
+            case "tipo_contrato": w.TipoContrato = value; break;
             case "campo_avm": w.CampoAvm = value; break;
             case "pozo_formacion_avm": w.PozoFormacionAvm = value; break;
             case "pozo_avm": w.PozoAvm = value; break;
