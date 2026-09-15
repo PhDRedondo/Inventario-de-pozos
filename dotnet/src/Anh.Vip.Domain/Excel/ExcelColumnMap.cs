@@ -16,9 +16,9 @@ public static class ExcelColumnMap
     {
         ("POZO EXISTENTE EN AVM ANH?", "pozo_existente_avm"),
         ("OPERADORA", "operadora"),
-        ("CONTRATO ", "contrato"),
+        ("CONTRATO", "contrato"),
         ("TIPO DE CONTRATO", "tipo_contrato"),
-        ("CAMPO ", "campo_avm"),
+        ("CAMPO", "campo_avm"),
         ("POZO FORMACION AVM", "pozo_formacion_avm"),
         ("POZO AVM", "pozo_avm"),
         ("FORMACION AVM", "formacion_avm"),
