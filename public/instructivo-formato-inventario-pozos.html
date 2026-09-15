@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Instructivo para el diligenciamiento del formato de inventario de pozos — ANH</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #ffffff; --ink: #16232b; --muted: #5c6f7a;
+    --border: #dde5ea; --line-soft: #eef2f5;
+    --accent: #143240; --accent-2: #1e4a5f;
+    --orange: #ff8c00; --yellow: #ffc107; --red: #e53935;
+    --ok: #1b7f4a; --ok-bg: #e9f7ef;
+    --warn: #9a6700; --warn-bg: #fff6db;
+    --danger: #b42318; --danger-bg: #fdecea;
+    --na: #3f5763; --na-bg: #eef2f5;
+    --req: #b26a00; --req-bg: #fff1de;
+    --gradient: linear-gradient(90deg, var(--yellow), var(--orange), var(--red));
+    --font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --max: 900px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: var(--font); color: var(--ink); background: #eef2f5; line-height: 1.55; font-size: 14.5px; }
+
+  /* ---------- Cover / header ---------- */
+  .sheet { max-width: var(--max); margin: 0 auto; background: var(--surface); }
+  .bar { height: 6px; background: var(--gradient); }
+  header.cover { background: radial-gradient(140% 120% at 100% 0%, #1e4a5f 0%, #102730 60%, #0c1e26 100%); color: #eaf1f4; padding: 2.6rem 2.4rem 2.2rem; }
+  .eyebrow { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--orange); margin: 0 0 0.8rem; }
+  header.cover h1 { margin: 0; font-size: clamp(1.55rem, 3.4vw, 2.15rem); font-weight: 800; line-height: 1.16; letter-spacing: -0.01em; }
+  header.cover .subtitle { margin: 1rem 0 0; max-width: 40rem; color: #b4c5cd; font-size: 1.0rem; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .meta-chip { font-size: 0.72rem; font-weight: 700; padding: 0.32rem 0.72rem; border-radius: 999px; border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.07); color: #dbe6ea; }
+
+  main { padding: 2rem 2.4rem 2.6rem; }
+
+  /* ---------- Contents ---------- */
+  .toc { border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem; margin: 0 0 1.6rem; background: #fbfcfd; }
+  .toc h2 { border: none; margin: 0 0 0.55rem; padding: 0; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .toc ol { margin: 0; padding-left: 1.15rem; columns: 2; column-gap: 2rem; font-size: 0.92rem; }
+  .toc li { margin: 0.16rem 0; }
+  .toc a { color: var(--accent-2); text-decoration: none; }
+
+  /* ---------- Sections ---------- */
+  h2 { margin: 1.9rem 0 0.7rem; font-size: 1.28rem; font-weight: 800; color: var(--accent); padding-bottom: 0.35rem; border-bottom: 2px solid var(--orange); display: flex; align-items: baseline; gap: 0.6rem; }
+  h2 .num { display: inline-flex; align-items: center; justify-content: center; min-width: 1.6rem; height: 1.6rem; padding: 0 0.35rem; border-radius: 7px; background: var(--accent); color: #fff; font-size: 0.82rem; font-weight: 800; }
+  h3 { margin: 1.3rem 0 0.3rem; font-size: 1.02rem; font-weight: 800; color: var(--accent-2); }
+  .theme-desc { color: var(--muted); font-style: italic; margin: 0 0 0.4rem; font-size: 0.9rem; }
+  p, li { margin: 0.35rem 0; }
+  ul, ol { padding-left: 1.2rem; }
+
+  /* ---------- Legend ---------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 0.5rem 1.1rem; margin: 0.6rem 0 0.2rem; font-size: 0.86rem; color: var(--muted); }
+  .legend span b { color: var(--ink); }
+
+  /* ---------- Callouts ---------- */
+  .callout { border: 1px solid var(--border); border-radius: 11px; padding: 0.9rem 1.1rem; margin: 0.9rem 0; background: #fbfcfd; }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child, .callout ul:last-child { margin-bottom: 0; }
+  .callout.ok { border-left: 4px solid var(--ok); background: #f4fbf7; }
+  .callout.warn { border-left: 4px solid var(--warn); background: #fffdf3; }
+  .callout.danger { border-left: 4px solid var(--danger); background: #fdf5f4; }
+  .callout.info { border-left: 4px solid var(--na); background: #f8fafb; }
+  .callout.tip { border-left: 4px solid var(--orange); background: #fff9f0; }
+
+  .badge { display: inline-block; font-size: 0.68rem; font-weight: 800; padding: 0.16rem 0.5rem; border-radius: 999px; white-space: nowrap; vertical-align: middle; }
+  .ok { background: var(--ok-bg); color: var(--ok); }
+  .warn { background: var(--warn-bg); color: var(--warn); }
+  .fail { background: var(--danger-bg); color: var(--danger); }
+  .na { background: var(--na-bg); color: var(--na); }
+  .req { background: var(--req-bg); color: var(--req); }
+
+  /* ---------- Tables ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin: 0.45rem 0 1.05rem; }
+  th, td { border: 1px solid var(--border); padding: 0.48rem 0.6rem; text-align: left; vertical-align: top; }
+  thead th { background: var(--accent); color: #fff; font-size: 0.76rem; letter-spacing: 0.02em; font-weight: 700; }
+  tbody tr:nth-child(even) { background: #f7f9fb; }
+  td.type { white-space: nowrap; color: var(--accent-2); font-weight: 700; font-size: 0.8rem; }
+  td.oblig { text-align: center; white-space: nowrap; }
+  td .vals { color: var(--muted); }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.84em; background: #eef2f5; padding: 0.06rem 0.3rem; border-radius: 4px; }
+
+  /* ---------- Contact cards ---------- */
+  .contact-grid { display: flex; flex-wrap: wrap; gap: 0.9rem; margin: 0.7rem 0 0.3rem; }
+  .contact-card { flex: 1 1 260px; border: 1px solid var(--border); border-left: 4px solid var(--orange); border-radius: 11px; padding: 0.85rem 1.05rem; background: #fbfcfd; }
+  .contact-card .name { font-weight: 800; color: var(--accent); }
+  .contact-card .mail { margin-top: 0.2rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.82rem; color: var(--accent-2); word-break: break-all; }
+
+  footer { border-top: 1px solid var(--border); margin: 1.6rem 2.4rem 0; padding: 1rem 0 2rem; color: var(--muted); font-size: 0.8rem; }
+
+  /* ---------- Print ---------- */
+  @media print {
+    body { background: #fff; font-size: 10.6pt; }
+    .sheet { max-width: none; }
+    header.cover { padding: 2.2rem 1.8rem 1.8rem; }
+    main { padding: 1.4rem 1.8rem; }
+    footer { margin: 1rem 1.8rem 0; }
+    h2 { break-after: avoid; }
+    h3 { break-after: avoid; }
+    table, .callout, tr, .toc, .contact-card { break-inside: avoid; }
+    thead { display: table-header-group; }
+    a { color: inherit; text-decoration: none; }
+  }
+  @page { margin: 12mm 12mm 14mm; }
+</style>
+</head>
+<body>
+<div class="sheet">
+<div class="bar"></div>
+<header class="cover">
+  <p class="eyebrow">Agencia Nacional de Hidrocarburos · Inventario de Pozos</p>
+  <h1>Instructivo para el diligenciamiento del formato de inventario de pozos</h1>
+  <p class="subtitle">
+    Guía de campo para diligenciar correctamente el formato oficial en Excel (hoja
+    <strong>FORMATO INVENTARIO POZOS</strong>): estructura del archivo, significado y forma de
+    diligenciar cada uno de los 41 atributos, y requisitos de formato por columna.
+  </p>
+  <div class="meta-row">
+    <span class="meta-chip">Formato oficial ANH</span>
+    <span class="meta-chip">41 atributos · 6 temas</span>
+    <span class="meta-chip">Archivo .xlsx</span>
+    <span class="meta-chip">UWI fiscalizado · metodología PPDM (abr 2026)</span>
+  </div>
+</header>
+
+<main>
+  <nav class="toc">
+    <h2>Contenido</h2>
+    <ol>
+      <li><a href="#proposito">Propósito</a></li>
+      <li><a href="#estructura">Estructura del archivo</a></li>
+      <li><a href="#convenciones">Convenciones de diligenciamiento</a></li>
+      <li><a href="#diccionario">Diccionario de campos por tema</a></li>
+      <li><a href="#formato">Requisitos de formato por columna</a></li>
+      <li><a href="#uwi">UWI fiscalizado (autocalculado)</a></li>
+      <li><a href="#soporte">Soporte y contacto</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="proposito"><span class="num">1</span> Propósito y alcance</h2>
+  <p>
+    Este documento explica cómo diligenciar el <strong>formato Excel del inventario de pozos</strong> de la ANH.
+    El formato reúne <strong>41 atributos</strong> por pozo, organizados en seis temas: información AVM y contrato,
+    formaciones y yacimientos, información general del pozo, ubicación, producción e inyección. Diligencie
+    <strong>una fila por pozo</strong> en la hoja <code>INVENTARIO</code>, respetando los encabezados oficiales y
+    los requisitos de formato de cada columna que se describen más adelante.
+  </p>
+
+  <h2 id="estructura"><span class="num">2</span> Estructura del archivo</h2>
+  <p>El libro de Excel contiene tres hojas:</p>
+  <ul>
+    <li><strong>INVENTARIO:</strong> una fila por pozo. La <strong>fila 1</strong> son los encabezados oficiales; no los modifique, no los reordene ni inserte/elimine columnas.</li>
+    <li><strong>Listas</strong> (oculta): contiene los valores permitidos que alimentan los <strong>selectores</strong> (listas desplegables) de las columnas de catálogo. No la edite.</li>
+    <li><strong>Instrucciones:</strong> resumen rápido de diligenciamiento.</li>
+  </ul>
+
+  <h2 id="convenciones"><span class="num">3</span> Convenciones de diligenciamiento</h2>
+  <ol>
+    <li>Diligencie <strong>una fila por pozo</strong> en la hoja «INVENTARIO». No cambie los encabezados de la fila 1.</li>
+    <li>Las columnas <strong>obligatorias</strong> están resaltadas en naranja y marcadas con <span class="badge req">Obligatorio</span> en este instructivo: no las deje vacías.</li>
+    <li>En las columnas con <strong>lista desplegable</strong>, elija un valor del selector (flecha a la derecha de la celda). <strong>No escriba texto libre</strong> en esas columnas.</li>
+    <li><strong>Municipio depende del departamento:</strong> elija primero el <strong>Departamento</strong> y luego el <strong>Municipio</strong>; el selector de municipio solo mostrará los municipios de ese departamento.</li>
+    <li>En las listas de gran tamaño (Pozo formación AVM, Pozo AVM, Formación AVM y UWI (SGC)), si el valor no aparece en la lista, elija la opción <strong>«No aparece»</strong>.</li>
+    <li>Los campos <strong>autocalculados</strong> (códigos DANE y UWI fiscalizado) no se diligencian; se derivan de los demás datos.</li>
+    <li>Use <strong>punto o coma decimal</strong> de forma consistente en coordenadas y cantidades; no incluya separadores de miles ni unidades dentro de la celda.</li>
+    <li>Guarde el archivo en formato <code>.xlsx</code>. Para agregar más pozos, copie una fila existente hacia abajo y así conservará los selectores.</li>
+  </ol>
+
+  <h2 id="diccionario"><span class="num">4</span> Diccionario de campos por tema</h2>
+  <div class="legend">
+    <span><b>Tipos:</b></span>
+    <span><b>Lista</b> — selector cerrado</span>
+    <span><b>Texto</b> — libre</span>
+    <span><b>Numérico</b></span>
+    <span><b>Coordenada</b></span>
+    <span><b>Autocalc.</b> — no diligenciar</span>
+    <span><span class="badge req">Obligatorio</span></span>
+  </div>
+
+  <h3>4.1 Información AVM y contrato</h3>
+  <p class="theme-desc">Operadora, contrato, campo (AVM), tipo de registro y formaciones según el AVM de la ANH.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Operadora</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Lista oficial de operadoras (ANH).</td></tr>
+      <tr><td><strong>Contrato</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Lista de contratos <strong>normalizados</strong> (cruce GOP ↔ Áreas Asignadas). Un contrato fuera de la lista no es válido.</td></tr>
+      <tr><td><strong>Tipo de contrato</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Tipo de contrato según el AVM (lista desplegable).</td></tr>
+      <tr><td><strong>Campo</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Lista oficial de campos (AVM).</td></tr>
+      <tr><td><strong>¿Pozo existente en AVM ANH?</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">SE MANTIENE · CREACIÓN · MODIFICACIÓN.</td></tr>
+      <tr><td><strong>Pozo formación AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+      <tr><td><strong>Pozo AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+      <tr><td><strong>Formación AVM</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista desplegable tomada del AVM. Si el valor no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 Formaciones y yacimientos (otras fuentes)</h3>
+  <p class="theme-desc">Formaciones y yacimientos según FORMA 9SH y RUTY.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Formación FORMA 9SH</strong></td><td class="type">Texto</td><td class="oblig">—</td><td class="vals">Texto libre.</td></tr>
+      <tr><td><strong>Formación RUTY</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista de formaciones RUTY.</td></tr>
+      <tr><td><strong>Yacimiento RUTY</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista de yacimientos RUTY.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3 Información general del pozo</h3>
+  <p class="theme-desc">Clasificación técnica, identificación (SGC / UWI) y estado operativo del pozo.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tipo de pozo por ángulo</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">H (horizontal) · V (vertical) · D (Desviado).</td></tr>
+      <tr><td><strong>Tipo de pozo por trayectoria</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">ST (Sidetrack) · P (Piloto) · PR (Profundización) · ML (Multilateral) · G (Gemelo) · O (Original).</td></tr>
+      <tr><td><strong>Tipo de pozo (según objetivo)</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">P (Productor) · I (Inyector) · M (Monitor) · D (Disposal) · EST (Estratigráfico).</td></tr>
+      <tr><td><strong>Tipo de terminación</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">CD · LC · LR · GP · CC · OH · O.</td></tr>
+      <tr><td><strong>Sistema de levantamiento</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista de sistemas de levantamiento. Recomendado para pozos productores.</td></tr>
+      <tr><td><strong>Clasificación Lahee final</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">B1 · B3 · C3 · B2C · B2A · B2B · C2A · C2B · C2C · Desarrollo · C1 · Estratigráfico.</td></tr>
+      <tr><td><strong>Nombre pozo FORMA 6CR</strong></td><td class="type">Texto</td><td class="oblig">—</td><td class="vals">Texto libre.</td></tr>
+      <tr><td><strong>Nombre pozo (SGC)</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Nombre oficial del pozo según el registro SGC (lista desplegable). Un nombre fuera del SGC no es válido.</td></tr>
+      <tr><td><strong>UWI (SGC)</strong></td><td class="type">Lista</td><td class="oblig">—</td><td class="vals">Lista desplegable de UWI del cruce SGC. Si no está en la lista, elija <strong>«No aparece»</strong>.</td></tr>
+      <tr><td><strong>UWI fiscalizado</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td class="vals">Se calcula automáticamente. <em>No diligenciar</em> (ver sección 6).</td></tr>
+      <tr><td><strong>Estado del pozo</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Activo · Inactivo · Suspendido Temporalmente (con/sin Plan) · Abandonado Temporalmente (con/sin Plan) · Abandonado Definitivamente.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.4 Ubicación del pozo</h3>
+  <p class="theme-desc">Departamento, municipio, locación-clúster y coordenadas.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Departamento</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Lista oficial DANE. <strong>Selecciónelo primero:</strong> de él depende la lista de municipios.</td></tr>
+      <tr><td><strong>Municipio</strong></td><td class="type">Lista</td><td class="oblig"><span class="badge req">Sí</span></td><td class="vals">Lista <strong>dependiente</strong> del departamento: solo muestra los municipios (DANE) del departamento elegido.</td></tr>
+      <tr><td><strong>Código DANE departamento</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td class="vals">Se deriva del departamento. <em>No diligenciar.</em></td></tr>
+      <tr><td><strong>Código DANE municipio</strong></td><td class="type">Autocalc.</td><td class="oblig">—</td><td class="vals">Se deriva del municipio. <em>No diligenciar.</em></td></tr>
+      <tr><td><strong>Locación-clúster</strong></td><td class="type">Texto</td><td class="oblig">—</td><td class="vals">Nombre de la locación o clúster.</td></tr>
+      <tr><td><strong>Coordenada superficie X (Bogotá)</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Valor numérico (origen Bogotá).</td></tr>
+      <tr><td><strong>Coordenada superficie Y (Bogotá)</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Valor numérico (origen Bogotá).</td></tr>
+      <tr><td><strong>Coordenada superficie X (Nacional)</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Valor numérico (origen Nacional).</td></tr>
+      <tr><td><strong>Coordenada superficie Y (Nacional)</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Valor numérico (origen Nacional).</td></tr>
+      <tr><td><strong>Longitud</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Grados decimales, entre −180 y 180. Formato <code>-gg,gggggg</code>.</td></tr>
+      <tr><td><strong>Latitud</strong></td><td class="type">Coordenada</td><td class="oblig">—</td><td class="vals">Grados decimales, entre −90 y 90. Formato <code>+/-gg,gggggg</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.5 Producción</h3>
+  <p class="theme-desc">Acumulados de producción del pozo.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Días acumulados</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Días acumulados de producción.</td></tr>
+      <tr><td><strong>Petróleo acumulado (BBL)</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Barriles.</td></tr>
+      <tr><td><strong>Agua acumulada (BBL)</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Barriles.</td></tr>
+      <tr><td><strong>Gas acumulado (KPC)</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Kilo pies cúbicos.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.6 Inyección</h3>
+  <p class="theme-desc">Acumulados de inyección del pozo.</p>
+  <table>
+    <thead><tr><th style="width:26%">Columna</th><th style="width:12%">Tipo</th><th style="width:9%">Oblig.</th><th>Cómo diligenciar / valores</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Días acumulados</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Días acumulados de inyección.</td></tr>
+      <tr><td><strong>Agua acumulada (BBL)</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Barriles.</td></tr>
+      <tr><td><strong>Gas acumulado (KPC)</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Kilo pies cúbicos.</td></tr>
+      <tr><td><strong>Otros acumulado</strong></td><td class="type">Numérico</td><td class="oblig">—</td><td class="vals">Otros fluidos acumulados.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="formato"><span class="num">5</span> Requisitos de formato por columna</h2>
+  <p>Para que el formato quede correctamente diligenciado, cada columna debe cumplir su regla de formato:</p>
+  <div class="callout danger">
+    <p><span class="badge fail">Requisitos que no se deben incumplir</span></p>
+    <ul>
+      <li><strong>Campos obligatorios diligenciados:</strong> ¿Pozo existente en AVM?, Operadora, Contrato, Campo, Nombre pozo (SGC), Estado del pozo, Departamento y Municipio.</li>
+      <li><strong>Valores dentro de la lista:</strong> en toda columna de tipo Lista, el valor debe provenir del selector (incluido Departamento contra el catálogo DANE). Para listas grandes, use <strong>«No aparece»</strong> si el valor no está.</li>
+      <li><strong>Campos numéricos:</strong> producción e inyección deben contener solo números.</li>
+      <li><strong>Coordenadas:</strong> X/Y numéricas; longitud entre −180 y 180; latitud entre −90 y 90.</li>
+    </ul>
+  </div>
+  <div class="callout warn">
+    <p><span class="badge warn">Buenas prácticas recomendadas</span></p>
+    <ul>
+      <li>En registros de mantenimiento o modificación (SE MANTIENE / MODIFICACIÓN), diligencie también los atributos AVM asociados (Pozo AVM, Formación AVM, Pozo formación AVM).</li>
+      <li>Diligencie el <strong>sistema de levantamiento</strong> en los pozos productores.</li>
+      <li>Complete bien ubicación, nombre del pozo, clúster y clasificación técnica para que el <strong>UWI fiscalizado</strong> pueda calcularse.</li>
+    </ul>
+  </div>
+
+  <h2 id="uwi"><span class="num">6</span> UWI fiscalizado (autocalculado — no diligenciar)</h2>
+  <p>
+    El <strong>UWI fiscalizado</strong> es el identificador único del pozo. <strong>No se diligencia manualmente:</strong>
+    se calcula conforme al instructivo ANH (abril 2026, metodología PPDM) a partir de los códigos DANE
+    (departamento y municipio), la sigla de operadora/pozo, el número del pozo, el clúster y la clasificación
+    técnica (ángulo, trayectoria, objetivo y terminación).
+  </p>
+  <p>Ejemplo de UWI fiscalizado: <code>50568AMBA0157AM0116HST1P-LR</code></p>
+  <div class="callout tip">
+    <p>Para que el UWI se calcule correctamente, diligencie con cuidado la <strong>ubicación</strong>
+    (departamento y municipio), el <strong>nombre del pozo</strong>, el <strong>clúster</strong> y la
+    <strong>clasificación técnica</strong> (ángulo, trayectoria, objetivo, terminación).</p>
+  </div>
+
+  <h2 id="soporte"><span class="num">7</span> Soporte y contacto</h2>
+  <p>Si durante el diligenciamiento del formato requiere apoyo o tiene dudas, puede contactar a:</p>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="name">Mireya Rubio</div>
+      <div class="mail">mireya.rubio.a@contratistas.anh.gov.co</div>
+    </div>
+    <div class="contact-card">
+      <div class="name">Johan Manuel Redondo</div>
+      <div class="mail">johan.redondo@anh.gov.co</div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Instructivo de diligenciamiento del formato de inventario de pozos — Agencia Nacional de Hidrocarburos (ANH).
+</footer>
+</div>
+</body>
+</html>
