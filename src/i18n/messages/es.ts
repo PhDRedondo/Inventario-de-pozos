@@ -527,6 +527,7 @@ export const es = {
     footerNote:
       "El sistema se entrega en dos implementaciones: el piloto Next.js/SQLite (demostración en Vercel) y el stack institucional Angular · .NET · SQL Server · Entra ID que exige la ANH (MA-02). SQL Server y la notificación SMTP están verificados sobre motores reales; la autenticación Entra queda lista para el tenant de la OTI.",
     instructivoLink: "Ver el instructivo de diligenciamiento del Excel",
+    instructivoPdfLink: "Descargar el instructivo del formato (PDF)",
     operadora: {
       title: "Acerca de VIP",
       subtitle: "Guía para cargar, validar y enviar el inventario de pozos de su operadora.",

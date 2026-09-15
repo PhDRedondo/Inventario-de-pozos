@@ -519,6 +519,7 @@ export const en = {
     footerNote:
       "The system ships as two implementations: the Next.js/SQLite pilot (Vercel demo) and the institutional Angular · .NET · SQL Server · Entra ID stack mandated by the ANH (MA-02). SQL Server and the SMTP notification are verified on real engines; Entra authentication is ready for the OTI tenant.",
     instructivoLink: "Open the Excel filling guide",
+    instructivoPdfLink: "Download the format guide (PDF)",
     operadora: {
       title: "About VIP",
       subtitle: "Guide to upload, validate, and submit your operator's well inventory.",

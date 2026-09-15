@@ -520,6 +520,8 @@ flowchart LR
 Para que la operadora **no tenga que adivinar el formato**, el sistema genera bajo demanda una plantilla Excel lista para diligenciar. Es el mismo archivo que luego se vuelve a cargar: descargar → diligenciar → cargar.
 
 > 📄 **Instructivo de diligenciamiento:** [`public/instructivo-diligenciamiento-excel-vip.html`](public/instructivo-diligenciamiento-excel-vip.html) — guía completa para las operadoras (los 41 atributos por tema, reglas de validación, formato de coordenadas y UWI fiscalizado). La app lo sirve en `/instructivo-diligenciamiento-excel-vip.html` (enlazado desde el modal «Acerca»); ábralo en el navegador o expórtelo a PDF.
+>
+> 📄 **Instructivo del formato (autónomo, PDF):** [`public/instructivo-formato-inventario-pozos.pdf`](public/instructivo-formato-inventario-pozos.pdf) — versión para las operadoras centrada solo en el diligenciamiento del formato Excel (sin el flujo de la app), con la sección de soporte y contacto. Fuente editable en [`public/instructivo-formato-inventario-pozos.html`](public/instructivo-formato-inventario-pozos.html); la app los sirve en `/instructivo-formato-inventario-pozos.pdf` y `/instructivo-formato-inventario-pozos.html` (enlazado desde el modal «Acerca»).
 
 ```mermaid
 sequenceDiagram
@@ -1066,6 +1068,8 @@ inventario-pozos-anh/
 ├── public/
 │   ├── geo/                       # GeoJSON departamentos y municipios
 │   ├── instructivo-diligenciamiento-excel-vip.html  # Instructivo del formato Excel (servido por la app)
+│   ├── instructivo-formato-inventario-pozos.html    # Instructivo autónomo del formato (fuente)
+│   ├── instructivo-formato-inventario-pozos.pdf     # Instructivo autónomo del formato (PDF entregable)
 │   └── anh-logo.*                 # Identidad visual ANH
 ├── scripts/
 │   ├── github-setup.sh
