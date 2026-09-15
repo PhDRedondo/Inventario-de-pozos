@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { EXCEL_SPECIAL_COLUMN_BINDINGS } from "@/lib/attributes";
-import { EXCEL_COLUMN_MAP } from "@/lib/catalogs";
+import { EXCEL_COLUMN_MAP, EXCEL_HEADER_ALIASES } from "@/lib/catalogs";
 import { TEMPLATE_SPECIAL_COLUMN_MAP } from "@/lib/template-columns";
 import { resolveDaneCodes } from "@/lib/db";
 import { requireRole, requireSession } from "@/lib/auth-scope";
@@ -14,7 +14,8 @@ import { validateExcelUpload } from "@/lib/upload-security";
 function parseExcelRow(row: Record<string, unknown>): WellRecord {
   const record: Partial<WellRecord> = {};
 
-  for (const [excelCol, key] of Object.entries(EXCEL_COLUMN_MAP)) {
+  // Encabezados vigentes + alias históricos (los vigentes ganan ante conflicto).
+  for (const [excelCol, key] of Object.entries({ ...EXCEL_HEADER_ALIASES, ...EXCEL_COLUMN_MAP })) {
     const value = row[excelCol];
     if (value !== undefined && value !== null && String(value).trim() !== "") {
       (record as Record<string, string | null>)[key] = sanitizeSpanishText(String(value).trim());

@@ -16,9 +16,9 @@ public static class ExcelColumnMap
     {
         ("POZO EXISTENTE EN AVM ANH?", "pozo_existente_avm"),
         ("OPERADORA", "operadora"),
-        ("CONTRATO SEGÚN AVM ANH", "contrato"),
+        ("CONTRATO ", "contrato"),
         ("TIPO DE CONTRATO", "tipo_contrato"),
-        ("CAMPO AVM", "campo_avm"),
+        ("CAMPO ", "campo_avm"),
         ("POZO FORMACION AVM", "pozo_formacion_avm"),
         ("POZO AVM", "pozo_avm"),
         ("FORMACION AVM", "formacion_avm"),
@@ -44,6 +44,17 @@ public static class ExcelColumnMap
         ("PETRÓLEO ACUMULADO  (BBL)", "prod_petroleo"),
         ("AGUA ACUMULADA (BBL)", "prod_agua"),
         ("GAS ACUMULADO  (KPC)", "prod_gas"),
+    };
+
+    /// <summary>
+    /// Encabezados históricos que el parser sigue reconociendo (compatibilidad hacia
+    /// atrás). No se usan para generar la plantilla —esa usa <see cref="ColumnMap"/>—,
+    /// solo al leer archivos con los nombres anteriores.
+    /// </summary>
+    public static readonly IReadOnlyList<(string Header, string Key)> LegacyAliases = new[]
+    {
+        ("CONTRATO SEGÚN AVM ANH", "contrato"),
+        ("CAMPO AVM", "campo_avm"),
     };
 
     /// <summary>Encabezados especiales del archivo real (coordenadas e inyección).</summary>
@@ -86,6 +97,15 @@ public static class ExcelColumnMap
 
         foreach (var (header, key) in ColumnMap)
         {
+            var value = Get(row, header);
+            if (!string.IsNullOrEmpty(value) && value.Trim().Length > 0)
+                WellFields.Set(well, key, SpanishText.SanitizeSpanishText(value.Trim()));
+        }
+
+        // Alias históricos: solo se aplican si el encabezado vigente no vino en la fila.
+        foreach (var (header, key) in LegacyAliases)
+        {
+            if (!string.IsNullOrEmpty(WellFields.Get(well, key))) continue;
             var value = Get(row, header);
             if (!string.IsNullOrEmpty(value) && value.Trim().Length > 0)
                 WellFields.Set(well, key, SpanishText.SanitizeSpanishText(value.Trim()));

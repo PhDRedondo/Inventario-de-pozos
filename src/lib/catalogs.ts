@@ -105,9 +105,9 @@ export const THEMES: ThemeDefinition[] = [
 export const EXCEL_COLUMN_MAP: Record<string, keyof import("./types").WellRecord> = {
   "POZO EXISTENTE EN AVM ANH?": "pozo_existente_avm",
   OPERADORA: "operadora",
-  "CONTRATO SEGÚN AVM ANH": "contrato",
+  "CONTRATO ": "contrato",
   "TIPO DE CONTRATO": "tipo_contrato",
-  "CAMPO AVM": "campo_avm",
+  "CAMPO ": "campo_avm",
   "POZO FORMACION AVM": "pozo_formacion_avm",
   "POZO AVM": "pozo_avm",
   "FORMACION AVM": "formacion_avm",
@@ -133,4 +133,14 @@ export const EXCEL_COLUMN_MAP: Record<string, keyof import("./types").WellRecord
   "PETRÓLEO ACUMULADO  (BBL)": "prod_petroleo",
   "AGUA ACUMULADA (BBL)": "prod_agua",
   "GAS ACUMULADO  (KPC)": "prod_gas",
+};
+
+/**
+ * Encabezados históricos que el parser de carga sigue reconociendo (compatibilidad
+ * hacia atrás con plantillas y archivos anteriores). No se usan para generar la
+ * plantilla —esa usa los encabezados vigentes de EXCEL_COLUMN_MAP—, solo para leer.
+ */
+export const EXCEL_HEADER_ALIASES: Record<string, keyof import("./types").WellRecord> = {
+  "CONTRATO SEGÚN AVM ANH": "contrato",
+  "CAMPO AVM": "campo_avm",
 };
