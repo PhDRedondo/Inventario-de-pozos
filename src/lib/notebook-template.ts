@@ -90,13 +90,18 @@ export async function buildNotebookTemplate(options: {
   //    «municipios» se omite aquí porque el municipio depende del departamento
   //    (ver paso 1b): se genera una lista por departamento en su lugar.
   const rangeByCatalog = new Map<string, string>();
+  // Encabezado de cada columna de Listas: el nombre del campo tal como aparece en
+  // la hoja INVENTARIO (no la clave interna del catálogo).
+  const headerByCatalog = new Map<string, string>(
+    TEMPLATE_COLUMNS.filter((c) => c.catalogKey).map((c) => [c.catalogKey!, c.header]),
+  );
   let listCol = 1;
   const usedCatalogs = [...new Set(TEMPLATE_COLUMNS.filter((c) => c.catalogKey).map((c) => c.catalogKey!))]
     .filter((c) => c !== "municipios");
   for (const catalogKey of usedCatalogs) {
     const options_ = catalogOptions(catalogKey);
     const colLetter = listas.getColumn(listCol).letter;
-    listas.getCell(1, listCol).value = catalogKey;
+    listas.getCell(1, listCol).value = headerByCatalog.get(catalogKey) ?? catalogKey;
     options_.forEach((opt, i) => {
       listas.getCell(i + 2, listCol).value = opt;
     });

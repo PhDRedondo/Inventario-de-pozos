@@ -39,6 +39,12 @@ public static class NotebookTemplateBuilder
         //    columna «municipios» se omite: el municipio depende del
         //    departamento y se genera una lista por departamento (paso 1b).
         var rangeByCatalog = new Dictionary<string, IXLRange>(StringComparer.Ordinal);
+        // Encabezado de cada columna de Listas: el nombre del campo tal como aparece
+        // en la hoja INVENTARIO (no la clave interna del catálogo).
+        var headerByCatalog = TemplateColumns.All
+            .Where(c => c.CatalogKey is not null)
+            .GroupBy(c => c.CatalogKey!)
+            .ToDictionary(g => g.Key, g => g.First().Header, StringComparer.Ordinal);
         var listCol = 1;
         foreach (var catalogKey in TemplateColumns.All
                      .Where(c => c.CatalogKey is not null)
@@ -47,7 +53,7 @@ public static class NotebookTemplateBuilder
                      .Distinct())
         {
             var opts = catalogOptions.TryGetValue(catalogKey, out var v) ? v : Array.Empty<string>();
-            listas.Cell(1, listCol).Value = catalogKey;
+            listas.Cell(1, listCol).Value = headerByCatalog.TryGetValue(catalogKey, out var h) ? h : catalogKey;
             for (var i = 0; i < opts.Count; i++)
                 listas.Cell(i + 2, listCol).Value = opts[i];
             var lastRow = Math.Max(opts.Count + 1, 2);
