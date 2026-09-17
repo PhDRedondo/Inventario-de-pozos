@@ -63,6 +63,13 @@ También se le conoce por su sigla interna: **VIP — Validador del Inventario d
 - [Desarrollo y convenciones](#desarrollo-y-convenciones)
 - [Acceso demo](#acceso-demo)
 - [Scripts útiles](#scripts-útiles)
+- [Revisión técnica OTI: cumplimiento y brechas a producción](#revisión-técnica-oti-cumplimiento-y-brechas-a-producción)
+  - [Lectura por etapas de la Guía GU-18](#lectura-por-etapas-de-la-guía-gu-18)
+  - [Brechas bloqueantes antes de producción e Internet](#brechas-bloqueantes-antes-de-producción-e-internet)
+  - [Trazabilidad documento por documento](#trazabilidad-documento-por-documento)
+  - [Documentación normalizada pendiente (Handover / MA-02)](#documentación-normalizada-pendiente-handover--ma-02)
+  - [Riesgos de bloqueo y verificaciones mínimas](#riesgos-de-bloqueo-y-verificaciones-mínimas)
+  - [Qué ya está disponible en VIP como base de cierre](#qué-ya-está-disponible-en-vip-como-base-de-cierre)
 - [Guía de puesta en producción ANH](#guía-de-puesta-en-producción-anh)
 - [Limitaciones y próximos pasos](#limitaciones-y-próximos-pasos)
 - [Licencia y uso](#licencia-y-uso)
@@ -1256,6 +1263,122 @@ npm run test:uwi     # Pruebas generación UWI
 
 ---
 
+## Revisión técnica OTI: cumplimiento y brechas a producción
+
+El **25–26 de agosto de 2026** la Oficina de Tecnologías de la Información (OTI)
+emitió una **revisión técnica y documental** del aplicativo VIP
+(`Informe_revision_OTI_documentacion_VIP`, con **61 comentarios** sobre **19
+documentos** del proyecto). Esta sección incorpora y da respuesta a **todos los
+asuntos** allí planteados, contrastándolos con el estado real del código y la
+documentación de este repositorio.
+
+> **Regla de honestidad de esta sección.** Lo que aparece como _Pendiente_,
+> _Por definir con OTI_, _No entregado en el paquete_ o _Estado transitorio_
+> **no está implementado ni verificado**: no se declara cumplimiento donde no
+> existe evidencia. Las decisiones que corresponden a la OTI o al área funcional
+> (identidad de externos, criticidad, RTO/RPO, topología de publicación,
+> dimensionamiento) se dejan explícitamente abiertas.
+
+**Conclusión ejecutiva de la OTI (resumen fiel).** La documentación está bien
+estructurada y cubre buena parte de los entregables de las etapas **6.1 a 6.4**
+de la Guía **ANH-GTIC-GU-18**, pero **no demuestra cumplimiento integral del
+ciclo de vida ni habilita salida a producción o publicación en Internet**. No se
+recibieron las evidencias de la etapa **6.5** (Plan de Pruebas e Informe de
+resultados) ni los formatos de **Handover** de la etapa **6.6** / numeral 12 del
+Manual **ANH-GTIC-MA-02**. Decisión recomendada: **autorizar el avance a mesa
+técnica y al aprovisionamiento del ambiente institucional de pruebas**, pero
+**no considerar el aplicativo “apto para producción”** hasta cerrar las brechas,
+ejecutar las pruebas, remediar hallazgos y completar el Handover.
+
+### Lectura por etapas de la Guía GU-18
+
+| Etapa GU-18 | Evidencia recibida | Evaluación OTI | Observación principal |
+|-------------|--------------------|----------------|-----------------------|
+| **6.1 Planeación** | VIP-SEG-01, VIP-SEG-02 | Parcial | Estructura de requisitos presente; controles y costos/decisiones sin cerrar; **autenticación externa no definida**. |
+| **6.2 Análisis** | VIP-SEG-03, VIP-SEG-04 | Parcial | Matriz y tratamiento bien planteados; la **escala de riesgo debe homologarse** con la metodología institucional; hay riesgos altos/decisiones pendientes. |
+| **6.3 Diseño** | VIP-SEG-05 … VIP-SEG-10 | Parcial | Cobertura documental amplia; varios controles **dependen de OTI** o aún no están implementados/probados. |
+| **6.4 Implementación** | VIP-SEG-11 … VIP-SEG-14 | Parcial / evidencia insuficiente | Faltan evidencias objetivas sobre la versión exacta del código: **SAST, búsqueda de secretos, revisión por pares, inventario/SBOM, licencias y cesión**. |
+| **6.5 Pruebas e Integración** | — | **No cumplido en el paquete** | **Principal brecha para producción.** No se entregó Plan de Pruebas ni Informe de resultados; debe ejecutarse en ambiente institucional. |
+| **6.6 Despliegue** | Manuales y diseños parciales | **No cumplido en el paquete** | No existen aún actas/formatos normalizados, aceptación, control de cambios ni cierre de **Handover**. |
+
+### Brechas bloqueantes antes de producción e Internet
+
+| Brecha | Estado actual en VIP (verificable) | Pendiente (OTI / proyecto) |
+|--------|------------------------------------|----------------------------|
+| **Autenticación e identidad** | El **stack institucional** valida **JWT Bearer contra Entra ID** y **deriva los roles del claim `roles` en el servidor** (políticas ASP.NET; ver [Autenticación y seguridad institucional](#autenticación-y-seguridad-institucional-gu-18)). El **piloto** usa un **login de demostración** con rol seleccionable — **transitorio, no es ruta de producción**. | Definir e implementar el **mecanismo institucional para usuarios externos (operadoras)**; **MFA** para cuentas que modifican; retirar el login local como contingencia en producción; registrar la app en el proveedor institucional y **probar** autorización por rol/organización y denegación por defecto. |
+| **Pruebas de seguridad** | Existen **pruebas funcionales/unitarias**: `dotnet test` **55/55** y `ng test` **20/20**, con estrategia de **paridad** piloto↔institucional. | **No ejecutados:** SAST, DAST, análisis de vulnerabilidades de código/componentes y de la app web, pruebas de **autorización/aislamiento por operadora**, **carga/estrés** y **penetración/ethical hacking** según criticidad. Remediar antes de publicar. |
+| **Ambiente institucional de pruebas** | El backend corre en perfil de desarrollo (EF Core InMemory) y con **datos sintéticos** (sin datos reales). | Desplegar en **pruebas** con arquitectura equivalente a producción; integrar **SQL Server, identidad, correo, certificados** y controles institucionales para verificación. |
+| **Código y repositorio** | Código en repositorio **personal de GitHub** (estado transitorio); secretos fuera del código en el institucional (variables/Key Vault). El piloto conserva una **contraseña de demostración fija** (`Anh2026!`), sólo para el demo. | **Trasladar a repositorio institucional**; identificar **commit/tag/versión** candidata; **retirar cuentas personales**; **búsqueda de secretos** y rotación; verificar dependencias, licencias y soporte de versiones. |
+| **Arquitectura de exposición** | Cabeceras de seguridad (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, HSTS), **CORS restringido** y token Bearer (sin cookies). | Aprobar **topología as-built**: proxy/**WAF** o control perimetral, firewall, **segmentación**, TLS/certificado, **no exposición directa** de backend/BD, reglas de puertos, monitoreo y **hardening**. |
+| **Respaldo y continuidad** | Diseño documentado (VIP-SEG-09/10) y migraciones EF Core versionadas. | Definir **criticidad**, **RTO/RPO**, configurar respaldos y **ejecutar una restauración** en ambiente distinto; probar redundancia/failover/retorno si la criticidad lo exige. |
+| **Handover** | Documentación técnica amplia (este README, manuales VIP-MI/MO/MU, diseños SEG). | Completar **formatos normalizados** (FR-09, FR-02, FR-05, FR-04, FR-06, FR-07, FR-26, FR-14), **Manual del Sistema**, soporte 1.º/2.º/3.º nivel, **diccionario de datos** y **modelo entidad-relación**. |
+
+### Trazabilidad documento por documento
+
+Respuesta a la observación OTI de cada uno de los 19 documentos revisados
+(estado en VIP y acción de cierre). _Ajustar / Parcial / Bloqueante_ reflejan la
+evaluación de la OTI, no una conformidad final.
+
+| Documento | Observación OTI (resumen) | Acción / estado en VIP |
+|-----------|---------------------------|------------------------|
+| **ANH-GTIC-FR-15** (Servicios TIC) | Es una **solicitud** a Mesa de Servicios, no una aceptación ni autorización a producción; completar autorizaciones; referenciar FR-25. | Se tramita como aprovisionamiento/acompañamiento; se referencia FR-25; **las cuentas institucionales se crean sólo tras aprobación en producción**. |
+| **ANH-GTIC-FR-25** (Innovación) | Registrar el entorno externo como **estado transitorio**; precisar la **puerta de control** (pruebas, aceptación, seguridad, control de cambios, Handover). | Se documenta como transitorio; el acceso desde Internet y el ciclo de vida (p. ej. hasta 2027) **quedan por confirmar por la OTI**. |
+| **VIP-MI-01** (Instalación) | Arquitectura/subdominio son **propuesta**; convertir el capítulo de endurecimiento en **checklist ejecutable** con evidencia. | Topología marcada como objetivo; pendiente sustituir subdominio por el **aprobado**, adjuntar **certificado TLS** y evidencia del ambiente institucional. |
+| **VIP-MO-01** (Operación) | Formalizar **umbrales, frecuencias, retención, criticidad, RTO/RPO y responsables**; procedimiento definitivo de cuentas externas. | Pendiente parametrización institucional y **SLA**; el alta local no debe eludir la identidad institucional. |
+| **VIP-MU-01** (Usuario) | **Reemplazar el login de demostración**; el rol **no debe ser elegible** por el usuario; completar canal de soporte real. | En el institucional el rol se **deriva en servidor**; pendiente sustituir capturas de demo y publicar canal/horario de Mesa de Servicios. |
+| **VIP-SEG-01** (Requisitos de seguridad) | **Bloqueante para aceptación:** la matriz reporta **29 parciales, 15 pendientes, 10 dependientes de OTI, 3 por confirmar**; convertir en matriz de cierre con evidencia. | Pendiente cerrar cada requisito obligatorio con **evidencia verificable** y remediar hallazgos altos/críticos. |
+| **VIP-SEG-02** (Herramientas y presupuesto) | Faltan **volumetría, dimensionamiento** y valores/fuentes de provisión. | Pendiente estimar concurrencia/cargues/crecimiento y asignar herramienta, responsable y costo por concepto. |
+| **VIP-SEG-03** (Matriz de riesgos) | Valoración es **propuesta**; homologar con la Guía institucional de riesgos; **clasificar el activo**. | Se conserva la identificación; pendiente homologar probabilidad/impacto/zonas y formalizar clasificación con el propietario del proceso. |
+| **VIP-SEG-04** (Tratamiento de riesgos) | Asignar **responsables/fechas**; **R-17** como puerta de salida obligatoria. | Pendiente responsables nominales/fechas y cerrar decisiones (auth externa, ruta pruebas→producción, criticidad). |
+| **VIP-SEG-05** (Características de seguridad) | Muchos controles **parciales/pendientes**; cerrar **identidad, sesión, auditoría** con evidencia. | Pendiente definir/probar **inactividad, vigencia, revocación y sesiones simultáneas** (reflejar en MU-01/MO-01). |
+| **VIP-SEG-06** (Arquitectura de seguridad) | **Bloqueante para Internet:** falta **as-built**, segmentación, publicación segura, identidad real y **traslado a repositorio institucional**. | Pendiente diagrama del ambiente institucional, evidencia de firewall/segmentación y registro de la app en el proveedor. |
+| **VIP-SEG-07** (Roles y privilegios) | Modelo coherente; **reforzar auditoría** (accesos sensibles, consultas admin, exportaciones, intentos denegados) y **vigencia de cuentas de terceros**. | Existe `audit_log` para ediciones/eliminaciones; **pendiente** ampliar a accesos/consultas/exportaciones/denegados y **expiración automática** de externos. |
+| **VIP-SEG-08** (Validaciones e integridad) | Cerrar **huella/integridad** del archivo, **sincronización horaria** y **pruebas negativas** (archivo manipulado). | Hay validación y saneamiento de carga; **pendiente** huella de integridad, NTP y pruebas negativas (malformado, fórmulas, sobredimensionado, encabezados alterados). |
+| **VIP-SEG-09** (Continuidad y recuperación) | **Criticidad, RTO/RPO y nivel de HA pendientes**; pruebas de restauración/failover no ejecutadas. | Pendiente formalizar criticidad y objetivos, y ejecutar/documentar pruebas de recuperación. |
+| **VIP-SEG-10** (Copias de respaldo) | Plan **diseñado pero sin implantación/prueba** de restauración. | Pendiente configurar respaldo institucional y **probar restauración** en ambiente distinto; integrar al control de cambios. |
+| **VIP-SEG-11** (Código seguro) | **Bloqueante:** faltan **repositorio/commit, SAST, búsqueda de secretos, revisión por pares** e inventario de componentes. | Pendiente identificar versión inmutable y adjuntar informes SAST/secretos/revisión independiente sobre esa versión. |
+| **VIP-SEG-12** (Código y operación) | **Nueve decisiones de despliegue abiertas**; faltan **Manual del Sistema** y formatos de Handover. | Pendiente cerrar parámetros de arquitectura en mesa técnica y consolidar el Manual del Sistema (MA-02 12.2.1.1). |
+| **VIP-SEG-13** (Manejo de excepciones) | Faltan **logs de intentos denegados**, **concurrencia**, **rate limiting/bloqueo** y prueba de excepción **sin fuga de información**. | Pendiente identificador de incidencia, rollback transaccional, mensaje genérico, control de fuerza bruta y prueba de concurrencia. |
+| **VIP-SEG-14** (Licenciamientos) | **Bloqueante para recepción:** faltan **SBOM exacto**, **cesión/derechos** patrimoniales y traslado a repositorio institucional. | Pendiente SBOM de la versión a desplegar (directas+transitivas, licencia, soporte, vulnerabilidades) y acto de cesión a la ANH. |
+
+### Documentación normalizada pendiente (Handover / MA-02)
+
+No entregada en el paquete revisado; requerida antes de la aceptación:
+
+- **Plan de Pruebas** aprobado y trazable a requisitos funcionales/no funcionales.
+- **Informe/acta de ejecución de pruebas** funcionales y técnicas, con evidencias y **aceptación de usuarios funcionales** (segregación de funciones: el desarrollador no ejecuta las pruebas de aceptación).
+- **Informe de seguridad:** SAST, DAST, análisis de vulnerabilidades, penetración/ethical hacking según criticidad, remediaciones y re-pruebas.
+- **Manual del Sistema** formal (MA-02 12.2.1.1) con arquitectura as-built y resumen de pruebas de seguridad — puede consolidarse desde MI-01, SEG-06, SEG-11/12 y los resultados de seguridad.
+- **Manual de Soporte de 1.º nivel** y **protocolo de 2.º/3.º nivel** con SLA y responsables.
+- **Diccionario de datos** y **modelo entidad-relación** (el modelo de datos está descrito en [Modelo de datos](#modelo-de-datos); pendiente formalizarlo como entregable).
+- **Formatos de Handover:** ANH-GTIC-**FR-09** (Acta de Handover), **FR-02** (actualización de versiones), **FR-05** (lista documental), **FR-04** (hoja de vida), **FR-06** (recepción/satisfacción de entrenamiento), **FR-07** (lista de chequeo de base de datos), **FR-26** (entrega de credenciales privilegiadas) y **FR-14** (control de cambios del paso a producción, con plan de reversión y copia previa).
+- **Evidencia de repositorio institucional:** versión final, cesión/derechos, inventario de componentes/licencias y retiro de dependencias de cuentas personales.
+
+### Riesgos de bloqueo y verificaciones mínimas
+
+- **Riesgos que actúan como puerta (gate) para publicar:** **R-03** (autenticación) y **R-17** (salida a producción sin pruebas ni aprobaciones). No se publica en Internet hasta tratarlos y reevaluarlos.
+- **Verificaciones mínimas antes de producción** (bloques exigidos por la OTI): funcionales (unit/integración/sistema/aceptación con trazabilidad y **paridad piloto↔institucional**); autenticación/autorización (login real, MFA, acceso por rol, **aislamiento por operadora**, IDOR/parámetros, sesiones expiradas, revocación, intentos repetidos); entradas y archivos (tipo/tamaño, encabezados alterados, malformados, fórmulas, inyección, validación server-side); código (revisión por pares, SAST, secretos, consultas parametrizadas, dependencias); aplicación desplegada (DAST, cabeceras/TLS/cookies, errores sin fuga, endpoints no documentados); **penetración/ethical hacking** (énfasis en confidencialidad entre operadoras); rendimiento/disponibilidad (carga/estrés, concurrencia); **respaldo/recuperación** (restauración, RTO/RPO, failover); infraestructura (segmentación, firewall, backend/BD no expuestos, TLS, hardening, cuentas de servicio de mínimo privilegio, monitoreo); datos/auditoría (**sin datos reales** en no productivo, protección de logs, **hora sincronizada**, eventos y exportaciones trazables, retención definida).
+
+### Qué ya está disponible en VIP como base de cierre
+
+Elementos **implementados y verificables** en el repositorio que sirven de base
+para cerrar las brechas anteriores (no sustituyen las pruebas ni las evidencias
+que exige la OTI):
+
+- **Dos stacks en paridad** (piloto Next.js/SQLite e institucional Angular · .NET · SQL Server) con **75 pruebas automatizadas** (`dotnet test` 55/55, `ng test` 20/20).
+- **Motor de validación** por pozo (~66 comprobaciones) compartido y verificado por paridad; saneamiento de texto y **seguridad de carga** de Excel.
+- **Autenticación institucional** con **Entra ID + MFA** y **autorización por rol en servidor** (fail-closed) — **pendiente el tenant real** de la OTI.
+- **Registro de auditoría** (`audit_log`) para acciones de edición/eliminación — pendiente ampliar su alcance.
+- **Endurecimiento web** (cabeceras de seguridad, CORS restringido, token Bearer sin cookies) y **notificación SMTP** real.
+- **Migraciones EF Core versionadas** y **datos sintéticos** (sin datos reales).
+- **Modelo de datos, arquitectura y flujos** documentados en este README, base para el **Manual del Sistema**, el **diccionario de datos** y el **modelo ER**.
+
+> Todo lo anterior **requiere ejecutarse y evidenciarse en el ambiente
+> institucional de pruebas** y cerrarse con el Handover para habilitar la salida
+> a producción.
+
+---
+
 ## Guía de puesta en producción ANH
 
 Documento HTML autocontenido para equipos de TI, GOP y seguridad de la ANH:
@@ -1277,7 +1400,9 @@ Incluye:
 
 Las filas marcadas **✅ (institucional)** ya están resueltas en el stack
 Angular · .NET · SQL Server (ver [Migración al stack institucional](#migración-al-stack-institucional-anh-gtic-ma-02));
-lo indicado aplica al **piloto** Next.js/SQLite de este README.
+lo indicado aplica al **piloto** Next.js/SQLite de este README. El detalle de las
+brechas frente a la salida a producción y su estado se documenta en
+[Revisión técnica OTI: cumplimiento y brechas a producción](#revisión-técnica-oti-cumplimiento-y-brechas-a-producción).
 
 | Área | Estado (piloto) | Resuelto en el stack institucional |
 |------|-----------------|------------------------------------|
