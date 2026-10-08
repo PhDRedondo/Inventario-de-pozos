@@ -44,3 +44,6 @@ next-env.d.ts
 # local database
 data/*.db
 data/*.db-*
+
+# Documentos de Handover OTI (no publicar en repo público)
+docs/handover-oti-*/
