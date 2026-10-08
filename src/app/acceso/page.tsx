@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { UserRole } from "@/lib/types";
 import { DEMO_OPERADORA, getDemoCredentials } from "@/lib/demo-auth";
@@ -29,6 +29,34 @@ const ROLES: { id: UserRole; label: string; description: string; howTo: string }
     howTo: "Correo: johan.redondo@anh.gov.co",
   },
 ];
+
+/** PRNG determinista (mulberry32) para estrellas iguales en SSR y cliente. */
+function mulberry32(seed: number) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+type Star = { x: number; y: number; r: number; delay: number; dur: number };
+
+function buildStars(): Star[] {
+  const rnd = mulberry32(73219);
+  const stars: Star[] = [];
+  for (let i = 0; i < 48; i++) {
+    stars.push({
+      x: rnd() * 100,
+      y: rnd() * 56, // franja superior del cielo
+      r: 1 + rnd() * 1.8,
+      delay: rnd() * 3,
+      dur: 2.4 + rnd() * 2.8,
+    });
+  }
+  return stars;
+}
 
 /** Balancín de extracción (pump jack) — animación SVG original. */
 function PumpJack({ es }: { es: boolean }) {
@@ -124,6 +152,7 @@ function AccesoView() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
+  const stars = useMemo(() => buildStars(), []);
 
   // La entrada es oscura por defecto (como la familia); el toggle la cambia.
   function switchMode() {
@@ -219,6 +248,15 @@ function AccesoView() {
       <style>{CSS}</style>
       <div className="vipx-sky" aria-hidden />
       <div className="vipx-sky-dawn" aria-hidden />
+      <div className="vipx-stars" aria-hidden>
+        {stars.map((s, i) => (
+          <span
+            key={i}
+            className="vipx-star"
+            style={{ left: `${s.x}%`, top: `${s.y}%`, width: `${s.r}px`, height: `${s.r}px`, animationDelay: `${s.delay}s`, animationDuration: `${s.dur}s` }}
+          />
+        ))}
+      </div>
       <div className="vipx-grid" aria-hidden />
       <div className="vipx-glow" aria-hidden />
 
@@ -328,6 +366,13 @@ const CSS = `
   background:linear-gradient(to bottom,
     #070b14 0%,#0a1120 24%,#171a30 44%,#3f2730 58%,#7c3f24 70%,#c06a28 79%,#e08a34 84%,#3a1d10 90%,#0b0f12 100%);}
 @keyframes pj-skydawn{0%{opacity:0}45%{opacity:.5}100%{opacity:1}}
+/* Estrellas (titilan de noche y se desvanecen al amanecer) */
+.vipx-stars{position:absolute;inset:0;pointer-events:none;animation:pj-starfade 5.2s ease-out forwards;}
+.vipx-star{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 3px rgba(255,255,255,.8);
+  animation:pj-twinkle 3s ease-in-out infinite;will-change:opacity;}
+.vipx-root[data-mode=light] .vipx-stars{display:none;}
+@keyframes pj-starfade{0%{opacity:.95}50%{opacity:.6}100%{opacity:0}}
+@keyframes pj-twinkle{0%,100%{opacity:.25}50%{opacity:.9}}
 .vipx-root[data-mode=light] .vipx-sky{
   background:linear-gradient(to bottom,#dde6ee 0%,#e8eef3 60%,#eef2f5 100%);}
 .vipx-root[data-mode=light] .vipx-sky-dawn{
@@ -422,7 +467,7 @@ const CSS = `
 .vipx-ftsep{color:var(--muted);}
 .vipx-lang{background:none;border:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;padding:0 1px;}
 .vipx-lang.is-on{color:var(--accent);}
-@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}.pj-sun,.vipx-sky-dawn{animation:none;opacity:1;transform:none;}}
+@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag,.vipx-star{animation:none;}.pj-sun,.vipx-sky-dawn{animation:none;opacity:1;transform:none;}.vipx-stars{animation:none;opacity:0;}}
 @media (max-width:420px){.vipx-card{padding:22px 18px 18px;}}
 `;
 
