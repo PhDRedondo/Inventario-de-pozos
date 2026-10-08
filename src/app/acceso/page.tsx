@@ -217,6 +217,7 @@ function AccesoView() {
   return (
     <div className="vipx-root" data-mode={mode}>
       <style>{CSS}</style>
+      <div className="vipx-sky" aria-hidden />
       <div className="vipx-grid" aria-hidden />
       <div className="vipx-glow" aria-hidden />
 
@@ -317,12 +318,16 @@ const CSS = `
   font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;}
 .vipx-root[data-mode=light]{--bg:#eef2f5;--panel:#ffffff;--line:rgba(16,36,52,.12);--ink:#1a2b3c;--muted:#5a6b7d;
   --field:#f4f7fa;--grid:rgba(16,36,52,.05);--rolebg:rgba(16,36,52,.03);--steel:#2a333b;--steel2:#333d45;--edge:#8795a0;}
+.vipx-sky{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,
+    #070b14 0%,#0a1120 24%,#171a30 44%,#3f2730 58%,#7c3f24 70%,#c06a28 79%,#e08a34 84%,#3a1d10 90%,#0b0f12 100%);}
+.vipx-root[data-mode=light] .vipx-sky{
+  background:linear-gradient(to bottom,#e6edf3 0%,#eef3f7 48%,#ffe6c6 82%,#f6ead9 90%,#eef2f5 100%);}
 .vipx-grid{position:absolute;inset:0;pointer-events:none;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:46px 46px;mask-image:radial-gradient(130% 120% at 50% 40%,#000 55%,transparent 100%);}
 .vipx-glow{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(55% 55% at 82% 8%,rgba(255,140,0,.22),transparent 60%),
-             radial-gradient(60% 50% at 0% 100%,rgba(255,140,0,.06),transparent 60%);}
+  background:radial-gradient(60% 46% at 50% 60%,rgba(255,150,40,.12),transparent 70%);}
 
 /* Obertura */
 .vipx-intro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
