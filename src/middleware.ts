@@ -12,6 +12,7 @@ const PUBLIC_EXACT = new Set([
   "/",
   "/acceso",
   "/login",
+  "/presentacion",
   "/api/auth/login",
   "/api/auth/config",
   "/api/catalogs",

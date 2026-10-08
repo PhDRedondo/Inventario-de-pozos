@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [docsOpen, setDocsOpen] = useState(false);
 
-  const isPublicShell = pathname === "/acceso" || pathname === "/login" || pathname === "/";
+  const isPublicShell = pathname === "/acceso" || pathname === "/login" || pathname === "/" || pathname === "/presentacion";
   const role = user?.role;
   const navItems = (role ? getNavItemsForRole(role) : []).map(({ href, key, shortKey, icon, tourId }) => ({
     href,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { UserRole } from "@/lib/types";
 import { DEMO_OPERADORA, getDemoCredentials } from "@/lib/demo-auth";
@@ -30,47 +30,63 @@ const ROLES: { id: UserRole; label: string; description: string; howTo: string }
   },
 ];
 
-/** Fuentes de referencia contra las que VIP valida cada pozo (tema de la obertura). */
-const SOURCES = [
-  { key: "AVM", color: "#ff9f45" },
-  { key: "SGC", color: "#4ec9b0" },
-  { key: "DANE", color: "#8b8fe0" },
-] as const;
+/** Balancín de extracción (pump jack) — animación SVG original. */
+function PumpJack({ es }: { es: boolean }) {
+  return (
+    <svg className="vipx-svg" viewBox="0 0 1080 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label={es ? "Balancín de extracción de petróleo" : "Oil pump jack"}>
+      {/* Cerros/derricks lejanos para profundidad */}
+      <g className="pj-far">
+        <path d="M120 470 l34 -46 34 46 Z" />
+        <path d="M190 470 l26 -34 26 34 Z" />
+        <path d="M910 470 l40 -54 40 54 Z" />
+        <path d="M968 470 l28 -38 28 38 Z" />
+      </g>
 
-/** PRNG determinista (mulberry32) para que SSR y cliente generen los mismos puntos. */
-function mulberry32(seed: number) {
-  return function () {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
+      {/* Suelo */}
+      <line className="pj-ground" x1="80" y1="470" x2="1000" y2="470" />
+      <rect className="pj-skid" x="300" y="454" width="470" height="16" rx="3" />
+
+      {/* Base del motor + caja de engranajes */}
+      <rect className="pj-steel" x="752" y="372" width="76" height="82" rx="5" />
+      <rect className="pj-steel2" x="690" y="420" width="56" height="34" rx="5" />
+
+      {/* Poste maestro (A-frame) */}
+      <path className="pj-strut" d="M553 250 L500 454 M553 250 L606 454 M525 362 L581 362" />
+
+      {/* Contrapeso + manivela (gira) */}
+      <circle className="pj-hub" cx="790" cy="380" r="9" />
+      <g className="pj-crank">
+        <rect className="pj-arm" x="782" y="332" width="16" height="96" rx="8" />
+        <circle className="pj-weight" cx="790" cy="332" r="22" />
+        <circle className="pj-weight" cx="790" cy="428" r="22" />
+        <circle className="pj-pin" cx="790" cy="332" r="5.5" />
+      </g>
+
+      {/* Boca de pozo + varilla pulida (bombea) */}
+      <rect className="pj-steel" x="286" y="430" width="28" height="34" rx="2" />
+      <g className="pj-rod">
+        <rect className="pj-bar" x="284" y="344" width="32" height="9" rx="2" />
+        <rect className="pj-polish" x="296" y="348" width="8" height="104" rx="3" />
+        <path className="pj-bridle" d="M292 322 L300 348 M308 322 L300 348" />
+      </g>
+      <circle className="pj-drip" cx="300" cy="458" r="3.4" />
+
+      {/* Viga viajera (cabecea) con cabeza de caballo y biela */}
+      <g className="pj-beam">
+        <rect className="pj-steel" x="300" y="243" width="508" height="14" rx="7" />
+        <path className="pj-head" d="M336 243 L300 243 A38 38 0 0 0 286 300 A46 46 0 0 0 318 324 L326 312 A40 40 0 0 1 300 258 L336 258 Z" />
+        <line className="pj-pitman" x1="796" y1="252" x2="790" y2="350" />
+      </g>
+
+      {/* Texto */}
+      <text className="vipx-tag" x="540" y="520" textAnchor="middle">
+        {es ? "Inventario nacional de pozos · validación y UWI fiscalizado" : "National well inventory · validation & official UWI"}
+      </text>
+    </svg>
+  );
 }
 
-type Dot = { cx: number; cy: number; r: number; color: string; delay: number };
-
-function buildDots(): Dot[] {
-  const rnd = mulberry32(20260408);
-  const axisY = [168, 280, 392];
-  const dots: Dot[] = [];
-  SOURCES.forEach((src, si) => {
-    const count = 17;
-    for (let i = 0; i < count; i++) {
-      const t = i / (count - 1);
-      const cx = 150 + t * 780 + (rnd() - 0.5) * 26;
-      const cy = axisY[si] + (rnd() - 0.5) * 52;
-      const r = 3.2 + rnd() * 3.2;
-      const delay = 0.55 + si * 0.12 + t * 1.5 + rnd() * 0.25;
-      dots.push({ cx, cy, r, color: src.color, delay });
-    }
-  });
-  return dots;
-}
-
-const AXIS_Y = [168, 280, 392];
-
-function LoginView() {
+function AccesoView() {
   const { setTheme, setLocale, locale } = useAppPreferences();
   const { refresh } = useAuth();
   const router = useRouter();
@@ -89,8 +105,6 @@ function LoginView() {
   const [loading, setLoading] = useState(false);
   const audioRef = useRef<AudioContext | null>(null);
 
-  const dots = useMemo(() => buildDots(), []);
-
   // La entrada es oscura por defecto (como la familia); el toggle la cambia.
   function switchMode() {
     const nextMode = mode === "dark" ? "light" : "dark";
@@ -101,7 +115,7 @@ function LoginView() {
   // Respeta reduce-motion (delay 0) y agenda el fin de la obertura.
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const t = setTimeout(() => setPhase("form"), reduce ? 0 : 3900);
+    const t = setTimeout(() => setPhase("form"), reduce ? 0 : 5200);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setPhase("form");
     };
@@ -186,35 +200,9 @@ function LoginView() {
       <div className="vipx-grid" aria-hidden />
       <div className="vipx-glow" aria-hidden />
 
-      {/* ---------------- Obertura ---------------- */}
+      {/* ---------------- Obertura: balancín de extracción ---------------- */}
       <div className={`vipx-intro ${phase === "form" ? "is-done" : ""}`} aria-hidden={phase === "form"}>
-        <svg className="vipx-svg" viewBox="0 0 1080 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Validación del inventario de pozos">
-          {SOURCES.map((s, i) => (
-            <g key={s.key}>
-              <text className="vipx-axislbl" x="120" y={AXIS_Y[i] + 4} style={{ fill: s.color }}>
-                {s.key}
-              </text>
-              <line className="vipx-axis" x1="150" y1={AXIS_Y[i]} x2="930" y2={AXIS_Y[i]} style={{ stroke: s.color, animationDelay: `${0.15 + i * 0.12}s` }} />
-            </g>
-          ))}
-          {dots.map((d, i) => (
-            <circle
-              key={i}
-              className="vipx-dot"
-              cx={d.cx}
-              cy={d.cy}
-              r={d.r}
-              style={{ fill: d.color, animationDelay: `${d.delay}s`, ["--o" as string]: 0.9 }}
-            />
-          ))}
-          <text className="vipx-tag" x="150" y="470">
-            {es ? "Validando inventario contra catálogos oficiales…" : "Validating inventory against official catalogs…"}
-          </text>
-          <text className="vipx-uwi" x="930" y="470" textAnchor="end">
-            UWI · AVM · SGC · DANE
-          </text>
-        </svg>
-
+        <PumpJack es={es} />
         <div className="vipx-intro-ui">
           <button type="button" className="vipx-sound" onClick={() => { setSoundOn((v) => !v); if (!soundOn) playSignature(); }} aria-label={soundOn ? "Silenciar" : "Activar sonido"} title={soundOn ? "Silenciar" : "Activar sonido"}>
             {soundOn ? "🔊" : "🔇"}
@@ -284,7 +272,7 @@ function LoginView() {
           <hr className="vipx-sep" />
 
           <div className="vipx-footer">
-            <Link href="/" className="vipx-link">← {es ? "Inicio" : "Home"}</Link>
+            <Link href="/presentacion" className="vipx-link">{es ? "Conocer el sistema" : "About the system"}</Link>
             <div className="vipx-footer-right">
               <button type="button" className="vipx-ftbtn" onClick={switchMode}>
                 {mode === "dark" ? (es ? "Modo claro" : "Light mode") : (es ? "Modo oscuro" : "Dark mode")}
@@ -304,31 +292,52 @@ const CSS = `
 .vipx-root{position:fixed;inset:0;overflow:hidden;
   --bg:#0b0f12;--panel:rgba(22,33,37,.92);--line:rgba(255,255,255,.10);--ink:#e8eef1;--muted:#9fb0b8;
   --accent:#ff8c00;--accent-ink:#1a1a1a;--field:rgba(14,21,24,.75);--grid:rgba(255,255,255,.035);--rolebg:rgba(255,255,255,.04);
+  --steel:#1b232a;--steel2:#232d35;--edge:#55636d;
   background:var(--bg);color:var(--ink);
   font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;}
-.vipx-root[data-mode=light]{--bg:#f3f6f8;--panel:#ffffff;--line:rgba(16,36,52,.12);--ink:#1a2b3c;--muted:#5a6b7d;
-  --field:#f4f7fa;--grid:rgba(16,36,52,.05);--rolebg:rgba(16,36,52,.03);}
+.vipx-root[data-mode=light]{--bg:#eef2f5;--panel:#ffffff;--line:rgba(16,36,52,.12);--ink:#1a2b3c;--muted:#5a6b7d;
+  --field:#f4f7fa;--grid:rgba(16,36,52,.05);--rolebg:rgba(16,36,52,.03);--steel:#2a333b;--steel2:#333d45;--edge:#8795a0;}
 .vipx-grid{position:absolute;inset:0;pointer-events:none;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
   background-size:46px 46px;mask-image:radial-gradient(130% 120% at 50% 40%,#000 55%,transparent 100%);}
 .vipx-glow{position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(60% 50% at 100% 0%,rgba(255,140,0,.16),transparent 60%),
-             radial-gradient(50% 40% at 0% 100%,rgba(78,201,176,.08),transparent 60%);}
+  background:radial-gradient(55% 55% at 82% 8%,rgba(255,140,0,.22),transparent 60%),
+             radial-gradient(60% 50% at 0% 100%,rgba(255,140,0,.06),transparent 60%);}
 
 /* Obertura */
 .vipx-intro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .7s ease;z-index:3;}
 .vipx-intro.is-done{opacity:0;pointer-events:none;}
-.vipx-svg{width:min(92vw,1080px);height:auto;}
-.vipx-axis{stroke-width:1.4;opacity:.5;stroke-dasharray:820;stroke-dashoffset:820;
-  animation:vipx-draw 1.1s ease forwards;}
-.vipx-axislbl{font-size:16px;font-weight:800;letter-spacing:.14em;opacity:0;animation:vipx-fade .6s ease forwards;}
-.vipx-dot{opacity:0;transform-box:fill-box;transform-origin:center;animation:vipx-pop .55s cubic-bezier(.2,.8,.3,1) forwards;}
-.vipx-tag{fill:var(--muted);font-size:15px;opacity:0;animation:vipx-fade .8s ease forwards;animation-delay:2.1s;}
-.vipx-uwi{fill:var(--accent);font-size:13px;font-weight:700;letter-spacing:.16em;opacity:0;animation:vipx-fade .8s ease forwards;animation-delay:2.4s;}
-@keyframes vipx-draw{to{stroke-dashoffset:0}}
+.vipx-svg{width:min(94vw,1080px);height:auto;}
+
+/* Balancín */
+.pj-ground{stroke:var(--edge);stroke-width:1.2;opacity:.5;}
+.pj-far{fill:var(--edge);opacity:.14;}
+.pj-skid,.pj-steel{fill:var(--steel);stroke:var(--edge);stroke-width:1.2;}
+.pj-steel2{fill:var(--steel2);stroke:var(--edge);stroke-width:1.2;}
+.pj-strut{stroke:var(--edge);stroke-width:7;stroke-linecap:round;fill:none;}
+.pj-head{fill:var(--steel);stroke:var(--accent);stroke-width:2;}
+.pj-pitman{stroke:var(--edge);stroke-width:7;stroke-linecap:round;}
+.pj-arm{fill:var(--steel2);stroke:var(--edge);stroke-width:1.2;}
+.pj-weight{fill:var(--accent);stroke:#1a1a1a;stroke-width:1.5;}
+.pj-pin{fill:#1a1a1a;}
+.pj-hub{fill:var(--edge);}
+.pj-bar{fill:var(--edge);}
+.pj-polish{fill:var(--accent);}
+.pj-bridle{stroke:var(--edge);stroke-width:2.2;}
+.pj-drip{fill:var(--accent);opacity:0;animation:pj-drip 3.4s ease-in infinite;animation-delay:1.1s;}
+
+.pj-beam{transform-box:view-box;transform-origin:553px 250px;animation:pj-rock 3.4s ease-in-out infinite;}
+.pj-crank{transform-box:view-box;transform-origin:790px 380px;animation:pj-spin 3.4s linear infinite;}
+.pj-rod{animation:pj-bob 3.4s ease-in-out infinite;}
+@keyframes pj-rock{0%,100%{transform:rotate(-5.5deg)}50%{transform:rotate(5.5deg)}}
+@keyframes pj-spin{to{transform:rotate(360deg)}}
+@keyframes pj-bob{0%,100%{transform:translateY(16px)}50%{transform:translateY(-12px)}}
+@keyframes pj-drip{0%{opacity:0;transform:translateY(0)}6%{opacity:.9}100%{opacity:0;transform:translateY(70px)}}
+
+.vipx-tag{fill:var(--muted);font-size:15px;letter-spacing:.02em;opacity:0;animation:vipx-fade 1s ease forwards;animation-delay:.8s;}
 @keyframes vipx-fade{to{opacity:.85}}
-@keyframes vipx-pop{0%{opacity:0;transform:translateY(10px) scale(.3)}60%{opacity:var(--o)}100%{opacity:var(--o);transform:none}}
+
 .vipx-intro-ui{position:absolute;right:26px;bottom:24px;display:flex;gap:10px;align-items:center;}
 .vipx-sound{width:40px;height:40px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);
   font-size:15px;cursor:pointer;backdrop-filter:blur(8px);}
@@ -374,13 +383,14 @@ const CSS = `
 .vipx-ftsep{color:var(--muted);}
 .vipx-lang{background:none;border:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;padding:0 1px;}
 .vipx-lang.is-on{color:var(--accent);}
+@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}}
 @media (max-width:420px){.vipx-card{padding:22px 18px 18px;}}
 `;
 
 export default function AccesoPage() {
   return (
     <Suspense fallback={<div style={{ position: "fixed", inset: 0, background: "#0b0f12" }} />}>
-      <LoginView />
+      <AccesoView />
     </Suspense>
   );
 }
