@@ -33,7 +33,27 @@ const ROLES: { id: UserRole; label: string; description: string; howTo: string }
 /** Balancín de extracción (pump jack) — animación SVG original. */
 function PumpJack({ es }: { es: boolean }) {
   return (
-    <svg className="vipx-svg" viewBox="0 0 1080 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label={es ? "Balancín de extracción de petróleo" : "Oil pump jack"}>
+    <svg className="vipx-svg" viewBox="0 0 1080 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label={es ? "Balancín de extracción de petróleo al amanecer" : "Oil pump jack at sunrise"}>
+      <defs>
+        <radialGradient id="pjSun" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#fff7da" />
+          <stop offset="38%" stopColor="#ffcf6b" />
+          <stop offset="72%" stopColor="#ff8c00" />
+          <stop offset="100%" stopColor="#ff8c00" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="pjHalo" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#ff8c00" stopOpacity="0.34" />
+          <stop offset="100%" stopColor="#ff8c00" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Sol naciente (detrás de todo) */}
+      <g className="pj-sun">
+        <circle cx="540" cy="332" r="215" fill="url(#pjHalo)" />
+        <circle cx="540" cy="332" r="96" fill="url(#pjSun)" />
+        <line className="pj-sunline" x1="150" y1="470" x2="930" y2="470" />
+      </g>
+
       {/* Cerros/derricks lejanos para profundidad */}
       <g className="pj-far">
         <path d="M120 470 l34 -46 34 46 Z" />
@@ -335,6 +355,11 @@ const CSS = `
 @keyframes pj-bob{0%,100%{transform:translateY(16px)}50%{transform:translateY(-12px)}}
 @keyframes pj-drip{0%{opacity:0;transform:translateY(0)}6%{opacity:.9}100%{opacity:0;transform:translateY(70px)}}
 
+/* Sol naciente */
+.pj-sun{opacity:0;animation:pj-sunrise 5.2s ease-out forwards;}
+.pj-sunline{stroke:#ff8c00;stroke-width:2;opacity:.22;}
+@keyframes pj-sunrise{0%{opacity:0;transform:translateY(165px)}40%{opacity:.65}100%{opacity:1;transform:translateY(0)}}
+
 .vipx-tag{fill:var(--muted);font-size:15px;letter-spacing:.02em;opacity:0;animation:vipx-fade 1s ease forwards;animation-delay:.8s;}
 @keyframes vipx-fade{to{opacity:.85}}
 
@@ -383,7 +408,7 @@ const CSS = `
 .vipx-ftsep{color:var(--muted);}
 .vipx-lang{background:none;border:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;padding:0 1px;}
 .vipx-lang.is-on{color:var(--accent);}
-@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}}
+@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}.pj-sun{animation:none;opacity:1;transform:none;}}
 @media (max-width:420px){.vipx-card{padding:22px 18px 18px;}}
 `;
 
