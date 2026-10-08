@@ -218,6 +218,7 @@ function AccesoView() {
     <div className="vipx-root" data-mode={mode}>
       <style>{CSS}</style>
       <div className="vipx-sky" aria-hidden />
+      <div className="vipx-sky-dawn" aria-hidden />
       <div className="vipx-grid" aria-hidden />
       <div className="vipx-glow" aria-hidden />
 
@@ -318,10 +319,18 @@ const CSS = `
   font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;}
 .vipx-root[data-mode=light]{--bg:#eef2f5;--panel:#ffffff;--line:rgba(16,36,52,.12);--ink:#1a2b3c;--muted:#5a6b7d;
   --field:#f4f7fa;--grid:rgba(16,36,52,.05);--rolebg:rgba(16,36,52,.03);--steel:#2a333b;--steel2:#333d45;--edge:#8795a0;}
-.vipx-sky{position:absolute;inset:0;pointer-events:none;
+.vipx-sky,.vipx-sky-dawn{position:absolute;inset:0;pointer-events:none;}
+/* Cielo nocturno (base, antes del amanecer) */
+.vipx-sky{background:linear-gradient(to bottom,
+  #04060d 0%,#06080f 34%,#090b17 58%,#0c0e1c 78%,#0b0e16 90%,#090c11 100%);}
+/* Cielo de amanecer: se funde encima a medida que sale el sol */
+.vipx-sky-dawn{opacity:0;animation:pj-skydawn 5.2s ease-out forwards;
   background:linear-gradient(to bottom,
     #070b14 0%,#0a1120 24%,#171a30 44%,#3f2730 58%,#7c3f24 70%,#c06a28 79%,#e08a34 84%,#3a1d10 90%,#0b0f12 100%);}
+@keyframes pj-skydawn{0%{opacity:0}45%{opacity:.5}100%{opacity:1}}
 .vipx-root[data-mode=light] .vipx-sky{
+  background:linear-gradient(to bottom,#dde6ee 0%,#e8eef3 60%,#eef2f5 100%);}
+.vipx-root[data-mode=light] .vipx-sky-dawn{
   background:linear-gradient(to bottom,#e6edf3 0%,#eef3f7 48%,#ffe6c6 82%,#f6ead9 90%,#eef2f5 100%);}
 .vipx-grid{position:absolute;inset:0;pointer-events:none;
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
@@ -413,7 +422,7 @@ const CSS = `
 .vipx-ftsep{color:var(--muted);}
 .vipx-lang{background:none;border:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;padding:0 1px;}
 .vipx-lang.is-on{color:var(--accent);}
-@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}.pj-sun{animation:none;opacity:1;transform:none;}}
+@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag{animation:none;}.pj-sun,.vipx-sky-dawn{animation:none;opacity:1;transform:none;}}
 @media (max-width:420px){.vipx-card{padding:22px 18px 18px;}}
 `;
 
