@@ -257,6 +257,7 @@ function AccesoView() {
           />
         ))}
       </div>
+      <div className="vipx-shoot" aria-hidden />
       <div className="vipx-grid" aria-hidden />
       <div className="vipx-glow" aria-hidden />
 
@@ -373,6 +374,17 @@ const CSS = `
 .vipx-root[data-mode=light] .vipx-stars{display:none;}
 @keyframes pj-starfade{0%{opacity:.95}50%{opacity:.6}100%{opacity:0}}
 @keyframes pj-twinkle{0%,100%{opacity:.25}50%{opacity:.9}}
+/* Estrella fugaz */
+.vipx-shoot{position:absolute;top:9%;left:12%;width:150px;height:2.5px;border-radius:3px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,236,208,.85) 78%,#fff 100%);
+  box-shadow:0 0 10px 2px rgba(255,240,214,.75);opacity:0;transform:translate(-80px,-40px) rotate(24deg);
+  animation:pj-shoot 1.5s cubic-bezier(.45,0,.55,1) 1.2s 1 forwards;}
+.vipx-root[data-mode=light] .vipx-shoot{display:none;}
+@keyframes pj-shoot{
+  0%{opacity:0;transform:translate(-80px,-40px) rotate(24deg) scaleX(.4);}
+  10%{opacity:1;}
+  72%{opacity:1;}
+  100%{opacity:0;transform:translate(640px,250px) rotate(24deg) scaleX(1);}}
 .vipx-root[data-mode=light] .vipx-sky{
   background:linear-gradient(to bottom,#dde6ee 0%,#e8eef3 60%,#eef2f5 100%);}
 .vipx-root[data-mode=light] .vipx-sky-dawn{
@@ -467,7 +479,7 @@ const CSS = `
 .vipx-ftsep{color:var(--muted);}
 .vipx-lang{background:none;border:none;color:var(--muted);font-weight:700;font-size:12.5px;cursor:pointer;padding:0 1px;}
 .vipx-lang.is-on{color:var(--accent);}
-@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag,.vipx-star{animation:none;}.pj-sun,.vipx-sky-dawn{animation:none;opacity:1;transform:none;}.vipx-stars{animation:none;opacity:0;}}
+@media (prefers-reduced-motion: reduce){.pj-beam,.pj-crank,.pj-rod,.pj-drip,.vipx-tag,.vipx-star{animation:none;}.pj-sun,.vipx-sky-dawn{animation:none;opacity:1;transform:none;}.vipx-stars,.vipx-shoot{animation:none;opacity:0;}}
 @media (max-width:420px){.vipx-card{padding:22px 18px 18px;}}
 `;
 
