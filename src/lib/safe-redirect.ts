@@ -4,6 +4,6 @@ export function sanitizeNextPath(next: string | null | undefined): string {
   const trimmed = next.trim();
   if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return "/panel";
   if (trimmed.includes("://") || trimmed.includes("\\")) return "/panel";
-  if (trimmed.startsWith("/login") || trimmed.startsWith("/api/")) return "/panel";
+  if (trimmed.startsWith("/acceso") || trimmed.startsWith("/login") || trimmed.startsWith("/api/")) return "/panel";
   return trimmed.slice(0, 200);
 }

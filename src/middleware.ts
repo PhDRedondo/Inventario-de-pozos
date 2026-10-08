@@ -10,6 +10,7 @@ import {
 
 const PUBLIC_EXACT = new Set([
   "/",
+  "/acceso",
   "/login",
   "/api/auth/login",
   "/api/auth/config",
@@ -78,8 +79,8 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
+    const loginUrl = new URL("/acceso", request.url);
+    loginUrl.searchParams.set("volver", pathname);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -41,7 +41,7 @@ export function LandingRoles() {
       }
       return getNavItemsForRole(user.role)[0]?.href ?? "/panel";
     }
-    return `/login?role=${role}`;
+    return `/acceso?role=${role}`;
   }
 
   return (

@@ -28,7 +28,7 @@ export default function LandingPage() {
   const t = useT();
   const { user } = useAuth();
   const [landingStats, setLandingStats] = useState<LandingStats | null>(null);
-  const homeHref = user ? (getNavItemsForRole(user.role)[0]?.href ?? "/panel") : "/login";
+  const homeHref = user ? (getNavItemsForRole(user.role)[0]?.href ?? "/panel") : "/acceso";
 
   useEffect(() => {
     fetch("/api/public/landing-stats")
