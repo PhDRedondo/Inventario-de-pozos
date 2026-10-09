@@ -57,7 +57,7 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
   useEffect(() => clearTimer, []);
 
   const itemBase = "anh-sidebar-link group relative flex rounded-xl transition";
-  const itemLayout = expanded ? "items-center gap-3 px-3 py-2.5" : "flex-col items-center gap-1 px-1 py-2 sm:py-2.5";
+  const itemLayout = expanded ? "items-center gap-3 px-3 py-2.5" : "items-center justify-center px-1 py-2.5 sm:py-3";
 
   return (
     <aside
@@ -78,35 +78,35 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
             className="h-9 w-9 shrink-0 rounded-full bg-white/95 object-contain p-1 shadow-sm ring-1 ring-white/10 transition group-hover:ring-anh-secondary/60 sm:h-10 sm:w-10"
             priority
           />
-          {expanded ? (
+          {expanded && (
             <span className="flex min-w-0 flex-col leading-tight">
               <span className="text-sm font-extrabold tracking-wide text-anh-sidebar-text-active">ANH · VIP</span>
               <span className="truncate text-[11px] text-anh-sidebar-text">Inventario de Pozos</span>
             </span>
-          ) : (
-            <span className="text-center text-[9px] font-extrabold uppercase leading-tight tracking-wide text-anh-sidebar-text">ANH</span>
           )}
         </Link>
         {brand && (
-          <div className={`flex items-center ${expanded ? "gap-2" : "mt-2 flex-col gap-1"}`} title={brand.shortName}>
+          <div className={`flex items-center ${expanded ? "gap-2" : "mt-2 flex-col justify-center"}`} title={brand.shortName}>
             <div className="rounded-xl p-0.5" style={{ background: brand.gradient }}>
               <div className="rounded-[10px] bg-anh-sidebar-bg px-1 py-1">
                 <OperatorBadge brand={brand} size="sm" />
               </div>
             </div>
-            <span
-              className={`truncate font-bold leading-tight ${expanded ? "min-w-0 flex-1 text-left text-[11px]" : "max-w-[4.5rem] text-center text-[8px]"}`}
-              style={{ color: brand.secondary }}
-              title={brand.shortName}
-            >
-              {expanded ? brand.shortName : brand.shortName.split(/\s+/)[0]}
-            </span>
+            {expanded && (
+              <span
+                className="min-w-0 flex-1 truncate text-left text-[11px] font-bold leading-tight"
+                style={{ color: brand.secondary }}
+                title={brand.shortName}
+              >
+                {brand.shortName}
+              </span>
+            )}
           </div>
         )}
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5 px-2 py-3 sm:gap-1 sm:py-4" data-tour="app-nav">
-        {items.map(({ href, shortLabel, icon: Icon, tourId, label }) => {
+        {items.map(({ href, icon: Icon, tourId, label }) => {
           const active = pathname === href;
           return (
             <Link
@@ -124,13 +124,15 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
                 }`}
                 strokeWidth={active ? 2.25 : 2}
               />
-              <span
-                className={`truncate leading-tight ${
-                  expanded ? "min-w-0 flex-1 text-left text-[13px] font-semibold" : "max-w-full text-center text-[9px] font-bold sm:text-[10px]"
-                } ${active ? "text-anh-sidebar-text-active" : "text-anh-sidebar-text group-hover:text-anh-sidebar-text-active"}`}
-              >
-                {expanded ? label : shortLabel}
-              </span>
+              {expanded && (
+                <span
+                  className={`min-w-0 flex-1 truncate text-left text-[13px] font-semibold leading-tight ${
+                    active ? "text-anh-sidebar-text-active" : "text-anh-sidebar-text group-hover:text-anh-sidebar-text-active"
+                  }`}
+                >
+                  {label}
+                </span>
+              )}
             </Link>
           );
         })}
@@ -144,9 +146,11 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
           title={t("shell.guidedTour")}
         >
           <Compass className="h-[1.15rem] w-[1.15rem] shrink-0 text-anh-sidebar-icon transition group-hover:text-anh-sidebar-accent sm:h-5 sm:w-5" />
-          <span className={`truncate leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active ${expanded ? "min-w-0 flex-1 text-left text-[13px] font-semibold" : "text-center text-[9px] font-bold sm:text-[10px]"}`}>
-            {expanded ? t("shell.guidedTour") : t("nav.tourShort")}
-          </span>
+          {expanded && (
+            <span className="min-w-0 flex-1 truncate text-left text-[13px] font-semibold leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active">
+              {t("shell.guidedTour")}
+            </span>
+          )}
         </button>
         <button
           type="button"
@@ -155,9 +159,11 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
           title={docsTitle}
         >
           <BookOpen className="h-[1.15rem] w-[1.15rem] shrink-0 text-anh-sidebar-icon transition group-hover:text-anh-sidebar-accent sm:h-5 sm:w-5" />
-          <span className={`truncate leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active ${expanded ? "min-w-0 flex-1 text-left text-[13px] font-semibold" : "text-center text-[9px] font-bold sm:text-[10px]"}`}>
-            {expanded ? docsTitle : t("nav.docsShort")}
-          </span>
+          {expanded && (
+            <span className="min-w-0 flex-1 truncate text-left text-[13px] font-semibold leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active">
+              {docsTitle}
+            </span>
+          )}
         </button>
         <button
           type="button"
@@ -166,9 +172,11 @@ export function AppSidebar({ items, brand, onTour, onDocs, onLogout }: AppSideba
           title={t("auth.logout")}
         >
           <LogOut className="h-[1.15rem] w-[1.15rem] shrink-0 text-anh-sidebar-icon transition group-hover:text-anh-red sm:h-5 sm:w-5" />
-          <span className={`truncate leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active ${expanded ? "min-w-0 flex-1 text-left text-[13px] font-semibold" : "text-center text-[9px] font-bold sm:text-[10px]"}`}>
-            {expanded ? t("auth.logout") : t("nav.logoutShort")}
-          </span>
+          {expanded && (
+            <span className="min-w-0 flex-1 truncate text-left text-[13px] font-semibold leading-tight text-anh-sidebar-text group-hover:text-anh-sidebar-text-active">
+              {t("auth.logout")}
+            </span>
+          )}
         </button>
       </div>
     </aside>
