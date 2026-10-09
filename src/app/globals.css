@@ -958,3 +958,8 @@ html[data-operator-brand] .anh-sidebar-link--active svg {
     transform: translateY(0) scale(1);
   }
 }
+
+/* El sidebar se despliega al permanecer el cursor; sin animacion si se pide reduce-motion */
+@media (prefers-reduced-motion: reduce) {
+  .anh-sidebar { transition: none !important; }
+}
